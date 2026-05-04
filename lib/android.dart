@@ -392,6 +392,46 @@ Future<void> _saveNewImages(
   await newFile.writeAsBytes(encodePng(newImage));
 }
 
+/// Copies the largest generated mipmap (`mipmap-xxxhdpi/<icon>.png`) into
+/// the same flavor's `drawable/` folder under the same filename.
+///
+/// Idempotent: if the source file does not exist (Android generation was
+/// skipped or failed earlier) this is a no-op. The destination folder is
+/// created if missing. Existing files at the destination are overwritten.
+Future<void> copyXxxhdpiMipmapToDrawable(
+  Config config,
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
+  final String iconBaseName = config.isCustomAndroidFile
+      ? config.androidIconName
+      : constants.androidDefaultIconName;
+  final String fileName = '$iconBaseName.png';
+  final String resFolder = constants.androidResFolder(flavor);
+
+  final File source = File(
+    path.join(prefixPath, resFolder, 'mipmap-xxxhdpi', fileName),
+  );
+  if (!source.existsSync()) {
+    utils.printStatus(
+      'Skipping copy_mipmap_xxxhdpi_to_drawable: source $fileName not found '
+      'in mipmap-xxxhdpi (was Android icon generation enabled?)',
+    );
+    return;
+  }
+
+  final String destPath = path.join(
+    prefixPath,
+    resFolder,
+    'drawable',
+    fileName,
+  );
+  final File dest = File(destPath);
+  await dest.parent.create(recursive: true);
+  await source.copy(destPath);
+  utils.printStatus('Copied mipmap-xxxhdpi/$fileName -> drawable/$fileName');
+}
+
 /// Updates the line which specifies the launcher icon within the AndroidManifest.xml
 /// with the new icon name (only if it has changed)
 ///

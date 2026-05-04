@@ -3,6 +3,7 @@ version: 1
 defaults:
   android: true
   ios: false
+  copy_mipmap_xxxhdpi_to_drawable: true
 
 flavors:
   development:

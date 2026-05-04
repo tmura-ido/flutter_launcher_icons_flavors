@@ -110,6 +110,14 @@ Future<void> createIconsFromConfig(
     );
   }
   await Future.wait(concurrentIconCreation);
+  if (flutterConfigs.isNeedingNewAndroidIcon &&
+      flutterConfigs.copyMipmapXxxhdpiToDrawable) {
+    await android_launcher_icons.copyXxxhdpiMipmapToDrawable(
+      flutterConfigs,
+      flavor,
+      prefixPath: prefixPath,
+    );
+  }
   if (flutterConfigs.isNeedingNewAndroidIcon) {
     await android_launcher_icons.createMipmapXmlFile(
       flutterConfigs,

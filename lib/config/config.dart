@@ -30,6 +30,9 @@ class Config {
   /// Default value for `background_color_ios`.
   static const String defaultBackgroundColorIOS = '#ffffff';
 
+  /// Default value for `copy_mipmap_xxxhdpi_to_drawable`.
+  static const bool defaultCopyMipmapXxxhdpiToDrawable = false;
+
   /// Creates an instance of [Config].
   ///
   /// All fields default to the same values that were previously implicit in
@@ -47,6 +50,7 @@ class Config {
     this.adaptiveIconBackground,
     this.adaptiveIconMonochrome,
     this.minSdkAndroid,
+    this.copyMipmapXxxhdpiToDrawable = defaultCopyMipmapXxxhdpiToDrawable,
     this.removeAlphaIOS = defaultRemoveAlphaIOS,
     this.desaturateTintedToGrayscaleIOS = defaultDesaturateTintedToGrayscaleIOS,
     this.backgroundColorIOS = defaultBackgroundColorIOS,
@@ -138,6 +142,9 @@ class Config {
       // default + warning). Collapsing omission into 24 here would skip
       // gradle autodetection entirely.
       minSdkAndroid: partial.minSdkAndroid,
+      copyMipmapXxxhdpiToDrawable:
+          partial.copyMipmapXxxhdpiToDrawable ??
+          defaultCopyMipmapXxxhdpiToDrawable,
       removeAlphaIOS: partial.removeAlphaIOS ?? defaultRemoveAlphaIOS,
       desaturateTintedToGrayscaleIOS:
           partial.desaturateTintedToGrayscaleIOS ??
@@ -165,6 +172,7 @@ class Config {
       adaptiveIconBackground: adaptiveIconBackground,
       adaptiveIconMonochrome: adaptiveIconMonochrome,
       minSdkAndroid: minSdkAndroid,
+      copyMipmapXxxhdpiToDrawable: copyMipmapXxxhdpiToDrawable,
       removeAlphaIOS: removeAlphaIOS,
       desaturateTintedToGrayscaleIOS: desaturateTintedToGrayscaleIOS,
       backgroundColorIOS: backgroundColorIOS,
@@ -287,6 +295,16 @@ class Config {
   /// [constants.androidDefaultAndroidMinSDK] with a warning).
   @JsonKey(name: 'min_sdk_android')
   final int? minSdkAndroid;
+
+  /// When `true`, the generated `mipmap-xxxhdpi/<icon>.png` is copied into
+  /// the same flavor's `drawable/` folder under the same filename.
+  ///
+  /// Defaults to [defaultCopyMipmapXxxhdpiToDrawable] (`false`). Useful
+  /// when notification icons or other XML resources need to reference the
+  /// launcher icon as a drawable. Has no effect when Android icon
+  /// generation is disabled.
+  @JsonKey(name: 'copy_mipmap_xxxhdpi_to_drawable')
+  final bool copyMipmapXxxhdpiToDrawable;
 
   /// IOS remove_alpha_ios
   @JsonKey(name: 'remove_alpha_ios')

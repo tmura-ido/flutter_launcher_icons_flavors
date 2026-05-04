@@ -19,6 +19,7 @@ Map<String, dynamic> _$ConfigToJson(Config instance) => <String, dynamic>{
   'adaptive_icon_background': instance.adaptiveIconBackground,
   'adaptive_icon_monochrome': instance.adaptiveIconMonochrome,
   'min_sdk_android': instance.minSdkAndroid,
+  'copy_mipmap_xxxhdpi_to_drawable': instance.copyMipmapXxxhdpiToDrawable,
   'remove_alpha_ios': instance.removeAlphaIOS,
   'desaturate_tinted_to_grayscale_ios': instance.desaturateTintedToGrayscaleIOS,
   'background_color_ios': instance.backgroundColorIOS,

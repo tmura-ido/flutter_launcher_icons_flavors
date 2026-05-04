@@ -33,6 +33,7 @@ class PartialConfig {
     this.adaptiveIconBackground,
     this.adaptiveIconMonochrome,
     this.minSdkAndroid,
+    this.copyMipmapXxxhdpiToDrawable,
     this.removeAlphaIOS,
     this.desaturateTintedToGrayscaleIOS,
     this.backgroundColorIOS,
@@ -88,6 +89,14 @@ class PartialConfig {
   /// Android min_sdk_android
   @JsonKey(name: 'min_sdk_android')
   final int? minSdkAndroid;
+
+  /// When `true`, after generating Android launcher icons the largest
+  /// mipmap (`mipmap-xxxhdpi/<icon>.png`) is also copied into the same
+  /// flavor's `drawable/` folder (creating it if needed) under the same
+  /// filename. Useful when notification icons or other XML resources need
+  /// to reference the launcher icon as a drawable.
+  @JsonKey(name: 'copy_mipmap_xxxhdpi_to_drawable')
+  final bool? copyMipmapXxxhdpiToDrawable;
 
   /// IOS remove_alpha_ios
   @JsonKey(name: 'remove_alpha_ios')

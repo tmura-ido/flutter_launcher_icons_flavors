@@ -25,6 +25,7 @@ PartialConfig _$PartialConfigFromJson(Map json) => $checkedCreate(
         'adaptive_icon_background',
         'adaptive_icon_monochrome',
         'min_sdk_android',
+        'copy_mipmap_xxxhdpi_to_drawable',
         'remove_alpha_ios',
         'desaturate_tinted_to_grayscale_ios',
         'background_color_ios',
@@ -76,6 +77,10 @@ PartialConfig _$PartialConfigFromJson(Map json) => $checkedCreate(
         'min_sdk_android',
         (v) => (v as num?)?.toInt(),
       ),
+      copyMipmapXxxhdpiToDrawable: $checkedConvert(
+        'copy_mipmap_xxxhdpi_to_drawable',
+        (v) => v as bool?,
+      ),
       removeAlphaIOS: $checkedConvert('remove_alpha_ios', (v) => v as bool?),
       desaturateTintedToGrayscaleIOS: $checkedConvert(
         'desaturate_tinted_to_grayscale_ios',
@@ -111,6 +116,7 @@ PartialConfig _$PartialConfigFromJson(Map json) => $checkedCreate(
     'adaptiveIconBackground': 'adaptive_icon_background',
     'adaptiveIconMonochrome': 'adaptive_icon_monochrome',
     'minSdkAndroid': 'min_sdk_android',
+    'copyMipmapXxxhdpiToDrawable': 'copy_mipmap_xxxhdpi_to_drawable',
     'removeAlphaIOS': 'remove_alpha_ios',
     'desaturateTintedToGrayscaleIOS': 'desaturate_tinted_to_grayscale_ios',
     'backgroundColorIOS': 'background_color_ios',
@@ -135,6 +141,7 @@ Map<String, dynamic> _$PartialConfigToJson(
   'adaptive_icon_background': ?instance.adaptiveIconBackground,
   'adaptive_icon_monochrome': ?instance.adaptiveIconMonochrome,
   'min_sdk_android': ?instance.minSdkAndroid,
+  'copy_mipmap_xxxhdpi_to_drawable': ?instance.copyMipmapXxxhdpiToDrawable,
   'remove_alpha_ios': ?instance.removeAlphaIOS,
   'desaturate_tinted_to_grayscale_ios':
       ?instance.desaturateTintedToGrayscaleIOS,

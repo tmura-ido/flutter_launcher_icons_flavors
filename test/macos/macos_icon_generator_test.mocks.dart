@@ -5,8 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:cli_util/cli_logging.dart' as _i4;
 import 'package:flutter_launcher_icons_flavors/config/config.dart' as _i6;
-import 'package:flutter_launcher_icons_flavors/config/macos_config.dart'
-    as _i8;
+import 'package:flutter_launcher_icons_flavors/config/macos_config.dart' as _i8;
 import 'package:flutter_launcher_icons_flavors/config/partial_config.dart'
     as _i3;
 import 'package:flutter_launcher_icons_flavors/config/platform_toggle.dart'

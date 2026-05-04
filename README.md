@@ -130,6 +130,7 @@ Top-level keys (single-flavor `flutter_launcher_icons.yaml`):
 | `adaptive_icon_foreground` | Image asset for adaptive-icon foreground. |
 | `adaptive_icon_foreground_inset` | Foreground padding in % (default 16). |
 | `adaptive_icon_monochrome` | Image asset for Android 13+ themed icon. |
+| `copy_mipmap_xxxhdpi_to_drawable` | When `true`, copies the generated `mipmap-xxxhdpi/<icon>.png` into the same flavor's `drawable/` folder under the same filename. Default: `false`. |
 | `remove_alpha_ios`, `background_color_ios` | iOS alpha-channel handling. |
 | `image_path_ios_dark_transparent`, `image_path_ios_tinted_grayscale`, `desaturate_tinted_to_grayscale_ios` | iOS 18+ dark/tinted variants. |
 | `web` | `{ generate, image_path, background_color, theme_color }`. |
