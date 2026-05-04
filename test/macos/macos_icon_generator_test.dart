@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/config/macos_config.dart';
-import 'package:flutter_launcher_icons/logger.dart';
-import 'package:flutter_launcher_icons/macos/macos_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/config/macos_config.dart';
+import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavored/macos/macos_icon_generator.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
@@ -49,15 +49,15 @@ void main() {
         generator = MacOSIconGenerator(context);
 
         // initilize mock defaults
-        when(mockLogger.error(argThat(anything))).thenReturn(anything);
-        when(mockLogger.verbose(argThat(anything))).thenReturn(anything);
         when(mockLogger.isVerbose).thenReturn(false);
         when(mockConfig.macOSConfig).thenReturn(mockMacOSConfig);
         when(mockMacOSConfig.generate).thenReturn(true);
-        when(mockMacOSConfig.imagePath)
-            .thenReturn(path.join(prefixPath, 'app_icon.png'));
-        when(mockConfig.imagePath)
-            .thenReturn(path.join(prefixPath, 'app_icon.png'));
+        when(
+          mockMacOSConfig.imagePath,
+        ).thenReturn(path.join(prefixPath, 'app_icon.png'));
+        when(
+          mockConfig.imagePath,
+        ).thenReturn(path.join(prefixPath, 'app_icon.png'));
       });
 
       test('should return false when macos config is not provided', () {
@@ -67,35 +67,33 @@ void main() {
       });
 
       test(
-          'should return false when macosConfig is not null but macos.generate is false',
-          () {
-        when(mockConfig.macOSConfig).thenReturn(mockMacOSConfig);
-        when(mockMacOSConfig.generate).thenReturn(false);
-        expect(generator.validateRequirements(), isFalse);
-        verify(mockConfig.macOSConfig).called(equals(1));
-        verify(mockMacOSConfig.generate).called(equals(1));
-      });
+        'should return false when macosConfig is not null but macos.generate is false',
+        () {
+          when(mockConfig.macOSConfig).thenReturn(mockMacOSConfig);
+          when(mockMacOSConfig.generate).thenReturn(false);
+          expect(generator.validateRequirements(), isFalse);
+          verify(mockConfig.macOSConfig).called(equals(1));
+          verify(mockMacOSConfig.generate).called(equals(1));
+        },
+      );
 
-      test('should return false when macos.image_path and imagePath is null',
-          () {
-        when(mockMacOSConfig.imagePath).thenReturn(null);
-        when(mockConfig.imagePath).thenReturn(null);
-        expect(generator.validateRequirements(), isFalse);
+      test(
+        'should return false when macos.image_path and imagePath is null',
+        () {
+          when(mockMacOSConfig.imagePath).thenReturn(null);
+          when(mockConfig.imagePath).thenReturn(null);
+          expect(generator.validateRequirements(), isFalse);
 
-        verifyInOrder([
-          mockMacOSConfig.imagePath,
-          mockConfig.imagePath,
-        ]);
-      });
+          verifyInOrder([mockMacOSConfig.imagePath, mockConfig.imagePath]);
+        },
+      );
 
       test('should return false when macos dir does not exist', () async {
         await d.dir('fli_test', [
           d.file('app_icon.png', testImageFile.readAsBytesSync()),
         ]).create();
         await expectLater(
-          d.dir('fli_test', [
-            d.file('app_icon.png', anything),
-          ]).validate(),
+          d.dir('fli_test', [d.file('app_icon.png', anything)]).validate(),
           completes,
         );
         expect(generator.validateRequirements(), isFalse);

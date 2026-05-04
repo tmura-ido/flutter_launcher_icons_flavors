@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons/constants.dart' as constants;
-import 'package:flutter_launcher_icons/custom_exceptions.dart';
-import 'package:flutter_launcher_icons/macos/macos_icon_template.dart';
-import 'package:flutter_launcher_icons/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavored/macos/macos_icon_template.dart';
+import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
 import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 
@@ -34,13 +33,10 @@ class MacOSIconGenerator extends IconGenerator {
       context.config.macOSConfig!.imagePath ?? context.config.imagePath,
     );
 
-    context.logger
-        .verbose('Decoding and loading image file at $imgFilePath...');
+    context.logger.verbose(
+      'Decoding and loading image file at $imgFilePath...',
+    );
     final imgFile = await utils.decodeImageFile(imgFilePath);
-    if (imgFile == null) {
-      context.logger.error('Image File not found at give path $imgFilePath...');
-      throw FileNotFoundException(imgFilePath);
-    }
 
     context.logger.verbose('Generating icons $imgFilePath...');
     await _generateIcons(imgFile);
@@ -101,15 +97,16 @@ class MacOSIconGenerator extends IconGenerator {
     for (final template in _iconSizeTemplates) {
       final resizedImg = utils.createResizedImage(template.scaledSize, image);
       final iconFile = await utils.createFileIfNotExist(
-        path.join(context.prefixPath, iconsDir.path, template.iconFile),
+        path.join(iconsDir.path, template.iconFile),
       );
       await iconFile.writeAsBytes(encodePng(resizedImg));
     }
   }
 
   void _updateContentsFile() {
-    final contentsFilePath =
-        File(path.join(context.prefixPath, constants.macOSContentsFilePath));
+    final contentsFilePath = File(
+      path.join(context.prefixPath, constants.macOSContentsFilePath),
+    );
     final contentsConfig =
         jsonDecode(contentsFilePath.readAsStringSync()) as Map<String, dynamic>;
     contentsConfig
@@ -118,7 +115,8 @@ class MacOSIconGenerator extends IconGenerator {
           .map<Map<String, dynamic>>((e) => e.iconContent)
           .toList();
 
-    contentsFilePath
-        .writeAsStringSync(utils.prettifyJsonEncode(contentsConfig));
+    contentsFilePath.writeAsStringSync(
+      utils.prettifyJsonEncode(contentsConfig),
+    );
   }
 }

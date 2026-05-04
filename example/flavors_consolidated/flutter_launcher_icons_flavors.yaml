@@ -1,0 +1,13 @@
+version: 1
+
+defaults:
+  android: true
+  ios: false
+
+flavors:
+  development:
+    image_path: "assets/launcher_icon/demo-icon-dev.png"
+  integration:
+    image_path: "assets/launcher_icon/demo-icon-int.png"
+  production:
+    image_path: "assets/launcher_icon/demo-icon.png"

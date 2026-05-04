@@ -5,13 +5,12 @@ import 'package:path/path.dart' as path;
 
 import '../abs/icon_generator.dart';
 import '../constants.dart' as constants;
-import '../custom_exceptions.dart';
 import '../utils.dart' as utils;
 import 'web_template.dart';
 
 // This is not yet implemented
 // ignore: public_member_api_docs
-final metaTagsTemplate = (
+String metaTagsTemplate(
   String appleMobileWebAppTitle,
   String appleMobileWebAppStatusBarStyle, {
   bool shouldInsertFLIString = false,
@@ -53,13 +52,10 @@ class WebIconGenerator extends IconGenerator {
       context.webConfig!.imagePath ?? context.config.imagePath!,
     );
 
-    context.logger
-        .verbose('Decoding and loading image file at $imgFilePath...');
+    context.logger.verbose(
+      'Decoding and loading image file at $imgFilePath...',
+    );
     final imgFile = await utils.decodeImageFile(imgFilePath);
-    if (imgFile == null) {
-      context.logger.error('Image File not found at give path $imgFilePath...');
-      throw FileNotFoundException(imgFilePath);
-    }
 
     // generate favicon in web/favicon.png
     context.logger.verbose('Generating favicon from $imgFilePath...');
@@ -93,8 +89,9 @@ class WebIconGenerator extends IconGenerator {
       return false;
     }
     if (webConfig.imagePath == null && context.config.imagePath == null) {
-      context.logger
-          .verbose('Invalid config. Either provide web.imagePath or imagePath');
+      context.logger.verbose(
+        'Invalid config. Either provide web.imagePath or imagePath',
+      );
       return false;
     }
 
@@ -132,7 +129,7 @@ class WebIconGenerator extends IconGenerator {
     for (final template in _webIconSizeTemplates) {
       final resizedImg = utils.createResizedImage(template.size, image);
       final iconFile = await utils.createFileIfNotExist(
-        path.join(context.prefixPath, iconsDir.path, template.iconFile),
+        path.join(iconsDir.path, template.iconFile),
       );
       await iconFile.writeAsBytes(encodePng(resizedImg));
     }

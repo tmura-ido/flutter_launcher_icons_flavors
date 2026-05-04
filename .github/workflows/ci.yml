@@ -1,0 +1,82 @@
+# Cross-platform CI matrix for flutter_launcher_icons_flavored.
+#
+# Matrix: {ubuntu, macos, windows} x {Flutter 3.41.9, stable}
+# Flutter 3.41.9 matches the SDK floor declared in pubspec.yaml /
+# README; "stable" guards against regressions on the current release
+# channel. fail-fast is disabled so a single transient failure on one
+# cell doesn't mask real issues elsewhere.
+#
+# Linux + Flutter 3.41.9 additionally runs `pana` and
+# `dart pub publish --dry-run` as the canonical pre-publish gate.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Flutter ${{ matrix.flutter }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        flutter: ['3.41.9', 'stable']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ matrix.flutter == 'stable' && '' || matrix.flutter }}
+          channel: stable
+          cache: true
+
+      - name: Cache pub-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ~\AppData\Local\Pub\Cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock', '**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Flutter version (sanity)
+        run: flutter --version
+
+      - name: Pub get
+        run: dart pub get
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      - name: Test
+        run: dart test --reporter=expanded
+
+      # Pre-publish gate: only on Linux + the SDK-floor Flutter so we
+      # don't pay the pana cost six times.
+      - name: Activate pana
+        if: matrix.os == 'ubuntu-latest' && matrix.flutter == '3.41.9'
+        run: dart pub global activate pana
+
+      - name: Pana
+        if: matrix.os == 'ubuntu-latest' && matrix.flutter == '3.41.9'
+        # Allows up to 20 points of deduction (target ≥140/160). Tighten once dartdoc coverage improves in 0.16.
+        run: pana --no-warning --exit-code-threshold 20
+
+      - name: Publish dry-run
+        if: matrix.os == 'ubuntu-latest' && matrix.flutter == '3.41.9'
+        run: dart pub publish --dry-run

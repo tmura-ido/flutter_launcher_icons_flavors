@@ -9,10 +9,7 @@ class WebIconTemplate {
   final bool maskable;
 
   /// Creates an instance of [WebIconTemplate].
-  const WebIconTemplate({
-    required this.size,
-    this.maskable = false,
-  });
+  const WebIconTemplate({required this.size, this.maskable = false});
 
   /// Icon file name
   String get iconFile => 'Icon${maskable ? '-maskable' : ''}-$size.png';

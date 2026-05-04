@@ -7,18 +7,18 @@ part of 'windows_config.dart';
 // **************************************************************************
 
 WindowsConfig _$WindowsConfigFromJson(Map json) => $checkedCreate(
-      'WindowsConfig',
-      json,
-      ($checkedConvert) {
-        final val = WindowsConfig(
-          generate: $checkedConvert('generate', (v) => v as bool? ?? false),
-          imagePath: $checkedConvert('image_path', (v) => v as String?),
-          iconSize: $checkedConvert('icon_size', (v) => (v as num?)?.toInt()),
-        );
-        return val;
-      },
-      fieldKeyMap: const {'imagePath': 'image_path', 'iconSize': 'icon_size'},
+  'WindowsConfig',
+  json,
+  ($checkedConvert) {
+    final val = WindowsConfig(
+      generate: $checkedConvert('generate', (v) => v as bool? ?? false),
+      imagePath: $checkedConvert('image_path', (v) => v as String?),
+      iconSize: $checkedConvert('icon_size', (v) => (v as num?)?.toInt()),
     );
+    return val;
+  },
+  fieldKeyMap: const {'imagePath': 'image_path', 'iconSize': 'icon_size'},
+);
 
 Map<String, dynamic> _$WindowsConfigToJson(WindowsConfig instance) =>
     <String, dynamic>{

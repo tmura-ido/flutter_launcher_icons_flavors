@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/config/macos_config.dart';
-import 'package:flutter_launcher_icons/config/web_config.dart';
-import 'package:flutter_launcher_icons/config/windows_config.dart';
-import 'package:flutter_launcher_icons/logger.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/config/macos_config.dart';
+import 'package:flutter_launcher_icons_flavored/config/web_config.dart';
+import 'package:flutter_launcher_icons_flavored/config/windows_config.dart';
+import 'package:flutter_launcher_icons_flavored/logger.dart';
 
 /// A base class to generate icons
 abstract class IconGenerator {
@@ -89,8 +89,9 @@ Future<void> generateIconsFor({
     }
 
     for (final platform in platformList) {
-      final progress =
-          logger.progress('Creating Icons for ${platform.platformName}');
+      final progress = logger.progress(
+        'Creating Icons for ${platform.platformName}',
+      );
       logger.verbose(
         'Validating platform requirements for ${platform.platformName}',
       );

@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -57,9 +57,7 @@ void main() {
 
   group('#createDirIfNotExist', () {
     setUpAll(() async {
-      await d.dir('fli_test', [
-        d.dir('dir_exists'),
-      ]).create();
+      await d.dir('fli_test', [d.dir('dir_exists')]).create();
     });
     test('should create directory if it does not exist', () async {
       await expectLater(
@@ -80,8 +78,9 @@ void main() {
         d.dir('fli_test', [d.dir('dir_exists')]).validate(),
         completes,
       );
-      final result = await utils
-          .createDirIfNotExist(path.join(d.sandbox, 'fli_test', 'dir_exists'));
+      final result = await utils.createDirIfNotExist(
+        path.join(d.sandbox, 'fli_test', 'dir_exists'),
+      );
       expect(result.existsSync(), isTrue);
       await expectLater(
         d.dir('fli_test', [d.dir('dir_exists')]).validate(),
@@ -92,9 +91,7 @@ void main() {
 
   group('#createFileIfNotExist', () {
     setUpAll(() async {
-      await d.dir('fli_test', [
-        d.file('file_exists.txt'),
-      ]).create();
+      await d.dir('fli_test', [d.file('file_exists.txt')]).create();
     });
     test('should create file if it does not exist', () async {
       await expectLater(

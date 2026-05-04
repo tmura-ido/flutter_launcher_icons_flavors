@@ -1,6 +1,6 @@
+include: package:lints/recommended.yaml
+
 analyzer:
-  strong-mode:
-    implicit-dynamic: false
   errors:
     # treat missing required parameters as a warning (not a hint)
     missing_required_param: warning
@@ -34,7 +34,6 @@ linter:
     - avoid_relative_lib_imports
     - avoid_renaming_method_parameters
     - avoid_return_types_on_setters
-    - avoid_returning_null_for_void
     - avoid_slow_async_io
     - avoid_types_as_parameter_names
     - avoid_unused_constructor_parameters
@@ -57,9 +56,7 @@ linter:
     - no_duplicate_case_values
     - non_constant_identifier_names
     - overridden_fields
-    - package_api_docs
     - package_names
-    - package_prefixed_library_names
     - prefer_adjacent_string_concatenation
     - prefer_asserts_in_initializer_lists
     - prefer_collection_literals
@@ -72,14 +69,12 @@ linter:
     - prefer_final_fields
     - prefer_final_locals
     - prefer_foreach
-    - prefer_generic_function_type_aliases
     - prefer_initializing_formals
     - prefer_is_empty
     - prefer_is_not_empty
     - prefer_iterable_whereType
     - prefer_single_quotes
     - prefer_typing_uninitialized_variables
-    - prefer_void_to_null
     - recursive_getters
     - slash_for_doc_comments
     - sort_pub_dependencies
@@ -91,7 +86,6 @@ linter:
     - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
-    - unnecessary_new
     - unnecessary_null_aware_assignments
     - unnecessary_null_in_if_null_operators
     - unnecessary_overrides

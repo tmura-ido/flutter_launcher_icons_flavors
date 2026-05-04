@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/logger.dart';
-import 'package:flutter_launcher_icons/web/web_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavored/web/web_icon_generator.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;

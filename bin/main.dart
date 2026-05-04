@@ -1,8 +1,12 @@
-import 'flutter_launcher_icons.dart' as flutter_launcher_icons;
+import 'dart:io';
 
-void main(List<String> arguments) {
-  print(
-    'This command is deprecated and replaced with "flutter pub run flutter_launcher_icons"',
+import 'package:flutter_launcher_icons_flavored/cli/command_runner.dart';
+
+Future<void> main(List<String> arguments) async {
+  stdout.writeln(
+    'This entrypoint is deprecated. Use: dart run flutter_launcher_icons_flavored',
   );
-  flutter_launcher_icons.main(arguments);
+  final runner = buildCommandRunner();
+  final code = await runner.run(effectiveArgs(arguments)) ?? 0;
+  exit(code);
 }

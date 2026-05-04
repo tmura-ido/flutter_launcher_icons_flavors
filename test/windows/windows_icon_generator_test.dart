@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/config/windows_config.dart';
-import 'package:flutter_launcher_icons/logger.dart';
-import 'package:flutter_launcher_icons/windows/windows_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/config/windows_config.dart';
+import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavored/windows/windows_icon_generator.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
@@ -44,15 +44,15 @@ void main() {
         );
         generator = WindowsIconGenerator(context);
         // initilize mock defaults
-        when(mockLogger.error(argThat(anything))).thenReturn(anything);
-        when(mockLogger.verbose(argThat(anything))).thenReturn(anything);
         when(mockLogger.isVerbose).thenReturn(false);
         when(mockConfig.windowsConfig).thenReturn(mockWindowsConfig);
         when(mockWindowsConfig.generate).thenReturn(true);
-        when(mockWindowsConfig.imagePath)
-            .thenReturn(path.join(prefixPath, 'app_icon.png'));
-        when(mockConfig.imagePath)
-            .thenReturn(path.join(prefixPath, 'app_icon.png'));
+        when(
+          mockWindowsConfig.imagePath,
+        ).thenReturn(path.join(prefixPath, 'app_icon.png'));
+        when(
+          mockConfig.imagePath,
+        ).thenReturn(path.join(prefixPath, 'app_icon.png'));
         when(mockWindowsConfig.iconSize).thenReturn(48);
       });
 
@@ -63,47 +63,46 @@ void main() {
       });
 
       test(
-          'should return false when windowsConfig is not null but windows.generate is false',
-          () {
-        when(mockConfig.windowsConfig).thenReturn(mockWindowsConfig);
-        when(mockWindowsConfig.generate).thenReturn(false);
-        expect(generator.validateRequirements(), isFalse);
-        verify(mockConfig.windowsConfig).called(equals(1));
-        verify(mockWindowsConfig.generate).called(equals(1));
-      });
-
-      test('should return false when windows.image_path and imagePath is null',
-          () {
-        when(mockWindowsConfig.imagePath).thenReturn(null);
-        when(mockConfig.imagePath).thenReturn(null);
-        expect(generator.validateRequirements(), isFalse);
-
-        verifyInOrder([
-          mockWindowsConfig.imagePath,
-          mockConfig.imagePath,
-        ]);
-      });
+        'should return false when windowsConfig is not null but windows.generate is false',
+        () {
+          when(mockConfig.windowsConfig).thenReturn(mockWindowsConfig);
+          when(mockWindowsConfig.generate).thenReturn(false);
+          expect(generator.validateRequirements(), isFalse);
+          verify(mockConfig.windowsConfig).called(equals(1));
+          verify(mockWindowsConfig.generate).called(equals(1));
+        },
+      );
 
       test(
-          'should return false when windows.icon_size is not between 48 and 256',
-          () {
-        when(mockWindowsConfig.iconSize).thenReturn(40);
-        expect(generator.validateRequirements(), isFalse);
-        verify(mockWindowsConfig.iconSize).called(equals(3));
+        'should return false when windows.image_path and imagePath is null',
+        () {
+          when(mockWindowsConfig.imagePath).thenReturn(null);
+          when(mockConfig.imagePath).thenReturn(null);
+          expect(generator.validateRequirements(), isFalse);
 
-        when(mockWindowsConfig.iconSize).thenReturn(257);
-        expect(generator.validateRequirements(), isFalse);
-        verify(mockWindowsConfig.iconSize).called(equals(4));
-      });
+          verifyInOrder([mockWindowsConfig.imagePath, mockConfig.imagePath]);
+        },
+      );
+
+      test(
+        'should return false when windows.icon_size is not between 48 and 256',
+        () {
+          when(mockWindowsConfig.iconSize).thenReturn(40);
+          expect(generator.validateRequirements(), isFalse);
+          verify(mockWindowsConfig.iconSize).called(equals(3));
+
+          when(mockWindowsConfig.iconSize).thenReturn(257);
+          expect(generator.validateRequirements(), isFalse);
+          verify(mockWindowsConfig.iconSize).called(equals(4));
+        },
+      );
 
       test('should return false when windows dir does not exist', () async {
         await d.dir('fli_test', [
           d.file('app_icon.png', testImageFile.readAsBytesSync()),
         ]).create();
         await expectLater(
-          d.dir('fli_test', [
-            d.file('app_icon.png', anything),
-          ]).validate(),
+          d.dir('fli_test', [d.file('app_icon.png', anything)]).validate(),
           completes,
         );
         expect(generator.validateRequirements(), isFalse);
@@ -156,9 +155,7 @@ void main() {
         d.dir('fli_test', [
           d.dir('windows', [
             d.dir('runner', [
-              d.dir('resources', [
-                d.file('app_icon.ico', anything),
-              ]),
+              d.dir('resources', [d.file('app_icon.ico', anything)]),
             ]),
           ]),
         ]).validate(),

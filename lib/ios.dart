@@ -3,11 +3,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/constants.dart';
-import 'package:flutter_launcher_icons/custom_exceptions.dart';
-import 'package:flutter_launcher_icons/utils.dart';
-import 'package:image/image.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/constants.dart';
+import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavored/utils.dart';
+import 'package:image/image.dart' hide decodeImageFile;
+import 'package:path/path.dart' as path;
 
 /// File to handle the creation of icons for iOS platform
 class IosIconTemplate {
@@ -66,38 +67,39 @@ List<IosIconTemplate> iosIcons = <IosIconTemplate>[
 ];
 
 /// create the ios icons
-Future<void> createIcons(Config config, String? flavor) async {
-  // TODO(p-mazhnik): support prefixPath
-  final String? filePath = config.getImagePathIOS();
-  final String? darkFilePath = config.imagePathIOSDarkTransparent;
-  final String? tintedFilePath = config.imagePathIOSTintedGrayscale;
+Future<void> createIcons(
+  Config config,
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
+  final String? relativeFilePath = config.getImagePathIOS();
+  final String? darkRelativeFilePath = config.imagePathIOSDarkTransparent;
+  final String? tintedRelativeFilePath = config.imagePathIOSTintedGrayscale;
 
-  if (filePath == null) {
+  if (relativeFilePath == null) {
     throw const InvalidConfigException(errorMissingImagePath);
   }
 
-  // decodeImageFile shows error message if null
-  // so can return here if image is null
-  Image? image = decodeImage(await File(filePath).readAsBytes());
-  if (image == null) {
-    return;
-  }
+  final String filePath = path.join(prefixPath, relativeFilePath);
+  final String? darkFilePath = darkRelativeFilePath == null
+      ? null
+      : path.join(prefixPath, darkRelativeFilePath);
+  final String? tintedFilePath = tintedRelativeFilePath == null
+      ? null
+      : path.join(prefixPath, tintedRelativeFilePath);
 
-  // For dark and tinted images, return here if path was specified but image is null
+  // decodeImageFile throws if the file's format is unrecognized.
+  Image image = await decodeImageFile(filePath);
+
+  // For dark and tinted images, decode if path was specified.
   Image? darkImage;
   if (darkFilePath != null) {
-    darkImage = decodeImage(await File(darkFilePath).readAsBytes());
-    if (darkImage == null) {
-      return;
-    }
+    darkImage = await decodeImageFile(darkFilePath);
   }
 
   Image? tintedImage;
   if (tintedFilePath != null) {
-    tintedImage = decodeImage(await File(tintedFilePath).readAsBytes());
-    if (tintedImage == null) {
-      return;
-    }
+    tintedImage = await decodeImageFile(tintedFilePath);
     if (config.desaturateTintedToGrayscaleIOS) {
       printStatus('Desaturating iOS tinted image to grayscale');
       tintedImage = grayscale(tintedImage);
@@ -106,7 +108,7 @@ Future<void> createIcons(Config config, String? flavor) async {
       final pixel = tintedImage.getPixel(0, 0);
       do {
         if (pixel.r != pixel.g || pixel.g != pixel.b) {
-          print(
+          stdout.writeln(
             '\nWARNING: Tinted iOS image is not grayscale.\nSet "desaturate_tinted_to_grayscale_ios: true" to desaturate it.\n',
           );
           break;
@@ -125,7 +127,7 @@ Future<void> createIcons(Config config, String? flavor) async {
     image = image.convert(numChannels: 3);
   }
   if (image.hasAlpha) {
-    print(
+    stdout.writeln(
       '\nWARNING: Icons with alpha channel are not allowed in the Apple App Store.\nSet "remove_alpha_ios: true" to remove it.\n',
     );
   }
@@ -134,7 +136,6 @@ Future<void> createIcons(Config config, String? flavor) async {
   String? tintedIconName;
   final List<IosIconTemplate> generateIosIcons =
       (darkImage == null && tintedImage == null) ? legacyIosIcons : iosIcons;
-  final dynamic iosConfig = config.ios;
   final concurrentIconUpdates = <Future<void>>[];
   if (flavor != null) {
     final String catalogName = 'AppIcon-$flavor';
@@ -148,6 +149,7 @@ Future<void> createIcons(Config config, String? flavor) async {
           catalogName: catalogName,
           // Since this is the base icon name we are using the same name for the icon as the catalog name
           iconName: catalogName,
+          prefixPath: prefixPath,
         ),
       );
     }
@@ -162,6 +164,7 @@ Future<void> createIcons(Config config, String? flavor) async {
             image: darkImage,
             catalogName: catalogName,
             iconName: darkIconName,
+            prefixPath: prefixPath,
           ),
         );
       }
@@ -176,17 +179,23 @@ Future<void> createIcons(Config config, String? flavor) async {
             image: tintedImage,
             catalogName: catalogName,
             iconName: tintedIconName,
+            prefixPath: prefixPath,
           ),
         );
       }
     }
     iconName = iosDefaultIconName;
-    await changeIosLauncherIcon(catalogName, flavor);
-    await modifyContentsFile(catalogName, darkIconName, tintedIconName);
-  } else if (iosConfig is String) {
+    await changeIosLauncherIcon(catalogName, flavor, prefixPath: prefixPath);
+    await modifyContentsFile(
+      catalogName,
+      darkIconName,
+      tintedIconName,
+      prefixPath: prefixPath,
+    );
+  } else if (config.isCustomIOSFile) {
     // If the IOS configuration is a string then the user has specified a new icon to be created
     // and for the old icon file to be kept
-    final String newIconName = iosConfig;
+    final String newIconName = config.iosIconName;
     printStatus('Adding new iOS launcher icon');
     for (IosIconTemplate template in generateIosIcons) {
       concurrentIconUpdates.add(
@@ -195,11 +204,12 @@ Future<void> createIcons(Config config, String? flavor) async {
           image: image,
           catalogName: 'AppIcon',
           iconName: newIconName,
+          prefixPath: prefixPath,
         ),
       );
     }
     if (darkImage != null) {
-      darkIconName = newIconName + '-Dark';
+      darkIconName = '$newIconName-Dark';
       printStatus('Adding new iOS dark launcher icon');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
@@ -208,12 +218,13 @@ Future<void> createIcons(Config config, String? flavor) async {
             image: darkImage,
             catalogName: 'AppIcon',
             iconName: darkIconName,
+            prefixPath: prefixPath,
           ),
         );
       }
     }
     if (tintedImage != null) {
-      tintedIconName = newIconName + '-Tinted';
+      tintedIconName = '$newIconName-Tinted';
       printStatus('Adding new iOS tinted launcher icon');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
@@ -222,40 +233,57 @@ Future<void> createIcons(Config config, String? flavor) async {
             image: tintedImage,
             catalogName: 'AppIcon',
             iconName: tintedIconName,
+            prefixPath: prefixPath,
           ),
         );
       }
     }
     iconName = newIconName;
-    await changeIosLauncherIcon(iconName, flavor);
-    await modifyContentsFile(iconName, darkIconName, tintedIconName);
+    await changeIosLauncherIcon(iconName, flavor, prefixPath: prefixPath);
+    await modifyContentsFile(
+      iconName,
+      darkIconName,
+      tintedIconName,
+      prefixPath: prefixPath,
+    );
   }
   // Otherwise the user wants the new icon to use the default icons name and
   // update config file to use it
   else {
     printStatus('Overwriting default iOS launcher icon with new icon');
     for (IosIconTemplate template in generateIosIcons) {
-      concurrentIconUpdates.add(overwriteDefaultIcons(template, image));
+      concurrentIconUpdates.add(
+        overwriteDefaultIcons(template, image, '', prefixPath),
+      );
     }
     if (darkImage != null) {
       printStatus('Overwriting default iOS dark launcher icon with new icon');
       for (IosIconTemplate template in generateIosIcons) {
-        concurrentIconUpdates.add(overwriteDefaultIcons(template, darkImage, '-Dark'));
+        concurrentIconUpdates.add(
+          overwriteDefaultIcons(template, darkImage, '-Dark', prefixPath),
+        );
       }
-      darkIconName = iosDefaultIconName + '-Dark';
+      darkIconName = '$iosDefaultIconName-Dark';
     }
     if (tintedImage != null) {
       printStatus('Overwriting default iOS tinted launcher icon with new icon');
       for (IosIconTemplate template in generateIosIcons) {
-        concurrentIconUpdates.add(overwriteDefaultIcons(template, tintedImage, '-Tinted'));
+        concurrentIconUpdates.add(
+          overwriteDefaultIcons(template, tintedImage, '-Tinted', prefixPath),
+        );
       }
-      tintedIconName = iosDefaultIconName + '-Tinted';
+      tintedIconName = '$iosDefaultIconName-Tinted';
     }
     iconName = iosDefaultIconName;
-    await changeIosLauncherIcon('AppIcon', flavor);
+    await changeIosLauncherIcon('AppIcon', flavor, prefixPath: prefixPath);
     // Still need to modify the Contents.json file
     // since the user could have added dark and tinted icons
-    await modifyDefaultContentsFile(iconName, darkIconName, tintedIconName);
+    await modifyDefaultContentsFile(
+      iconName,
+      darkIconName,
+      tintedIconName,
+      prefixPath: prefixPath,
+    );
   }
   await Future.wait(concurrentIconUpdates);
 }
@@ -267,14 +295,15 @@ Future<void> overwriteDefaultIcons(
   IosIconTemplate template,
   Image image, [
   String iconNameSuffix = '',
+  String prefixPath = '.',
 ]) async {
   final Image newImage = createResizedImage(template, image);
   await File(
-    iosDefaultIconFolder +
-        iosDefaultIconName +
-        iconNameSuffix +
-        template.name +
-        '.png',
+    path.join(
+      prefixPath,
+      iosDefaultIconFolder,
+      '$iosDefaultIconName$iconNameSuffix${template.name}.png',
+    ),
   ).writeAsBytes(encodePng(newImage));
 }
 
@@ -286,11 +315,17 @@ Future<void> saveNewIcons({
   required Image image,
   required String catalogName,
   required String iconName,
+  String prefixPath = '.',
 }) async {
-  final String newIconFolder = iosAssetFolder + catalogName + '.appiconset/';
+  final String newIconFolder = path.join(
+    prefixPath,
+    iosAssetFolder,
+    '$catalogName.appiconset',
+  );
   final Image newImage = createResizedImage(template, image);
-  final newFile = await File(newIconFolder + iconName + template.name + '.png')
-      .create(recursive: true);
+  final newFile = await File(
+    path.join(newIconFolder, '$iconName${template.name}.png'),
+  ).create(recursive: true);
   await newFile.writeAsBytes(encodePng(newImage));
 }
 
@@ -314,8 +349,12 @@ Image createResizedImage(IosIconTemplate template, Image image) {
 }
 
 /// Change the iOS launcher icon
-Future<void> changeIosLauncherIcon(String iconName, String? flavor) async {
-  final File iOSConfigFile = File(iosConfigFile);
+Future<void> changeIosLauncherIcon(
+  String iconName,
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
+  final File iOSConfigFile = File(path.join(prefixPath, iosConfigFile));
   final List<String> lines = await iOSConfigFile.readAsLines();
 
   bool onConfigurationSection = false;
@@ -330,7 +369,7 @@ Future<void> changeIosLauncherIcon(String iconName, String? flavor) async {
       onConfigurationSection = false;
     }
     if (onConfigurationSection) {
-      final match = RegExp('.*/\\* (.*)\.xcconfig \\*/;').firstMatch(line);
+      final match = RegExp('.*/\\* (.*).xcconfig \\*/;').firstMatch(line);
       if (match != null) {
         currentConfig = match.group(1);
       }
@@ -338,7 +377,7 @@ Future<void> changeIosLauncherIcon(String iconName, String? flavor) async {
       if (currentConfig != null &&
           (flavor == null || currentConfig.contains('-$flavor')) &&
           line.contains('ASSETCATALOG')) {
-        lines[x] = line.replaceAll(RegExp('\=(.*);'), '= $iconName;');
+        lines[x] = line.replaceAll(RegExp('=(.*);'), '= $iconName;');
       }
     }
   }
@@ -351,13 +390,23 @@ Future<void> changeIosLauncherIcon(String iconName, String? flavor) async {
 Future<void> modifyContentsFile(
   String newIconName,
   String? darkIconName,
-  String? tintedIconName,
-) async {
-  final String newContentsFilename =
-      iosAssetFolder + newIconName + '.appiconset/Contents.json';
-  final contentsJsonFile = await File(newContentsFilename).create(recursive: true);
-  final String contentsFileContent =
-      generateContentsFileAsString(newIconName, darkIconName, tintedIconName);
+  String? tintedIconName, {
+  String prefixPath = '.',
+}) async {
+  final String newContentsFilename = path.join(
+    prefixPath,
+    iosAssetFolder,
+    '$newIconName.appiconset',
+    'Contents.json',
+  );
+  final contentsJsonFile = await File(
+    newContentsFilename,
+  ).create(recursive: true);
+  final String contentsFileContent = generateContentsFileAsString(
+    newIconName,
+    darkIconName,
+    tintedIconName,
+  );
   await contentsJsonFile.writeAsString(contentsFileContent);
 }
 
@@ -365,13 +414,21 @@ Future<void> modifyContentsFile(
 Future<void> modifyDefaultContentsFile(
   String newIconName,
   String? darkIconName,
-  String? tintedIconName,
-) async {
-  const String newIconFolder =
-      iosAssetFolder + 'AppIcon.appiconset/Contents.json';
+  String? tintedIconName, {
+  String prefixPath = '.',
+}) async {
+  final String newIconFolder = path.join(
+    prefixPath,
+    iosAssetFolder,
+    'AppIcon.appiconset',
+    'Contents.json',
+  );
   final contentsJsonFile = await File(newIconFolder).create(recursive: true);
-  final String contentsFileContent =
-      generateContentsFileAsString(newIconName, darkIconName, tintedIconName);
+  final String contentsFileContent = generateContentsFileAsString(
+    newIconName,
+    darkIconName,
+    tintedIconName,
+  );
   await contentsJsonFile.writeAsString(contentsFileContent);
 }
 
@@ -403,10 +460,7 @@ class ContentsImageAppearanceObject {
   final String value;
 
   Map<String, String> toJson() {
-    return <String, String>{
-      'appearance': appearance,
-      'value': value,
-    };
+    return <String, String>{'appearance': appearance, 'value': value};
   }
 }
 
@@ -447,10 +501,7 @@ class ContentsInfoObject {
   final String author;
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'version': version,
-      'author': author,
-    };
+    return <String, dynamic>{'version': version, 'author': author};
   }
 }
 
@@ -646,8 +697,9 @@ List<Map<String, dynamic>> createImageList(
   // Prevent ios-marketing icon from being tinted or dark
 
   if (darkFileNamePrefix != null) {
-    for (final config
-        in imageConfigurations.where((e) => e['idiom'] == 'universal')) {
+    for (final config in imageConfigurations.where(
+      (e) => e['idiom'] == 'universal',
+    )) {
       final size = config['size']!;
       final idiom = config['idiom']!;
       final platform = config['platform'];
@@ -675,8 +727,9 @@ List<Map<String, dynamic>> createImageList(
   }
 
   if (tintedFileNamePrefix != null) {
-    for (final config
-        in imageConfigurations.where((e) => e['idiom'] == 'universal')) {
+    for (final config in imageConfigurations.where(
+      (e) => e['idiom'] == 'universal',
+    )) {
       final size = config['size']!;
       final idiom = config['idiom']!;
       final platform = config['platform'];

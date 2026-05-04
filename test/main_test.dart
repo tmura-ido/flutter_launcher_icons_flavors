@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:flutter_launcher_icons/android.dart' as android;
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/ios.dart' as ios;
-import 'package:flutter_launcher_icons/main.dart' show defaultConfigFile;
-import 'package:flutter_launcher_icons/main.dart' as main_dart;
+import 'package:flutter_launcher_icons_flavored/android.dart' as android;
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/ios.dart' as ios;
+import 'package:flutter_launcher_icons_flavored/main.dart'
+    show defaultConfigFile;
+import 'package:flutter_launcher_icons_flavored/main.dart' as main_dart;
 import 'package:path/path.dart' show join;
 import 'package:test/test.dart';
 
@@ -24,28 +25,41 @@ void main() {
   });
 
   test(
-      'iOS image list used to generate legacy Contents.json for icon directory is correct size (no dark or tinted icons)',
-      () {
-    expect(ios.createLegacyImageList('blah').length, 25);
-  });
+    'iOS image list used to generate legacy Contents.json for icon directory is correct size (no dark or tinted icons)',
+    () {
+      expect(ios.createLegacyImageList('blah').length, 25);
+    },
+  );
 
   test(
-      'iOS image list used to generate Contents.json for icon directory is correct size (with dark icon)',
-      () {
-    expect(ios.createImageList('blah', 'dark-blah', null).length, 16 * 2 + 1); // 16 normal, 16 dark icons + 1 marketing icon
-  });
+    'iOS image list used to generate Contents.json for icon directory is correct size (with dark icon)',
+    () {
+      expect(
+        ios.createImageList('blah', 'dark-blah', null).length,
+        16 * 2 + 1,
+      ); // 16 normal, 16 dark icons + 1 marketing icon
+    },
+  );
 
   test(
-      'iOS image list used to generate Contents.json for icon directory is correct size (with tinted icon)',
-      () {
-    expect(ios.createImageList('blah', null, 'tinted-blah').length, 16 * 2 + 1); // 16 normal, 16 tinted icons + 1 marketing icon
-  });
+    'iOS image list used to generate Contents.json for icon directory is correct size (with tinted icon)',
+    () {
+      expect(
+        ios.createImageList('blah', null, 'tinted-blah').length,
+        16 * 2 + 1,
+      ); // 16 normal, 16 tinted icons + 1 marketing icon
+    },
+  );
 
   test(
-      'iOS image list used to generate Contents.json for icon directory is correct size (with dark and tinted icon)',
-      () {
-    expect(ios.createImageList('blah', 'dark-blah', 'tinted-blah').length, 16 * 3 + 1); // 16 normal, 16 dark, 16 tinted icons + 1 marketing icon
-  });
+    'iOS image list used to generate Contents.json for icon directory is correct size (with dark and tinted icon)',
+    () {
+      expect(
+        ios.createImageList('blah', 'dark-blah', 'tinted-blah').length,
+        16 * 3 + 1,
+      ); // 16 normal, 16 dark, 16 tinted icons + 1 marketing icon
+    },
+  );
 
   group('config file from args', () {
     // Create mini parser with only the wanted option, mocking the real one
@@ -55,13 +69,13 @@ void main() {
         abbr: 'f',
         defaultsTo: defaultConfigFile,
       )
-      ..addOption(
-        main_dart.prefixOption,
-        abbr: 'p',
-        defaultsTo: '.',
-      );
-    final String testDir =
-        join('.dart_tool', 'flutter_launcher_icons', 'test', 'config_file');
+      ..addOption(main_dart.prefixOption, abbr: 'p', defaultsTo: '.');
+    final String testDir = join(
+      '.dart_tool',
+      'flutter_launcher_icons',
+      'test',
+      'config_file',
+    );
 
     late String currentDirectory;
     Future<void> setCurrentDirectory(String path) async {
@@ -83,11 +97,12 @@ void main() {
 flutter_launcher_icons:
   android: true
   ios: false
+  image_path: "assets/icon.png"
 ''');
       final ArgResults argResults = parser.parse(<String>[]);
       final Config? config = main_dart.loadConfigFileFromArgResults(argResults);
       expect(config, isNotNull);
-      expect(config!.android, isTrue);
+      expect(config!.android.isEnabled, isTrue);
     });
     test('default_use_pubspec', () async {
       await setCurrentDirectory('pubspec_only');
@@ -95,11 +110,12 @@ flutter_launcher_icons:
 flutter_launcher_icons:
   android: true
   ios: false
+  image_path: "assets/icon.png"
 ''');
       ArgResults argResults = parser.parse(<String>[]);
       final Config? config = main_dart.loadConfigFileFromArgResults(argResults);
       expect(config, isNotNull);
-      expect(config!.ios, isFalse);
+      expect(config!.ios.isEnabled, isFalse);
 
       // read pubspec if provided file is not found
       argResults = parser.parse(<String>['-f', defaultConfigFile]);
@@ -112,12 +128,13 @@ flutter_launcher_icons:
 flutter_launcher_icons:
   android: true
   ios: true
+  image_path: "assets/icon.png"
 ''');
       // if no argument set, should fail
       ArgResults argResults = parser.parse(<String>['-f', 'custom.yaml']);
       final Config? config = main_dart.loadConfigFileFromArgResults(argResults);
       expect(config, isNotNull);
-      expect(config!.ios, isTrue);
+      expect(config!.ios.isEnabled, isTrue);
 
       // should fail if no argument
       argResults = parser.parse(<String>[]);

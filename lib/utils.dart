@@ -27,7 +27,7 @@ Image createResizedImage(int iconSize, Image image) {
 }
 
 void printStatus(String message) {
-  print('• $message');
+  stdout.writeln('• $message');
 }
 
 String generateError(Exception e, String? error) {
@@ -35,9 +35,11 @@ String generateError(Exception e, String? error) {
   return '\n✗ ERROR: ${(e).runtimeType.toString()}$errorOutput';
 }
 
-// TODO(RatakondalaArun): Remove nullable return type
-// this can never return null value since it already throws exception
-Future<Image?> decodeImageFile(String filePath) async {
+/// Decodes an image file at [filePath].
+///
+/// Throws [NoDecoderForImageFormatException] if the file's format is not
+/// recognized by `package:image`.
+Future<Image> decodeImageFile(String filePath) async {
   final image = decodeImage(await File(filePath).readAsBytes());
   if (image == null) {
     throw NoDecoderForImageFormatException(filePath);
@@ -48,7 +50,9 @@ Future<Image?> decodeImageFile(String filePath) async {
 /// Creates [File] in the given [filePath] if not exists
 Future<File> createFileIfNotExist(String filePath) async {
   final file = File(path.joinAll(path.split(filePath)));
-  // Using the sync method here due to `avoid_slow_async_io` lint suggestion.
+  // existsSync is intentional: this is on the CLI startup path where blocking
+  // briefly is preferable to the overhead of a microtask. Image I/O hot paths
+  // use the async equivalents.
   if (!file.existsSync()) {
     await file.create(recursive: true);
   }
@@ -58,7 +62,9 @@ Future<File> createFileIfNotExist(String filePath) async {
 /// Creates [Directory] in the given [dirPath] if not exists
 Future<Directory> createDirIfNotExist(String dirPath) async {
   final dir = Directory(path.joinAll(path.split(dirPath)));
-  // Using the sync method here due to `avoid_slow_async_io` lint suggestion.
+  // existsSync is intentional: this is on the CLI startup path where blocking
+  // briefly is preferable to the overhead of a microtask. Image I/O hot paths
+  // use the async equivalents.
   if (!dir.existsSync()) {
     await dir.create(recursive: true);
   }
@@ -75,8 +81,10 @@ String? areFSEntiesExist(List<String> paths) {
   for (final path in paths) {
     // Using the sync method here due to `avoid_slow_async_io` lint suggestion.
     final fsType = FileSystemEntity.typeSync(path);
-    if (![FileSystemEntityType.directory, FileSystemEntityType.file]
-        .contains(fsType)) {
+    if (![
+      FileSystemEntityType.directory,
+      FileSystemEntityType.file,
+    ].contains(fsType)) {
       return path;
     }
   }

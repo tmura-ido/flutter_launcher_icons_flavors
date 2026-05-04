@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons/web/web_template.dart';
+import 'package:flutter_launcher_icons_flavored/web/web_template.dart';
 import 'package:test/test.dart';
 
 void main() {

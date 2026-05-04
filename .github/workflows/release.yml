@@ -1,0 +1,92 @@
+# Tag-driven release workflow.
+#
+# PRE-RELEASE SETUP REQUIRED (one-time, before pushing the first tag):
+#
+#   1. Claim the package name `flutter_launcher_icons_flavored` on
+#      pub.dev under a publisher you control (verified domain or
+#      Google account).
+#
+#   2. On pub.dev, under the publisher's "Automated publishing"
+#      settings, add an OIDC trust entry for:
+#        Repository:    tmura-ido/flutter_launcher_icons_flavored
+#        Workflow:      .github/workflows/release.yml
+#        Tag pattern:   v*.*.*
+#
+#   3. (Optional) Configure branch protection on `main` to require the
+#      CI matrix in ci.yml plus linear history; see README "Contributing".
+#
+# Trigger: push of a tag matching v*.*.*. Releasing 0.15.0 means
+# `git tag v0.15.0 && git push origin v0.15.0` from a clean main.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  id-token: write   # required for OIDC token exchange with pub.dev
+  contents: write   # required for softprops/action-gh-release
+
+jobs:
+  publish:
+    name: Publish to pub.dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+
+      - name: Pub get
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      - name: Test
+        run: dart test --reporter=expanded
+
+      - name: Verify tag matches pubspec version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF#refs/tags/v}"
+          pub_ver=$(awk '/^version:/ {print $2; exit}' pubspec.yaml)
+          if [ "$tag" != "$pub_ver" ]; then
+            echo "::error::Tag v$tag does not match pubspec version $pub_ver"
+            exit 1
+          fi
+          echo "Tag v$tag matches pubspec version $pub_ver"
+
+      - name: Publish dry-run
+        run: dart pub publish --dry-run
+
+      # Uses dart-lang/setup-dart's OIDC integration: no long-lived
+      # PUB_TOKEN secrets required. The pub.dev publisher must trust
+      # this repo+workflow (see the comment block at the top of this file).
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Publish
+        run: dart pub publish --force
+
+      - name: Extract changelog section
+        id: changelog
+        shell: bash
+        run: |
+          tag="${GITHUB_REF#refs/tags/v}"
+          awk -v ver="$tag" '
+            $0 ~ "^## "ver"($| )" { capture=1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > RELEASE_BODY.md
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ steps.changelog.outputs.version }}
+          body_path: RELEASE_BODY.md
+          draft: false
+          prerelease: false

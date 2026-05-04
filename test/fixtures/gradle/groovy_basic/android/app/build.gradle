@@ -1,0 +1,7 @@
+android {
+    defaultConfig {
+        applicationId "com.example.app"
+        minSdkVersion 21
+        targetSdkVersion 34
+    }
+}

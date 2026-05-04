@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'package:flutter_launcher_icons/constants.dart';
-import 'package:flutter_launcher_icons/src/version.dart';
+import 'package:flutter_launcher_icons_flavored/constants.dart';
+import 'package:flutter_launcher_icons_flavored/src/version.dart';
 
 const _defaultConfigFileName = './flutter_launcher_icons.yaml';
 
 /// The function will be called from command line
 /// using the following command:
 /// ```sh
-/// flutter pub run flutter_launcher_icons:generate
+/// dart run flutter_launcher_icons_flavored:generate
 /// ```
 ///
 /// Calling this function will generate a flutter_launcher_icons.yaml file
@@ -26,15 +26,11 @@ const _defaultConfigFileName = './flutter_launcher_icons.yaml';
 /// `flutter_launcher_icons.yaml` file, if not provided,
 /// the default file will be used.
 void main(List<String> arguments) {
-  print(introMessage(packageVersion));
+  stdout.writeln(introMessage(packageVersion));
 
   final parser = ArgParser()
     ..addFlag('override', abbr: 'o', defaultsTo: false)
-    ..addOption(
-      'fileName',
-      abbr: 'f',
-      defaultsTo: _defaultConfigFileName,
-    );
+    ..addOption('fileName', abbr: 'f', defaultsTo: _defaultConfigFileName);
 
   final results = parser.parse(arguments);
   final override = results['override'] as bool;
@@ -42,17 +38,17 @@ void main(List<String> arguments) {
 
   // Check if fileName is valid and has a .yaml extension
   if (!fileName.endsWith('.yaml')) {
-    print('Invalid file name, please provide a valid file name');
+    stdout.writeln('Invalid file name, please provide a valid file name');
     return;
   }
 
   final file = File(fileName);
   if (file.existsSync()) {
     if (override) {
-      print('File already exists, overriding...');
+      stdout.writeln('File already exists, overriding...');
       _generateConfigFile(file);
     } else {
-      print(
+      stdout.writeln(
         'File already exists, use --override flag to override the file, or use --fileName flag to use a different file name',
       );
     }
@@ -61,7 +57,7 @@ void main(List<String> arguments) {
       file.createSync(recursive: true);
       _generateConfigFile(file);
     } on Exception catch (e) {
-      print('Error creating file: $e');
+      stdout.writeln('Error creating file: $e');
     }
   }
 }
@@ -70,25 +66,25 @@ void _generateConfigFile(File configFile) {
   try {
     configFile.writeAsStringSync(_configFileTemplate);
 
-    print('\nConfig file generated successfully 🎉');
-    print(
+    stdout.writeln('\nConfig file generated successfully 🎉');
+    stdout.writeln(
       'You can now use this new config file by using the command below:\n\n'
-      'flutter pub run flutter_launcher_icons'
+      'dart run flutter_launcher_icons_flavored'
       '${configFile.path == _defaultConfigFileName ? '' : ' -f ${configFile.path}'}\n',
     );
   } on Exception catch (e) {
-    print('Error generating config file: $e');
+    stdout.writeln('Error generating config file: $e');
   }
 }
 
 const _configFileTemplate = '''
-# flutter pub run flutter_launcher_icons
+# dart run flutter_launcher_icons_flavored
 flutter_launcher_icons:
   image_path: "assets/icon/icon.png"
 
   android: "launcher_icon"
   # image_path_android: "assets/icon/icon.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
+  min_sdk_android: 24 # android min sdk min:16, default 24
   # adaptive_icon_background: "assets/icon/background.png"
   # adaptive_icon_foreground: "assets/icon/foreground.png"
   # adaptive_icon_foreground_inset: 16

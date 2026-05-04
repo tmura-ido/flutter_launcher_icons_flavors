@@ -3,17 +3,18 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:flutter_launcher_icons/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons/android.dart' as android_launcher_icons;
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/constants.dart' as constants;
-import 'package:flutter_launcher_icons/constants.dart';
-import 'package:flutter_launcher_icons/custom_exceptions.dart';
-import 'package:flutter_launcher_icons/ios.dart' as ios_launcher_icons;
-import 'package:flutter_launcher_icons/logger.dart';
-import 'package:flutter_launcher_icons/macos/macos_icon_generator.dart';
-import 'package:flutter_launcher_icons/web/web_icon_generator.dart';
-import 'package:flutter_launcher_icons/windows/windows_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/android.dart'
+    as android_launcher_icons;
+import 'package:flutter_launcher_icons_flavored/cli/command_runner.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/constants.dart';
+import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavored/ios.dart' as ios_launcher_icons;
+import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavored/macos/macos_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/web/web_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/windows/windows_icon_generator.dart';
 import 'package:path/path.dart' as path;
 
 const String fileOption = 'file';
@@ -23,9 +24,9 @@ const String prefixOption = 'prefix';
 const String defaultConfigFile = 'flutter_launcher_icons.yaml';
 const String flavorConfigFilePattern = r'^flutter_launcher_icons-(.*).yaml$';
 
-Future<List<String>> getFlavors() async {
+Future<List<String>> getFlavors(String prefixPath) async {
   final List<String> flavors = [];
-  await for (var item in Directory('.').list()) {
+  await for (var item in Directory(prefixPath).list()) {
     if (item is File) {
       final name = path.basename(item.path);
       final match = RegExp(flavorConfigFilePattern).firstMatch(name);
@@ -37,91 +38,21 @@ Future<List<String>> getFlavors() async {
   return flavors;
 }
 
+/// Backward-compat shim. Phase 4 routes everything through the
+/// `CommandRunner` in `lib/cli/command_runner.dart`. This entry point
+/// is preserved for callers that imported it before 0.15.0 (notably
+/// `bin/flutter_launcher_icons.dart` historically and the integration
+/// test in `test/main_consolidated_flow_test.dart`).
+///
+/// Behavior parity: when the runner returns a non-zero exit code, we
+/// terminate the current isolate via `exit(code)` exactly as the old
+/// implementation did. On success we return normally so test harnesses
+/// can continue to make assertions afterwards.
 Future<void> createIconsFromArguments(List<String> arguments) async {
-  final ArgParser parser = ArgParser(allowTrailingOptions: true);
-  parser
-    ..addFlag(helpFlag, abbr: 'h', help: 'Usage help', negatable: false)
-    // Make default null to differentiate when it is explicitly set
-    ..addOption(
-      fileOption,
-      abbr: 'f',
-      help: 'Path to config file',
-      defaultsTo: defaultConfigFile,
-    )
-    ..addFlag(verboseFlag, abbr: 'v', help: 'Verbose output', defaultsTo: false)
-    ..addOption(
-      prefixOption,
-      abbr: 'p',
-      help: 'Generates config in the given path. Only Supports web platform',
-      defaultsTo: '.',
-    );
-
-  final ArgResults argResults = parser.parse(arguments);
-  // creating logger based on -v flag
-  final logger = FLILogger(argResults[verboseFlag]);
-
-  logger.verbose('Received args ${argResults.arguments}');
-
-  if (argResults[helpFlag]) {
-    stdout.writeln('Generates icons for iOS and Android');
-    stdout.writeln(parser.usage);
-    exit(0);
-  }
-
-  // Flavors management
-  final flavors = await getFlavors();
-  final hasFlavors = flavors.isNotEmpty;
-
-  final String prefixPath = argResults[prefixOption];
-
-  // Create icons
-  if (!hasFlavors) {
-    // Load configs from given file(defaults to ./flutter_launcher_icons.yaml) or from ./pubspec.yaml
-
-    final flutterLauncherIconsConfigs =
-        loadConfigFileFromArgResults(argResults);
-    if (flutterLauncherIconsConfigs == null) {
-      throw NoConfigFoundException(
-        'No configuration found in $defaultConfigFile or in ${constants.pubspecFilePath}. '
-        'In case file exists in different directory use --file option',
-      );
-    }
-    try {
-      await createIconsFromConfig(
-        flutterLauncherIconsConfigs,
-        logger,
-        prefixPath,
-      );
-      print('\n✓ Successfully generated launcher icons');
-    } catch (e) {
-      stderr.writeln('\n✕ Could not generate launcher icons');
-      stderr.writeln(e);
-      exit(2);
-    }
-  } else {
-    try {
-      for (String flavor in flavors) {
-        print('\nFlavor: $flavor');
-        final flutterLauncherIconsConfigs =
-            Config.loadConfigFromFlavor(flavor, prefixPath);
-        if (flutterLauncherIconsConfigs == null) {
-          throw NoConfigFoundException(
-            'No configuration found for $flavor flavor.',
-          );
-        }
-        await createIconsFromConfig(
-          flutterLauncherIconsConfigs,
-          logger,
-          prefixPath,
-          flavor,
-        );
-      }
-      print('\n✓ Successfully generated launcher icons for flavors');
-    } catch (e) {
-      stderr.writeln('\n✕ Could not generate launcher icons for flavors');
-      stderr.writeln(e);
-      exit(2);
-    }
+  final runner = buildCommandRunner();
+  final code = await runner.run(effectiveArgs(arguments)) ?? 0;
+  if (code != 0) {
+    exit(code);
   }
 }
 
@@ -135,18 +66,46 @@ Future<void> createIconsFromConfig(
     throw const InvalidConfigException(errorMissingPlatform);
   }
 
+  // Resolve the effective Android min_sdk_android (explicit → autodetect →
+  // static default) up-front so a warning surfaces early on autodetect
+  // failure. Currently the resolved value is logged for visibility; future
+  // phases may consume it for adaptive-icon gating.
+  if (flutterConfigs.isNeedingNewAndroidIcon) {
+    final resolvedMinSdk = await android_launcher_icons.resolveMinSdkAndroid(
+      prefixPath: prefixPath,
+      logger: logger,
+      explicit: flutterConfigs.minSdkAndroid,
+    );
+    logger.verbose(
+      'Resolved Android min_sdk_android = $resolvedMinSdk for this run.',
+    );
+  }
+
   final concurrentIconCreation = <Future<void>>[];
   if (flutterConfigs.isNeedingNewAndroidIcon) {
-    concurrentIconCreation.add(android_launcher_icons.createDefaultIcons(flutterConfigs, flavor));
+    concurrentIconCreation.add(
+      android_launcher_icons.createDefaultIcons(
+        flutterConfigs,
+        flavor,
+        prefixPath: prefixPath,
+      ),
+    );
   }
   if (flutterConfigs.hasAndroidAdaptiveConfig) {
-    concurrentIconCreation.add(android_launcher_icons.createAdaptiveIcons(flutterConfigs, flavor));
+    concurrentIconCreation.add(
+      android_launcher_icons.createAdaptiveIcons(
+        flutterConfigs,
+        flavor,
+        prefixPath: prefixPath,
+      ),
+    );
   }
   if (flutterConfigs.hasAndroidAdaptiveMonochromeConfig) {
     concurrentIconCreation.add(
       android_launcher_icons.createAdaptiveMonochromeIcons(
         flutterConfigs,
         flavor,
+        prefixPath: prefixPath,
       ),
     );
   }
@@ -155,10 +114,15 @@ Future<void> createIconsFromConfig(
     await android_launcher_icons.createMipmapXmlFile(
       flutterConfigs,
       flavor,
+      prefixPath: prefixPath,
     );
   }
   if (flutterConfigs.isNeedingNewIOSIcon) {
-    await ios_launcher_icons.createIcons(flutterConfigs, flavor);
+    await ios_launcher_icons.createIcons(
+      flutterConfigs,
+      flavor,
+      prefixPath: prefixPath,
+    );
   }
 
   // Generates Icons for given platform
@@ -183,14 +147,14 @@ Future<void> createIconsFromConfig(
   );
 }
 
-Config? loadConfigFileFromArgResults(
-  ArgResults argResults,
-) {
+/// Backward-compat shim used by `test/main_test.dart`.
+///
+/// Mirrors the legacy behavior: explicit `--file` → that file; else the
+/// default `flutter_launcher_icons.yaml`; else `pubspec.yaml`. Returns
+/// `null` when nothing is found.
+Config? loadConfigFileFromArgResults(ArgResults argResults) {
   final String prefixPath = argResults[prefixOption];
-  final flutterLauncherIconsConfigs = Config.loadConfigFromPath(
-        argResults[fileOption],
-        prefixPath,
-      ) ??
+  final filePath = (argResults[fileOption] as String?) ?? defaultConfigFile;
+  return Config.loadConfigFromPath(filePath, prefixPath) ??
       Config.loadConfigFromPubSpec(prefixPath);
-  return flutterLauncherIconsConfigs;
 }

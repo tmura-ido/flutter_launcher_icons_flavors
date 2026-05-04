@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.15.0
+
+### Breaking
+- Renamed package to `flutter_launcher_icons_flavored`. Update `dev_dependencies` and `dart run` invocations.
+- Default `min_sdk_android` raised from 21 to 24. Set it explicitly in config to keep the old value.
+- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. The bare `dart run flutter_launcher_icons_flavored` now prints help; pass `generate` to keep prior behavior.
+- With the consolidated `flutter_launcher_icons_flavors.yaml` present and more than one flavor defined, `generate` requires `--flavor <name>` or `--all-flavors`. Exits 64 otherwise. Legacy `flutter_launcher_icons-<flavor>.yaml` workflows are unchanged and still build all flavors by default.
+
+### Added
+- Consolidated multi-flavor config file `flutter_launcher_icons_flavors.yaml` with `defaults:` deep-merged into each flavor, and explicit `null` to delete inherited keys.
+- `migrate` command converts legacy `flutter_launcher_icons-<flavor>.yaml` files into the consolidated format and prints a "promotion candidates" report.
+- `doctor` command reports SDK versions, detected configs, conflicts, and the resolved source for each flavor.
+- `--strict` flag on `generate` promotes coexistence warnings to errors (exit 65).
+- Kotlin DSL (`build.gradle.kts`) support for Android `minSdk` parsing.
+
+### Fixed
+- `getFlavors()` now respects `--prefix` (previously hard-coded `Directory('.')`).
+- `prefixPath` is now threaded through Android icon generation (resolves the `// TODO(p-mazhnik)` in `lib/android.dart`).
+- Path construction uses `package:path` instead of string concatenation.
+- `Config.android` / `Config.ios` are no longer typed `dynamic`.
+- `decodeImageFile` return type corrected (no longer falsely nullable).
+
+### Removed
+- Dead `lib/pubspec_parser.dart`.
+
+### Deprecated
+- `flutter_icons:` block in `pubspec.yaml`. Still works in 0.15.x with a warning; removed in 0.17.
+
+### Internal
+- Added `PartialConfig` / `PlatformToggle` types.
+- Async I/O on icon-generation hot paths.
+- CI now runs on Ubuntu, macOS, and Windows against Flutter 3.41.9 and stable.
+- Added `pana` and `dart pub publish --dry-run` gates.
+
 ## 0.14.4 (10th June 2025)
 
 - Removed rules which no longer exist from analysis_options [#598](https://github.com/fluttercommunity/flutter_launcher_icons/issues/598)

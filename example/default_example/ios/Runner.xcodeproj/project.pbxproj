@@ -1,0 +1,10 @@
+// !$*UTF8*$!
+{
+	objects = {
+/* Begin XCBuildConfiguration section */
+		1234ABCD /* Debug.xcconfig */ = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+		};
+/* End XCBuildConfiguration section */
+	};
+}

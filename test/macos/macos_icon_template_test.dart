@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons/macos/macos_icon_template.dart';
+import 'package:flutter_launcher_icons_flavored/macos/macos_icon_template.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -20,14 +20,12 @@ void main() {
       expect(template.iconFile, equals('app_icon_${template.scaledSize}.png'));
       expect(
         template.iconContent,
-        equals(
-          {
-            'size': '${size}x$size',
-            'idiom': 'mac',
-            'filename': 'app_icon_${template.scaledSize}.png',
-            'scale': '1x',
-          },
-        ),
+        equals({
+          'size': '${size}x$size',
+          'idiom': 'mac',
+          'filename': 'app_icon_${template.scaledSize}.png',
+          'scale': '1x',
+        }),
       );
     });
   });

@@ -1,7 +1,6 @@
-import 'package:flutter_launcher_icons/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons/constants.dart' as constants;
-import 'package:flutter_launcher_icons/custom_exceptions.dart';
-import 'package:flutter_launcher_icons/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
 import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 
@@ -9,7 +8,7 @@ import 'package:path/path.dart' as path;
 class WindowsIconGenerator extends IconGenerator {
   /// Creates a instance of [WindowsIconGenerator]
   WindowsIconGenerator(IconGeneratorContext context)
-      : super(context, 'Windows');
+    : super(context, 'Windows');
 
   @override
   Future<void> createIcons() async {
@@ -18,16 +17,10 @@ class WindowsIconGenerator extends IconGenerator {
       context.windowsConfig!.imagePath ?? context.config.imagePath,
     );
 
-    context.logger
-        .verbose('Decoding and loading image file from $imgFilePath...');
+    context.logger.verbose(
+      'Decoding and loading image file from $imgFilePath...',
+    );
     final imgFile = await utils.decodeImageFile(imgFilePath);
-    // TODO(RatakondalaArun): remove null check
-    // #utils.decodeImageFile never returns null instead it throws Exception
-    if (imgFile == null) {
-      context.logger
-          .error('Image File not found at given path $imgFilePath...');
-      throw FileNotFoundException(imgFilePath);
-    }
 
     context.logger.verbose('Generating icon from $imgFilePath...');
     await _generateIcon(imgFile);

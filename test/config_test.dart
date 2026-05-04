@@ -1,5 +1,5 @@
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -26,14 +26,14 @@ void main() {
         );
         expect(configs, isNotNull);
         // android configs
-        expect(configs!.android, isTrue);
+        expect(configs!.android.isEnabled, isTrue);
         expect(configs.imagePath, isNotNull);
         expect(configs.imagePathAndroid, isNotNull);
         expect(configs.adaptiveIconBackground, isNotNull);
         expect(configs.adaptiveIconForeground, isNotNull);
         expect(configs.minSdkAndroid, equals(21));
         // ios configs
-        expect(configs.ios, isTrue);
+        expect(configs.ios.isEnabled, isTrue);
         expect(configs.imagePathIOS, isNotNull);
         expect(configs.removeAlphaIOS, isFalse);
         // web configs
@@ -87,10 +87,8 @@ void main() {
 
       test('should throw InvalidConfigException when config is invalid', () {
         expect(
-          () => Config.loadConfigFromPath(
-            'invalid_fli_config.yaml',
-            prefixPath,
-          ),
+          () =>
+              Config.loadConfigFromPath('invalid_fli_config.yaml', prefixPath),
           throwsA(isA<InvalidConfigException>()),
         );
       });
@@ -103,14 +101,17 @@ void main() {
         const String imagePath = 'assets/images/icon-710x599.png';
         expect(configs!.imagePath, equals(imagePath));
         // android configs
-        expect(configs.android, isTrue);
+        expect(configs.android.isEnabled, isTrue);
         expect(configs.imagePathAndroid, isNull);
         expect(configs.getImagePathAndroid(), equals(imagePath));
         expect(configs.adaptiveIconBackground, isNull);
         expect(configs.adaptiveIconForeground, isNull);
-        expect(configs.minSdkAndroid, equals(21));
+        // No `min_sdk_android` in the test pubspec → raw config holds null.
+        // The pipeline (android.resolveMinSdkAndroid) is responsible for
+        // turning null into autodetected value or the static default.
+        expect(configs.minSdkAndroid, isNull);
         // ios configs
-        expect(configs.ios, isTrue);
+        expect(configs.ios.isEnabled, isTrue);
         expect(configs.imagePathIOS, isNull);
         expect(configs.getImagePathIOS(), equals(imagePath));
         expect(configs.removeAlphaIOS, isFalse);
@@ -134,14 +135,14 @@ void main() {
         final configs = Config.loadConfigFromPubSpec(prefixPath);
         expect(configs, isNotNull);
         // android configs
-        expect(configs!.android, isTrue);
+        expect(configs!.android.isEnabled, isTrue);
         expect(configs.imagePath, isNotNull);
         expect(configs.imagePathAndroid, isNotNull);
         expect(configs.adaptiveIconBackground, isNotNull);
         expect(configs.adaptiveIconForeground, isNotNull);
         expect(configs.minSdkAndroid, equals(21));
         // ios configs
-        expect(configs.ios, isTrue);
+        expect(configs.ios.isEnabled, isTrue);
         expect(configs.imagePathIOS, isNotNull);
         expect(configs.removeAlphaIOS, isFalse);
         // web configs
@@ -214,18 +215,15 @@ void main() {
         ]).create();
       });
       test('should return valid config', () {
-        final configs = Config.loadConfigFromFlavor(
-          'development',
-          prefixPath,
-        );
+        final configs = Config.loadConfigFromFlavor('development', prefixPath);
         expect(configs, isNotNull);
-        expect(configs!.android, isTrue);
+        expect(configs!.android.isEnabled, isTrue);
         expect(configs.imagePath, isNotNull);
         expect(configs.imagePathAndroid, isNotNull);
         expect(configs.adaptiveIconBackground, isNotNull);
         expect(configs.adaptiveIconForeground, isNotNull);
         // ios configs
-        expect(configs.ios, isTrue);
+        expect(configs.ios.isEnabled, isTrue);
         expect(configs.imagePathIOS, isNotNull);
         // web configs
         expect(configs.webConfig, isNotNull);

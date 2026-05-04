@@ -2,12 +2,15 @@
 
 import 'dart:io';
 
-import 'package:flutter_launcher_icons/config/config.dart';
-import 'package:flutter_launcher_icons/constants.dart' as constants;
-import 'package:flutter_launcher_icons/constants.dart';
-import 'package:flutter_launcher_icons/custom_exceptions.dart';
-import 'package:flutter_launcher_icons/utils.dart' as utils;
-import 'package:flutter_launcher_icons/xml_templates.dart' as xml_template;
+import 'package:flutter_launcher_icons_flavored/config/config.dart';
+import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavored/constants.dart';
+import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavored/src/min_sdk_patterns.dart';
+import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavored/xml_templates.dart'
+    as xml_template;
 import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 
@@ -36,29 +39,34 @@ List<AndroidIconTemplate> androidIcons = <AndroidIconTemplate>[
 
 Future<void> createDefaultIcons(
   Config config,
-  String? flavor,
-) async {
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
   utils.printStatus('Creating default icons Android');
-  // TODO(p-mazhnik): support prefixPath
-  final String? filePath = config.getImagePathAndroid();
-  if (filePath == null) {
+  final String? relativeImagePath = config.getImagePathAndroid();
+  if (relativeImagePath == null) {
     throw const InvalidConfigException(errorMissingImagePath);
   }
-  final Image? image = await utils.decodeImageFile(filePath);
-  if (image == null) {
-    return;
-  }
-  final File androidManifestFile = File(constants.androidManifestFile);
+  final String filePath = path.join(prefixPath, relativeImagePath);
+  final Image image = await utils.decodeImageFile(filePath);
+  final File androidManifestFile = File(
+    path.join(prefixPath, constants.androidManifestFile),
+  );
   final concurrentIconUpdates = <Future<void>>[];
   if (config.isCustomAndroidFile) {
     utils.printStatus('Adding a new Android launcher icon');
-    final String iconName = config.android;
+    final String iconName = config.androidIconName;
     isAndroidIconNameCorrectFormat(iconName);
     final String iconPath = '$iconName.png';
     for (AndroidIconTemplate template in androidIcons) {
-      concurrentIconUpdates.add(_saveNewImages(template, image, iconPath, flavor));
+      concurrentIconUpdates.add(
+        _saveNewImages(template, image, iconPath, flavor, prefixPath),
+      );
     }
-    await overwriteAndroidManifestWithNewLauncherIcon(iconName, androidManifestFile);
+    await overwriteAndroidManifestWithNewLauncherIcon(
+      iconName,
+      androidManifestFile,
+    );
   } else {
     utils.printStatus(
       'Overwriting the default Android launcher icon with a new icon',
@@ -70,6 +78,7 @@ Future<void> createDefaultIcons(
           image,
           constants.androidFileName,
           flavor,
+          prefixPath: prefixPath,
         ),
       );
     }
@@ -94,8 +103,9 @@ bool isAndroidIconNameCorrectFormat(String iconName) {
 
 Future<void> createAdaptiveIcons(
   Config config,
-  String? flavor,
-) async {
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
   utils.printStatus('Creating adaptive icons Android');
 
   // Retrieve the necessary Flutter Launcher Icons configuration from the pubspec.yaml file
@@ -104,10 +114,9 @@ Future<void> createAdaptiveIcons(
   if (backgroundConfig == null || foregroundImagePath == null) {
     throw const InvalidConfigException(errorMissingImagePath);
   }
-  final Image? foregroundImage = await utils.decodeImageFile(foregroundImagePath);
-  if (foregroundImage == null) {
-    return;
-  }
+  final Image foregroundImage = await utils.decodeImageFile(
+    path.join(prefixPath, foregroundImagePath),
+  );
 
   final concurrentImageUpdates = <Future<void>>[];
   // Create adaptive icon foreground images
@@ -118,6 +127,7 @@ Future<void> createAdaptiveIcons(
         foregroundImage,
         constants.androidAdaptiveForegroundFileName,
         flavor,
+        prefixPath: prefixPath,
       ),
     );
   }
@@ -129,18 +139,20 @@ Future<void> createAdaptiveIcons(
         config,
         backgroundConfig,
         flavor,
+        prefixPath: prefixPath,
       ),
     );
   } else {
-    await updateColorsXmlFile(backgroundConfig, flavor);
+    await updateColorsXmlFile(backgroundConfig, flavor, prefixPath: prefixPath);
   }
   await Future.wait(concurrentImageUpdates);
 }
 
 Future<void> createAdaptiveMonochromeIcons(
   Config config,
-  String? flavor,
-) async {
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
   utils.printStatus('Creating adaptive monochrome icons Android');
 
   // Retrieve the necessary Flutter Launcher Icons configuration from the pubspec.yaml file
@@ -148,10 +160,9 @@ Future<void> createAdaptiveMonochromeIcons(
   if (monochromeImagePath == null) {
     throw const InvalidConfigException(errorMissingImagePath);
   }
-  final Image? monochromeImage = await utils.decodeImageFile(monochromeImagePath);
-  if (monochromeImage == null) {
-    return;
-  }
+  final Image monochromeImage = await utils.decodeImageFile(
+    path.join(prefixPath, monochromeImagePath),
+  );
 
   final concurrentIconUpdates = <Future<void>>[];
   // Create adaptive icon monochrome images
@@ -162,6 +173,7 @@ Future<void> createAdaptiveMonochromeIcons(
         monochromeImage,
         constants.androidAdaptiveMonochromeFileName,
         flavor,
+        prefixPath: prefixPath,
       ),
     );
   }
@@ -170,8 +182,9 @@ Future<void> createAdaptiveMonochromeIcons(
 
 Future<void> createMipmapXmlFile(
   Config config,
-  String? flavor,
-) async {
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
   // Note: Adaptive Icons will only be used when both
   // `adaptive_icon_background` and `adaptive_icon_foreground` or
   // `adaptive_icon_monochrome` are specified (The `image_path` is not
@@ -194,7 +207,8 @@ Future<void> createMipmapXmlFile(
           '  <background android:drawable="@color/ic_launcher_background"/>\n';
     }
 
-    xmlContent += '''
+    xmlContent +=
+        '''
   <foreground>
       <inset
           android:drawable="@drawable/ic_launcher_foreground"
@@ -204,7 +218,8 @@ Future<void> createMipmapXmlFile(
   }
 
   if (config.hasAndroidAdaptiveMonochromeConfig) {
-    xmlContent += '''
+    xmlContent +=
+        '''
   <monochrome>
       <inset
           android:drawable="@drawable/ic_launcher_monochrome"
@@ -213,18 +228,16 @@ Future<void> createMipmapXmlFile(
 ''';
   }
 
-  late File mipmapXmlFile;
-  if (config.isCustomAndroidFile) {
-    mipmapXmlFile = File(
-      constants.androidAdaptiveXmlFolder(flavor) + config.android + '.xml',
-    );
-  } else {
-    mipmapXmlFile = File(
-      constants.androidAdaptiveXmlFolder(flavor) +
-          constants.androidDefaultIconName +
-          '.xml',
-    );
-  }
+  final String iconBaseName = config.isCustomAndroidFile
+      ? config.androidIconName
+      : constants.androidDefaultIconName;
+  final File mipmapXmlFile = File(
+    path.join(
+      prefixPath,
+      constants.androidAdaptiveXmlFolder(flavor),
+      '$iconBaseName.xml',
+    ),
+  );
 
   await mipmapXmlFile.create(recursive: true);
   await mipmapXmlFile.writeAsString(
@@ -239,9 +252,17 @@ Future<void> createMipmapXmlFile(
 ///
 /// If not, the colors.xml file is created and a color item for the adaptive icon
 /// background is included in the new colors.xml file.
-Future<void> updateColorsXmlFile(String backgroundConfig, String? flavor) async {
-  final File colorsXml = File(constants.androidColorsFile(flavor));
-  // Using the sync method here due to `avoid_slow_async_io` lint suggestion.
+Future<void> updateColorsXmlFile(
+  String backgroundConfig,
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
+  final File colorsXml = File(
+    path.join(prefixPath, constants.androidColorsFile(flavor)),
+  );
+  // existsSync is intentional here: a single bool probe before deciding
+  // whether to update or create the file. Async I/O is reserved for the
+  // image read/encode/write hot paths.
   if (colorsXml.existsSync()) {
     utils.printStatus(
       'Updating colors.xml with color for adaptive icon background',
@@ -252,7 +273,7 @@ Future<void> updateColorsXmlFile(String backgroundConfig, String? flavor) async 
     utils.printStatus(
       'Creating colors.xml file and adding it to your Android project',
     );
-    await createNewColorsFile(backgroundConfig, flavor);
+    await createNewColorsFile(backgroundConfig, flavor, prefixPath: prefixPath);
   }
 }
 
@@ -260,13 +281,14 @@ Future<void> updateColorsXmlFile(String backgroundConfig, String? flavor) async 
 Future<void> _createAdaptiveBackgrounds(
   Config config,
   String adaptiveIconBackgroundImagePath,
-  String? flavor,
-) async {
-  final String filePath = adaptiveIconBackgroundImagePath;
-  final Image? image = await utils.decodeImageFile(filePath);
-  if (image == null) {
-    return;
-  }
+  String? flavor, {
+  required String prefixPath,
+}) async {
+  final String filePath = path.join(
+    prefixPath,
+    adaptiveIconBackgroundImagePath,
+  );
+  final Image image = await utils.decodeImageFile(filePath);
 
   final concurrentImageUpdates = <Future<void>>[];
   // creates a png image (ic_adaptive_background.png) for the adaptive icon background in each of the locations
@@ -278,6 +300,7 @@ Future<void> _createAdaptiveBackgrounds(
         image,
         constants.androidAdaptiveBackgroundFileName,
         flavor,
+        prefixPath,
       ),
     );
   }
@@ -285,9 +308,14 @@ Future<void> _createAdaptiveBackgrounds(
 }
 
 /// Creates a colors.xml file if it was missing from android/app/src/main/res/values/colors.xml
-Future<void> createNewColorsFile(String backgroundColor, String? flavor) async {
-  final colorsFile = await File(constants.androidColorsFile(flavor))
-      .create(recursive: true);
+Future<void> createNewColorsFile(
+  String backgroundColor,
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
+  final colorsFile = await File(
+    path.join(prefixPath, constants.androidColorsFile(flavor)),
+  ).create(recursive: true);
   await colorsFile.writeAsString(xml_template.colorsXml);
   await updateColorsFile(colorsFile, backgroundColor);
 }
@@ -327,14 +355,17 @@ Future<void> overwriteExistingIcons(
   AndroidIconTemplate template,
   Image image,
   String filename,
-  String? flavor,
-) async {
+  String? flavor, {
+  String prefixPath = '.',
+}) async {
   final Image newFile = utils.createResizedImage(template.size, image);
   final pngFile = await File(
-    constants.androidResFolder(flavor) +
-        template.directoryName +
-        '/' +
-        filename,
+    path.join(
+      prefixPath,
+      constants.androidResFolder(flavor),
+      template.directoryName,
+      filename,
+    ),
   ).create(recursive: true);
   await pngFile.writeAsBytes(encodePng(newFile));
 }
@@ -347,13 +378,16 @@ Future<void> _saveNewImages(
   Image image,
   String iconFilePath,
   String? flavor,
+  String prefixPath,
 ) async {
   final Image newImage = utils.createResizedImage(template.size, image);
   final newFile = await File(
-    constants.androidResFolder(flavor) +
-        template.directoryName +
-        '/' +
-        iconFilePath,
+    path.join(
+      prefixPath,
+      constants.androidResFolder(flavor),
+      template.directoryName,
+      iconFilePath,
+    ),
   ).create(recursive: true);
   await newFile.writeAsBytes(encodePng(newImage));
 }
@@ -398,47 +432,182 @@ List<String> _transformAndroidManifestWithNewLauncherIcon(
   }).toList();
 }
 
-/// Retrieves the minSdk value from the
-/// - flutter.gradle: `'$FLUTTER_ROOT/packages/flutter_tools/gradle/flutter.gradle'`
-/// - build.gradle: `'android/app/build.gradle'`
-/// - local.properties: `'android/local.properties'`
+/// Probes for the app-level Android gradle build file inside [prefixPath].
 ///
-/// If found none returns [constants.androidDefaultAndroidMinSDK]
-Future<int> minSdk() async {
-  final androidGradleFile = File(constants.androidGradleFile);
-  final androidLocalPropertiesFile = File(constants.androidLocalPropertiesFile);
-
-  // looks for minSdk value in build.gradle, flutter.gradle & local.properties.
-  // this should always be order
-  // first check build.gradle, then local.properties, then flutter.gradle
-  return await _getMinSdkFromFile(androidGradleFile) ??
-      await _getMinSdkFromFile(androidLocalPropertiesFile) ??
-      await _getMinSdkFlutterGradle(androidLocalPropertiesFile) ??
-      constants.androidDefaultAndroidMinSDK;
+/// Probes (in order):
+///   1. `<prefix>/android/app/build.gradle.kts` (Kotlin DSL)
+///   2. `<prefix>/android/app/build.gradle`     (Groovy DSL)
+///
+/// Returns `null` when neither file exists. Kotlin DSL wins when both are
+/// present.
+///
+/// Known limitations (caller must request `min_sdk_android` explicitly):
+///   * Version catalogs (`libs.versions.toml`) are not parsed.
+///   * Convention plugins are not parsed.
+Future<File?> findAndroidGradleFile(String prefixPath) async {
+  final kts = File(path.join(prefixPath, constants.androidAppGradleKts));
+  if (kts.existsSync()) {
+    return kts;
+  }
+  final groovy = File(path.join(prefixPath, constants.androidAppGradleGroovy));
+  if (groovy.existsSync()) {
+    return groovy;
+  }
+  return null;
 }
 
-/// Retrieves the minSdk value from [File]
-Future<int?> _getMinSdkFromFile(File file) async {
-  final List<String> lines = await file.readAsLines();
-  for (String line in lines) {
-    if (line.contains('minSdkVersion')) {
-      if (line.contains('//') &&
-          line.indexOf('//') < line.indexOf('minSdkVersion')) {
-        // This line is commented
-        continue;
+/// Probes the Flutter SDK gradle helper file given a [flutterRoot].
+///
+/// Returns the first existing of:
+///   1. `<flutterRoot>/packages/flutter_tools/gradle/flutter.gradle.kts`
+///   2. `<flutterRoot>/packages/flutter_tools/gradle/flutter.gradle`
+///
+/// Returns `null` when neither exists.
+Future<File?> _findFlutterSdkGradle(String flutterRoot) async {
+  final kts = File(path.join(flutterRoot, constants.androidFlutterGradleKts));
+  if (kts.existsSync()) {
+    return kts;
+  }
+  final groovy = File(
+    path.join(flutterRoot, constants.androidFlutterGradleGroovy),
+  );
+  if (groovy.existsSync()) {
+    return groovy;
+  }
+  return null;
+}
+
+// Patterns used to extract `minSdk` / `minSdkVersion` from a gradle file.
+//
+// The actual table now lives in `lib/src/min_sdk_patterns.dart` so that
+// `doctor` reports exactly what `generate` resolves. We keep these
+// local aliases for diff-friendliness.
+final List<MinSdkPattern> _groovyMinSdkPatterns = groovyMinSdkPatterns;
+
+final List<MinSdkPattern> _ktsMinSdkPatterns = ktsMinSdkPatterns;
+
+/// Retrieves the minSdk value for the project rooted at [prefixPath].
+///
+/// Probes, in order:
+///   1. App-level gradle file via [findAndroidGradleFile] (KTS preferred over
+///      Groovy). Tries multiple `minSdk` regex patterns appropriate for the
+///      detected DSL.
+///   2. If a `flutter.minSdkVersion` indirection is detected, recurses into
+///      the Flutter SDK gradle file located via `flutter.sdk` in
+///      `local.properties`.
+///   3. Falls back to a `flutter.minSdkVersion=...` line in `local.properties`.
+///
+/// Returns `null` when none of the probes yield a value (caller falls back to
+/// [constants.androidDefaultAndroidMinSDK]).
+///
+/// Known limitations (return `null` → user must specify `min_sdk_android`):
+///   * Version catalogs (`libs.versions.toml` references like
+///     `libs.versions.minSdk.get().toInt()`).
+///   * Convention plugin delegation.
+Future<int?> minSdk({String prefixPath = '.'}) async {
+  final detection = await detectMinSdkAndroid(prefixPath: prefixPath);
+  return detection.value;
+}
+
+/// The result of [detectMinSdkAndroid].
+///
+/// [value] is the resolved integer (or `null` if every probe failed).
+/// [matchedLabel] is the human-readable label of the matching pattern
+/// (e.g. `'minSdk = N (KTS)'`), or `null` if no app-level gradle pattern
+/// matched (the value, if non-null, then came from `local.properties`).
+class MinSdkDetection {
+  /// Creates a detection result.
+  const MinSdkDetection({required this.value, required this.matchedLabel});
+
+  /// Detected minSdk integer, or `null` when undetectable.
+  final int? value;
+
+  /// Label of the pattern that matched the app-level gradle file, or
+  /// `null` (no gradle pattern matched, or value came from
+  /// `local.properties` fallback).
+  final String? matchedLabel;
+}
+
+/// Like [minSdk] but additionally returns the human-readable label of
+/// the pattern that matched. Used by `doctor` to keep its report aligned
+/// with the generation pipeline's actual detection logic.
+Future<MinSdkDetection> detectMinSdkAndroid({String prefixPath = '.'}) async {
+  final gradleFile = await findAndroidGradleFile(prefixPath);
+  final localPropertiesFile = File(
+    path.join(prefixPath, constants.androidLocalPropertiesFile),
+  );
+
+  if (gradleFile == null) {
+    final fromLocalProps = await _getMinSdkFromLocalProperties(
+      localPropertiesFile,
+    );
+    return MinSdkDetection(value: fromLocalProps, matchedLabel: null);
+  }
+
+  final isKts = gradleFile.path.endsWith('.kts');
+  final patterns = isKts ? _ktsMinSdkPatterns : _groovyMinSdkPatterns;
+  final content = await gradleFile.readAsString();
+
+  for (final p in patterns) {
+    final match = p.regex.firstMatch(content);
+    if (match == null) {
+      continue;
+    }
+    if (p.recurseToFlutter) {
+      final fromFlutterGradle = await _getMinSdkFromFlutterSdkGradle(
+        localPropertiesFile,
+      );
+      if (fromFlutterGradle != null) {
+        return MinSdkDetection(value: fromFlutterGradle, matchedLabel: p.label);
       }
-      // remove anything from the line that is not a digit
-      final String minSdk = line.replaceAll(RegExp(r'[^\d]'), '');
-      // when minSdkVersion value not found
-      return int.tryParse(minSdk);
+      final fromLocalProps = await _getMinSdkFromLocalProperties(
+        localPropertiesFile,
+      );
+      // Even if the recurse failed to land a value, the pattern *did*
+      // match; preserve the label so doctor can report the indirection.
+      return MinSdkDetection(value: fromLocalProps, matchedLabel: p.label);
+    }
+    final captured = match.group(1);
+    if (captured == null) {
+      continue;
+    }
+    final parsed = int.tryParse(captured);
+    if (parsed != null) {
+      return MinSdkDetection(value: parsed, matchedLabel: p.label);
     }
   }
-  return null; // Didn't find minSdk, assume the worst
+
+  // No app-level pattern matched. Try local.properties as a last-ditch
+  // effort. No `matchedLabel` because no gradle pattern matched.
+  final fromLocalProps = await _getMinSdkFromLocalProperties(
+    localPropertiesFile,
+  );
+  return MinSdkDetection(value: fromLocalProps, matchedLabel: null);
 }
 
-/// A helper function to [_getMinSdkFlutterGradle]
-/// which retrives value of `flutter.sdk` from `local.properties` file
+/// Reads `flutter.minSdkVersion=<int>` (or `flutter.minSdkVersion <int>`) from
+/// `local.properties`. Returns `null` if absent or unparseable.
+Future<int?> _getMinSdkFromLocalProperties(File file) async {
+  if (!file.existsSync()) {
+    return null;
+  }
+  final content = await file.readAsString();
+  final match = RegExp(
+    r'^\s*flutter\.minSdkVersion\s*[=:]?\s*(\d+)\s*$',
+    multiLine: true,
+  ).firstMatch(content);
+  if (match == null) {
+    return null;
+  }
+  return int.tryParse(match.group(1)!);
+}
+
+/// A helper which retrieves the value of `flutter.sdk` from the
+/// `local.properties` file.
 Future<String?> _getFlutterSdkPathFromLocalProperties(File file) async {
+  if (!file.existsSync()) {
+    return null;
+  }
   final List<String> lines = await file.readAsLines();
   for (String line in lines) {
     if (!line.contains('flutter.sdk=')) {
@@ -457,30 +626,92 @@ Future<String?> _getFlutterSdkPathFromLocalProperties(File file) async {
   return null;
 }
 
-/// Retrives value of `minSdkVersion` from `flutter.gradle`
-Future<int?> _getMinSdkFlutterGradle(File localPropertiesFile) async {
-  final flutterRoot =
-      await _getFlutterSdkPathFromLocalProperties(localPropertiesFile);
+/// Resolves `flutter.minSdkVersion` by recursing into the Flutter SDK gradle
+/// file (`flutter.gradle.kts` first, then `flutter.gradle`).
+Future<int?> _getMinSdkFromFlutterSdkGradle(File localPropertiesFile) async {
+  final flutterRoot = await _getFlutterSdkPathFromLocalProperties(
+    localPropertiesFile,
+  );
   if (flutterRoot == null) {
     return null;
   }
 
-  final flutterGradleFile =
-      File(path.join(flutterRoot, constants.androidFlutterGardlePath));
+  final flutterGradleFile = await _findFlutterSdkGradle(flutterRoot);
+  if (flutterGradleFile == null) {
+    return null;
+  }
 
-  final List<String> lines = await flutterGradleFile.readAsLines();
-  for (String line in lines) {
-    if (!line.contains('static int minSdkVersion =')) {
+  final content = await flutterGradleFile.readAsString();
+  final isKts = flutterGradleFile.path.endsWith('.kts');
+
+  // Try the literal-int patterns from both DSLs (we accept `minSdk = N`,
+  // `minSdkVersion = N`, `static int minSdkVersion = N`, etc.).
+  final patterns = isKts ? _ktsMinSdkPatterns : _groovyMinSdkPatterns;
+  for (final p in patterns) {
+    if (p.recurseToFlutter) {
       continue;
     }
-    if (line.contains('//') &&
-        line.indexOf('//') < line.indexOf('static int minSdkVersion =')) {
+    final match = p.regex.firstMatch(content);
+    if (match == null) {
       continue;
     }
-    final minSdk = line.split('=').last.trim();
-    return int.tryParse(minSdk);
+    final captured = match.group(1);
+    if (captured == null) {
+      continue;
+    }
+    final parsed = int.tryParse(captured);
+    if (parsed != null) {
+      return parsed;
+    }
+  }
+
+  // Legacy: `static int minSdkVersion = 21` (older Groovy flutter.gradle).
+  final legacy = RegExp(
+    r'static\s+int\s+minSdkVersion\s*=\s*(\d+)',
+  ).firstMatch(content);
+  if (legacy != null) {
+    return int.tryParse(legacy.group(1)!);
   }
   return null;
+}
+
+/// Resolves the effective Android `min_sdk_android` for a generation run.
+///
+/// Resolution order (first non-null wins):
+///   1. [explicit] — the user-supplied value from `min_sdk_android` in their
+///      config (passed through verbatim).
+///   2. [minSdk] — autodetected from `build.gradle[.kts]` /
+///      `local.properties` rooted at [prefixPath].
+///   3. [constants.androidDefaultAndroidMinSDK] (currently 24). When this
+///      branch is taken, a warning is emitted via [logger] using
+///      [constants.errorMissingMinSdk] so the user knows autodetection failed.
+///
+/// Returns the resolved integer. Never returns null.
+Future<int> resolveMinSdkAndroid({
+  required String prefixPath,
+  required FLILogger logger,
+  required int? explicit,
+}) async {
+  if (explicit != null) {
+    logger.verbose(
+      'Android min_sdk_android: using explicit user value $explicit '
+      '(autodetect skipped).',
+    );
+    return explicit;
+  }
+  final detected = await minSdk(prefixPath: prefixPath);
+  if (detected != null) {
+    logger.verbose(
+      'Android min_sdk_android: autodetected $detected from gradle.',
+    );
+    return detected;
+  }
+  logger.warn(constants.errorMissingMinSdk);
+  logger.verbose(
+    'Android min_sdk_android: falling back to static default '
+    '${constants.androidDefaultAndroidMinSDK}.',
+  );
+  return constants.androidDefaultAndroidMinSDK;
 }
 
 /// Returns true if the adaptive icon configuration is a PNG image
@@ -493,6 +724,9 @@ bool isAdaptiveIconConfigPngFile(String backgroundFile) {
 /// "Next you must create alternative drawable resources in your app for use with
 /// Android 8.0 (API level 26) in res/mipmap-anydpi/ic_launcher.xml"
 /// Source: https://developer.android.com/guide/practices/ui_guidelines/icon_design_adaptive
-bool isCorrectMipmapDirectoryForAdaptiveIcon(String path) {
-  return path == 'android/app/src/main/res/mipmap-anydpi-v26/';
+bool isCorrectMipmapDirectoryForAdaptiveIcon(String dir) {
+  return path.equals(
+    path.normalize(dir),
+    path.normalize(constants.androidAdaptiveXmlFolder(null)),
+  );
 }

@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.3
-  flutter_launcher_icons:
+  flutter_launcher_icons_flavored:
     path: ../..
 
 flutter_launcher_icons:
