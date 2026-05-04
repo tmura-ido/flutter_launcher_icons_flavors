@@ -35,9 +35,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      # NOTE: subosito/flutter-action treats `flutter-version: ''` as
+      # "latest on channel", but a GitHub Actions expression like
+      # `X && '' || Y` always falls through to Y because '' is falsy.
+      # Split into two steps so we can conditionally omit the input.
+      - name: Setup Flutter (pinned)
+        if: matrix.flutter != 'stable'
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ matrix.flutter == 'stable' && '' || matrix.flutter }}
+          flutter-version: ${{ matrix.flutter }}
+          channel: stable
+          cache: true
+
+      - name: Setup Flutter (latest stable)
+        if: matrix.flutter == 'stable'
+        uses: subosito/flutter-action@v2
+        with:
           channel: stable
           cache: true
 
