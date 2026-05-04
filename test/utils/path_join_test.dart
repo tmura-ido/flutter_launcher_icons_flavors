@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

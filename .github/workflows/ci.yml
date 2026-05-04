@@ -1,4 +1,4 @@
-# Cross-platform CI matrix for flutter_launcher_icons_flavored.
+# Cross-platform CI matrix for flutter_launcher_icons_flavors.
 #
 # Matrix: {ubuntu, macos, windows} x {Flutter 3.41.9, stable}
 # Flutter 3.41.9 matches the SDK floor declared in pubspec.yaml /

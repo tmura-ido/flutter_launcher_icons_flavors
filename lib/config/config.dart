@@ -1,15 +1,15 @@
 import 'dart:io';
 
 import 'package:checked_yaml/checked_yaml.dart' as yaml;
-import 'package:flutter_launcher_icons_flavored/config/macos_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/partial_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/platform_toggle.dart';
-import 'package:flutter_launcher_icons_flavored/config/web_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/windows_config.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
-import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavors/config/macos_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/platform_toggle.dart';
+import 'package:flutter_launcher_icons_flavors/config/web_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/windows_config.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as path;
 

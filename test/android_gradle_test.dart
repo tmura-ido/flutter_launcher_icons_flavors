@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/android.dart' as android;
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavors/android.dart' as android;
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

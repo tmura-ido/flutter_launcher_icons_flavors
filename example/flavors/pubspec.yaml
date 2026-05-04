@@ -8,7 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_launcher_icons_flavored:
+  flutter_launcher_icons_flavors:
     path: ../..
 
 flutter:

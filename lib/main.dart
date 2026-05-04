@@ -3,18 +3,18 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons_flavored/android.dart'
+import 'package:flutter_launcher_icons_flavors/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavors/android.dart'
     as android_launcher_icons;
-import 'package:flutter_launcher_icons_flavored/cli/command_runner.dart';
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart';
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/ios.dart' as ios_launcher_icons;
-import 'package:flutter_launcher_icons_flavored/logger.dart';
-import 'package:flutter_launcher_icons_flavored/macos/macos_icon_generator.dart';
-import 'package:flutter_launcher_icons_flavored/web/web_icon_generator.dart';
-import 'package:flutter_launcher_icons_flavored/windows/windows_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavors/cli/command_runner.dart';
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart';
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/ios.dart' as ios_launcher_icons;
+import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/macos/macos_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavors/web/web_icon_generator.dart';
+import 'package:flutter_launcher_icons_flavors/windows/windows_icon_generator.dart';
 import 'package:path/path.dart' as path;
 
 const String fileOption = 'file';

@@ -1,6 +1,6 @@
 import 'package:checked_yaml/checked_yaml.dart';
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/config/platform_toggle.dart';
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/config/platform_toggle.dart';
 import 'package:test/test.dart';
 
 void main() {

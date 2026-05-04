@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:flutter_launcher_icons_flavored/android.dart' as android;
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/ios.dart' as ios;
-import 'package:flutter_launcher_icons_flavored/main.dart'
+import 'package:flutter_launcher_icons_flavors/android.dart' as android;
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/ios.dart' as ios;
+import 'package:flutter_launcher_icons_flavors/main.dart'
     show defaultConfigFile;
-import 'package:flutter_launcher_icons_flavored/main.dart' as main_dart;
+import 'package:flutter_launcher_icons_flavors/main.dart' as main_dart;
 import 'package:path/path.dart' show join;
 import 'package:test/test.dart';
 

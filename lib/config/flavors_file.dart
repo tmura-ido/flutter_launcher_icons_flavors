@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons_flavored/config/partial_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'flavors_file.g.dart';

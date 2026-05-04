@@ -1,14 +1,14 @@
 # Phase 4 — CLI restructure: `CommandRunner`, new flags, `migrate` and `doctor`
 
 > **Depends on**: Phase 3 complete (`FlavorsConfig`, `resolveSource`, deep merge all in place).
-> **User-visible behavior change**: Yes — the CLI gains subcommands and several new flags. The bare invocation (`dart run flutter_launcher_icons_flavored`) still defaults to `generate` for back-compat. **The default behavior when a consolidated file has more than one flavor changes**: it now requires `--flavor` or `--all-flavors`. This is documented as a notable behavior change in 0.15.0.
+> **User-visible behavior change**: Yes — the CLI gains subcommands and several new flags. The bare invocation (`dart run flutter_launcher_icons_flavors`) still defaults to `generate` for back-compat. **The default behavior when a consolidated file has more than one flavor changes**: it now requires `--flavor` or `--all-flavors`. This is documented as a notable behavior change in 0.15.0.
 > **Goal**: ship the production-ready CLI: subcommands, flag set, exit codes, `migrate`, `doctor`.
 
 ---
 
 ## 0. Context
 
-You are working on the Dart package `flutter_launcher_icons_flavored`. Phases 1–3 prepared the foundations: typed config models, deep merge, `FlavorsConfig` loader, precedence resolver. Phase 4 finalizes the CLI surface.
+You are working on the Dart package `flutter_launcher_icons_flavors`. Phases 1–3 prepared the foundations: typed config models, deep merge, `FlavorsConfig` loader, precedence resolver. Phase 4 finalizes the CLI surface.
 
 Why this phase exists separately from Phase 3:
 
@@ -18,7 +18,7 @@ Why this phase exists separately from Phase 3:
 Binding decisions (do not deviate):
 
 - Migrate to `package:args` `CommandRunner`. Subcommands: `generate` (default), `migrate`, `doctor`.
-- Bare invocation = `generate` for back-compat. (`dart run flutter_launcher_icons_flavored` still works as today.)
+- Bare invocation = `generate` for back-compat. (`dart run flutter_launcher_icons_flavors` still works as today.)
 - New flags on `generate`: `--flavor` (repeatable), `--all-flavors`, `--list-flavors`, `--continue-on-error`, `--strict`.
 - Existing flags preserved: `-f`/`--file`, `-p`/`--prefix`, `-v`/`--verbose`, `-h`/`--help`.
 - Exit codes: `0` success, `1` runtime/IO failure, `64` CLI usage error, `65` config error.
@@ -37,7 +37,7 @@ Binding decisions (do not deviate):
   ```dart
   CommandRunner<int> buildCommandRunner() {
     final runner = CommandRunner<int>(
-      'flutter_launcher_icons_flavored',
+      'flutter_launcher_icons_flavors',
       'Generate launcher icons for Flutter apps.',
     )
       ..addCommand(GenerateCommand())
@@ -57,7 +57,7 @@ Binding decisions (do not deviate):
     exit(code);
   }
   ```
-- `_effectiveArgs` prepends `'generate'` if and only if the first non-flag argument is not one of `generate|migrate|doctor|help`. This preserves all current invocations like `dart run flutter_launcher_icons_flavored -f my.yaml --prefix subdir`.
+- `_effectiveArgs` prepends `'generate'` if and only if the first non-flag argument is not one of `generate|migrate|doctor|help`. This preserves all current invocations like `dart run flutter_launcher_icons_flavors -f my.yaml --prefix subdir`.
 
 ### 1.2 `GenerateCommand` (`lib/cli/generate_command.dart`)
 
@@ -258,9 +258,9 @@ Binding decisions (do not deviate):
 - [ ] `dart format --set-exit-if-changed .` clean.
 - [ ] `dart analyze --fatal-infos` clean.
 - [ ] `dart test` — all tests pass.
-- [ ] Bare invocation (`dart run flutter_launcher_icons_flavored`) defaults to `generate` and behaves identically to current 0.14.4 for users with a single `flutter_launcher_icons.yaml` or pubspec inline config.
-- [ ] `dart run flutter_launcher_icons_flavored migrate --dry-run` works on a fixture project.
-- [ ] `dart run flutter_launcher_icons_flavored doctor` works on a fixture project.
+- [ ] Bare invocation (`dart run flutter_launcher_icons_flavors`) defaults to `generate` and behaves identically to current 0.14.4 for users with a single `flutter_launcher_icons.yaml` or pubspec inline config.
+- [ ] `dart run flutter_launcher_icons_flavors migrate --dry-run` works on a fixture project.
+- [ ] `dart run flutter_launcher_icons_flavors doctor` works on a fixture project.
 - [ ] `--strict` is a no-op when no coexistence; escalates to exit 65 when coexistence present.
 - [ ] Multi-flavor consolidated without `--flavor`/`--all-flavors` exits 64 with a clear available-flavors list.
 - [ ] Repeated `--flavor a --flavor b` works.

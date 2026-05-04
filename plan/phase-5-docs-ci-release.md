@@ -2,7 +2,7 @@
 
 > **Read first:** `plan/README.md` for binding decisions, repo facts, and exit-code policy.
 > **Depends on:** Phases 1–4 merged and green on CI.
-> **Goal of this PR:** Ship `flutter_launcher_icons_flavored` v0.15.0 to pub.dev with rewritten docs, a dedicated flavors guide, a hardened CI matrix, and a clean release process. No behavior changes vs. Phase 4 — this PR is documentation, tooling, and the version bump.
+> **Goal of this PR:** Ship `flutter_launcher_icons_flavors` v0.15.0 to pub.dev with rewritten docs, a dedicated flavors guide, a hardened CI matrix, and a clean release process. No behavior changes vs. Phase 4 — this PR is documentation, tooling, and the version bump.
 
 ---
 
@@ -31,7 +31,7 @@ Replace the existing `README.md` with the following structure. Keep it skimmable
 ### Required sections (in order)
 
 1. **Title + badges**
-   - Title: `flutter_launcher_icons_flavored`
+   - Title: `flutter_launcher_icons_flavors`
    - Badges: pub version, pub points, popularity, likes, CI status, license.
 2. **One-paragraph description** — what the package does, that it is a flavor-aware fork of `flutter_launcher_icons`, and the supported platforms (Android, iOS, macOS, Web, Windows — match what the codebase actually generates today; do not promise Web/Win/Linux launcher icons if not implemented).
 3. **Requirements**
@@ -41,16 +41,16 @@ Replace the existing `README.md` with the following structure. Keep it skimmable
 4. **Install**
    ```yaml
    dev_dependencies:
-     flutter_launcher_icons_flavored: ^0.15.0
+     flutter_launcher_icons_flavors: ^0.15.0
    ```
 5. **Quick start (single-flavor)** — minimal `flutter_launcher_icons.yaml` example, then:
    ```
-   dart run flutter_launcher_icons_flavored generate
+   dart run flutter_launcher_icons_flavors generate
    ```
 6. **Multi-flavor (consolidated)** — point at `flutter_launcher_icons_flavors.yaml`, show a 2-flavor example with `defaults:` + `flavors:`, then:
    ```
-   dart run flutter_launcher_icons_flavored generate --flavor dev
-   dart run flutter_launcher_icons_flavored generate --all-flavors
+   dart run flutter_launcher_icons_flavors generate --flavor dev
+   dart run flutter_launcher_icons_flavors generate --all-flavors
    ```
    Explicitly state: with the consolidated file present and multiple flavors, omitting `--flavor`/`--all-flavors` exits **64**.
 7. **Migrating from `flutter_launcher_icons`** — short blurb + link to `doc/migration-0.15.md`. Cover:
@@ -58,7 +58,7 @@ Replace the existing `README.md` with the following structure. Keep it skimmable
    - `flutter_icons:` pubspec key still works, prints a deprecation warning, removed in 0.17.
    - `min_sdk_android` default raised 21 → 24.
    - Legacy `flutter_launcher_icons-<flavor>.yaml` files still supported; coexistence rules (warn by default, `--strict` to error with exit 65).
-   - `dart run flutter_launcher_icons_flavored migrate` automates conversion.
+   - `dart run flutter_launcher_icons_flavors migrate` automates conversion.
 8. **CLI reference (one-liners only)** — `generate`, `migrate`, `doctor`. Link to Phase 4 doc-comments / `--help`.
 9. **Configuration** — short table of top-level keys, link to `doc/flavors.md` for the full schema.
 10. **Exit codes** — table: `0` success, `1` runtime error, `64` usage error, `65` config error.
@@ -104,8 +104,8 @@ New file. Sections:
 New file. Audience: existing `flutter_launcher_icons` users. Sections:
 
 1. **TL;DR checklist** (5 bullets max).
-2. **Step 1 — Rename dependency** (`flutter_launcher_icons` → `flutter_launcher_icons_flavored`). Show pubspec diff.
-3. **Step 2 — Update CLI invocation** (`dart run flutter_launcher_icons` → `dart run flutter_launcher_icons_flavored generate`).
+2. **Step 1 — Rename dependency** (`flutter_launcher_icons` → `flutter_launcher_icons_flavors`). Show pubspec diff.
+3. **Step 2 — Update CLI invocation** (`dart run flutter_launcher_icons` → `dart run flutter_launcher_icons_flavors generate`).
 4. **Step 3 — Decide on consolidated config** — run `migrate --dry-run`, then `migrate`.
 5. **Step 4 — Bump `min_sdk_android`** — if you must stay on 21–23, set it explicitly in your config; otherwise accept the new default of 24.
 6. **Step 5 — Replace `flutter_icons:` pubspec key** — moved to its own file; deprecation warning until 0.17.
@@ -122,9 +122,9 @@ Replace the top of `CHANGELOG.md` with:
 ## 0.15.0
 
 ### Breaking
-- Renamed package to `flutter_launcher_icons_flavored`. Update `dev_dependencies` and `dart run` invocations.
+- Renamed package to `flutter_launcher_icons_flavors`. Update `dev_dependencies` and `dart run` invocations.
 - Default `min_sdk_android` raised from 21 to 24. Set it explicitly in config to keep the old value.
-- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. The bare `dart run flutter_launcher_icons_flavored` now prints help; pass `generate` to keep prior behavior.
+- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. The bare `dart run flutter_launcher_icons_flavors` now prints help; pass `generate` to keep prior behavior.
 - With the consolidated `flutter_launcher_icons_flavors.yaml` present and more than one flavor defined, `generate` requires `--flavor <name>` or `--all-flavors`. Exits 64 otherwise. Legacy `flutter_launcher_icons-<flavor>.yaml` workflows are unchanged and still build all flavors by default.
 
 ### Added
@@ -200,7 +200,7 @@ Steps:
      id-token: write   # required for OIDC
      contents: write   # required for action-gh-release
    ```
-   Then `dart pub publish --force`. The pub.dev publisher must be configured to trust `github.com/<owner>/flutter_launcher_icons_flavored` on the `release.yml` workflow before the first tag push (see §11 pre-release check).
+   Then `dart pub publish --force`. The pub.dev publisher must be configured to trust `github.com/<owner>/flutter_launcher_icons_flavors` on the `release.yml` workflow before the first tag push (see §11 pre-release check).
 7. `softprops/action-gh-release@v2` to create a GitHub Release with the CHANGELOG section auto-extracted.
 
 ### 6.3 Branch protection (manual, document in PR description)
@@ -216,9 +216,9 @@ By Phase 5 the pubspec already has the renamed `name`, the `topics`, and `screen
 
 - Bump `version: 0.15.0-dev.1` → `version: 0.15.0`.
 - Set pubspec URLs to the renamed repo:
-  - `homepage: https://github.com/<owner>/flutter_launcher_icons_flavored`
-  - `repository: https://github.com/<owner>/flutter_launcher_icons_flavored`
-  - `issue_tracker: https://github.com/<owner>/flutter_launcher_icons_flavored/issues`
+  - `homepage: https://github.com/<owner>/flutter_launcher_icons_flavors`
+  - `repository: https://github.com/<owner>/flutter_launcher_icons_flavors`
+  - `issue_tracker: https://github.com/<owner>/flutter_launcher_icons_flavors/issues`
   (Confirm `<owner>` with user — repo is confirmed renamed but owner not yet captured in plan.)
 - Confirm `description` is 60–180 chars (pana enforces this).
 - Do **not** add a `funding:` field (per binding decision in `plan/README.md`).
@@ -236,7 +236,7 @@ Run locally on a clean clone before tagging:
 5. `dart pub global activate pana && pana --no-warning` — target score: **140/140**, or document any unavoidable deduction in the PR.
 6. `dart pub publish --dry-run` — must report zero warnings.
 7. Smoke test in a throwaway Flutter app:
-   - Add `flutter_launcher_icons_flavored: ^0.15.0` from a local `path:` override.
+   - Add `flutter_launcher_icons_flavors: ^0.15.0` from a local `path:` override.
    - Run `generate`, `migrate --dry-run`, `doctor`.
    - Verify Android (KTS + Groovy), iOS, and at least one of macOS/Web outputs.
 8. Re-run smoke test on macOS and Windows runners (the CI matrix covers this, but do one manual pass).
@@ -290,9 +290,9 @@ No `lib/` or `test/` changes in this PR. If any are needed, they belong in a Pha
 
 These are not optional. Tagging without them will cause `release.yml` to fail or publish to the wrong place.
 
-1. **pub.dev publisher claim.** The package name `flutter_launcher_icons_flavored` must be owned by a pub.dev publisher (verified domain or Google account) controlled by the user.
+1. **pub.dev publisher claim.** The package name `flutter_launcher_icons_flavors` must be owned by a pub.dev publisher (verified domain or Google account) controlled by the user.
 2. **OIDC trust configured on pub.dev.** Under the publisher's "Automated publishing" settings, add a trust entry for:
-   - Repository: `<owner>/flutter_launcher_icons_flavored`
+   - Repository: `<owner>/flutter_launcher_icons_flavors`
    - Workflow: `.github/workflows/release.yml`
    - Tag pattern: `v*.*.*`
 3. **First publish dry-run from `main`** — run `dart pub publish --dry-run` on the merged Phase 5 commit; must report zero warnings.
@@ -303,7 +303,7 @@ These are not optional. Tagging without them will cause `release.yml` to fail or
 ## 13. Open questions for the user (resolve before merging)
 
 All Phase 5 open questions resolved as of plan revision:
-- Repo: renamed to `flutter_launcher_icons_flavored` ✅
+- Repo: renamed to `flutter_launcher_icons_flavors` ✅
 - Publish method: OIDC via `dart-lang/setup-dart@v1` ✅
 - Publisher claim: **not yet configured** — see §11 blocker #1 and #2.
 

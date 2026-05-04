@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -100,7 +100,7 @@ ResolvedSource resolveSource({
         'flutter_launcher_icons-<flavor>.yaml file(s) were found:\n  '
         '${ignoredLegacy.join('\n  ')}\n'
         'The consolidated file wins; legacy files are ignored. '
-        'Run `dart run flutter_launcher_icons_flavored migrate` to '
+        'Run `dart run flutter_launcher_icons_flavors migrate` to '
         'consolidate them (coming in 0.15.x), or delete the legacy '
         'files to silence this warning.',
       );

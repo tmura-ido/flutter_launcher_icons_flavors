@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
 import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';

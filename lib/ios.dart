@@ -3,10 +3,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart';
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/utils.dart';
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart';
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/utils.dart';
 import 'package:image/image.dart' hide decodeImageFile;
 import 'package:path/path.dart' as path;
 

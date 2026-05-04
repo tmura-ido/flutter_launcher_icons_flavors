@@ -1,10 +1,10 @@
-# flutter_launcher_icons_flavored
+# flutter_launcher_icons_flavors
 
-[![pub version](https://img.shields.io/pub/v/flutter_launcher_icons_flavored.svg)](https://pub.dev/packages/flutter_launcher_icons_flavored)
-[![pub points](https://img.shields.io/pub/points/flutter_launcher_icons_flavored)](https://pub.dev/packages/flutter_launcher_icons_flavored/score)
-[![popularity](https://img.shields.io/pub/popularity/flutter_launcher_icons_flavored)](https://pub.dev/packages/flutter_launcher_icons_flavored/score)
-[![likes](https://img.shields.io/pub/likes/flutter_launcher_icons_flavored)](https://pub.dev/packages/flutter_launcher_icons_flavored/score)
-[![CI](https://github.com/tmura-ido/flutter_launcher_icons_flavored/actions/workflows/ci.yml/badge.svg)](https://github.com/tmura-ido/flutter_launcher_icons_flavored/actions/workflows/ci.yml)
+[![pub version](https://img.shields.io/pub/v/flutter_launcher_icons_flavors.svg)](https://pub.dev/packages/flutter_launcher_icons_flavors)
+[![pub points](https://img.shields.io/pub/points/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors/score)
+[![popularity](https://img.shields.io/pub/popularity/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors/score)
+[![likes](https://img.shields.io/pub/likes/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors/score)
+[![CI](https://github.com/tmura-ido/flutter_launcher_icons_flavors/actions/workflows/ci.yml/badge.svg)](https://github.com/tmura-ido/flutter_launcher_icons_flavors/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A command-line tool that generates Flutter launcher icons for **Android, iOS, macOS, Web, and Windows** from a single image (or per-platform overrides). This is a **flavor-aware fork of [`flutter_launcher_icons`](https://pub.dev/packages/flutter_launcher_icons)** that adds first-class support for Flutter build flavors via a consolidated `flutter_launcher_icons_flavors.yaml` file, deep-merged defaults, a `doctor` diagnostic command, and an automated `migrate` command for legacy multi-file flavor setups.
@@ -19,7 +19,7 @@ A command-line tool that generates Flutter launcher icons for **Android, iOS, ma
 
 ```yaml
 dev_dependencies:
-  flutter_launcher_icons_flavored: ^0.15.0
+  flutter_launcher_icons_flavors: ^0.15.0
 ```
 
 Then `flutter pub get`.
@@ -53,7 +53,7 @@ flutter_launcher_icons:
 Run:
 
 ```shell
-dart run flutter_launcher_icons_flavored generate
+dart run flutter_launcher_icons_flavors generate
 ```
 
 ## Multi-flavor (consolidated)
@@ -84,8 +84,8 @@ flavors:
 Build a single flavor or all of them:
 
 ```shell
-dart run flutter_launcher_icons_flavored generate --flavor dev
-dart run flutter_launcher_icons_flavored generate --all-flavors
+dart run flutter_launcher_icons_flavors generate --flavor dev
+dart run flutter_launcher_icons_flavors generate --all-flavors
 ```
 
 > **Note:** With the consolidated file present and **more than one** flavor defined, omitting both `--flavor` and `--all-flavors` exits **64** (usage error). Single-flavor consolidated files build the only flavor automatically.
@@ -96,12 +96,12 @@ See [`doc/flavors.md`](doc/flavors.md) for the full schema, deep-merge rules, so
 
 Short version:
 
-1. Replace `flutter_launcher_icons:` with `flutter_launcher_icons_flavored:` in `dev_dependencies`.
-2. Update CLI invocations: `dart run flutter_launcher_icons` → `dart run flutter_launcher_icons_flavored generate`.
+1. Replace `flutter_launcher_icons:` with `flutter_launcher_icons_flavors:` in `dev_dependencies`.
+2. Update CLI invocations: `dart run flutter_launcher_icons` → `dart run flutter_launcher_icons_flavors generate`.
 3. The `flutter_icons:` block in `pubspec.yaml` still works but prints a deprecation warning. **It will be removed in 0.17.** Move it to `flutter_launcher_icons.yaml`.
 4. The `min_sdk_android` default was raised **21 → 24**. Set it explicitly to keep the old value.
 5. Legacy `flutter_launcher_icons-<flavor>.yaml` files still work. When both legacy and consolidated files exist, the consolidated file wins and a warning is printed (use `--strict` to escalate to exit 65).
-6. Run `dart run flutter_launcher_icons_flavored migrate` to convert legacy files into the consolidated format automatically.
+6. Run `dart run flutter_launcher_icons_flavors migrate` to convert legacy files into the consolidated format automatically.
 
 Full guide: [`doc/migration-0.15.md`](doc/migration-0.15.md).
 
@@ -113,7 +113,7 @@ Full guide: [`doc/migration-0.15.md`](doc/migration-0.15.md).
 | `migrate` | Convert legacy `flutter_launcher_icons-<flavor>.yaml` files into a single `flutter_launcher_icons_flavors.yaml`. Supports `--dry-run`, `--in-place`, `--force`. |
 | `doctor` | Report Dart/Flutter versions, detected configs, source resolution, and any conflicts. |
 
-Run `dart run flutter_launcher_icons_flavored <command> --help` for the full flag list.
+Run `dart run flutter_launcher_icons_flavors <command> --help` for the full flag list.
 
 ## Configuration
 
@@ -151,7 +151,7 @@ Full schema with annotated examples: [`doc/flavors.md`](doc/flavors.md).
 
 ## Contributing
 
-Issues and PRs welcome at [`tmura-ido/flutter_launcher_icons_flavored`](https://github.com/tmura-ido/flutter_launcher_icons_flavored).
+Issues and PRs welcome at [`tmura-ido/flutter_launcher_icons_flavors`](https://github.com/tmura-ido/flutter_launcher_icons_flavors).
 
 Local development:
 

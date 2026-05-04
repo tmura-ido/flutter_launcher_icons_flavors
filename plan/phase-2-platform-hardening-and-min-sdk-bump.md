@@ -8,7 +8,7 @@
 
 ## 0. Context
 
-You are working on the renamed Dart package `flutter_launcher_icons_flavored` (was `flutter_launcher_icons`) at the repo root. Phase 1 completed an internal refactor (no schema change); now Phase 2 hardens platform integrations.
+You are working on the renamed Dart package `flutter_launcher_icons_flavors` (was `flutter_launcher_icons`) at the repo root. Phase 1 completed an internal refactor (no schema change); now Phase 2 hardens platform integrations.
 
 Why this phase exists:
 
@@ -176,7 +176,7 @@ Parameterized over the fixtures above:
 
 ### 4.4 Async I/O smoke
 
-- Existing example `example/default_example/` continues to generate icons end-to-end. Run via `dart run flutter_launcher_icons_flavored` and verify output PNGs exist and are decodable.
+- Existing example `example/default_example/` continues to generate icons end-to-end. Run via `dart run flutter_launcher_icons_flavors` and verify output PNGs exist and are decodable.
 - (Performance is not asserted — just correctness.)
 
 ---

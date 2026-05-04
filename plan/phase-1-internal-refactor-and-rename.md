@@ -24,7 +24,7 @@ Current state pertinent to this phase:
 
 Binding decisions (do not deviate):
 
-- Package rename: `flutter_launcher_icons` → **`flutter_launcher_icons_flavored`** in `pubspec.yaml` `name:`. Update all `import 'package:flutter_launcher_icons/...'` to `package:flutter_launcher_icons_flavored/...` across `lib/`, `bin/`, `test/`, `example/`.
+- Package rename: `flutter_launcher_icons` → **`flutter_launcher_icons_flavors`** in `pubspec.yaml` `name:`. Update all `import 'package:flutter_launcher_icons/...'` to `package:flutter_launcher_icons_flavors/...` across `lib/`, `bin/`, `test/`, `example/`.
 - **Filenames the package consumes do NOT change.** `flutter_launcher_icons.yaml`, `flutter_launcher_icons-<flavor>.yaml`, `flutter_launcher_icons_flavors.yaml`, and the pubspec key `flutter_launcher_icons:` stay exactly as-is. Only the import name changes.
 - Dart SDK floor raised to `>=3.8.0 <4.0.0` (required by json_serializable's null-aware-element output for `includeIfNull: false`; aligns with the project's Flutter 3.41.9 / Dart 3.10 target).
 - Delete `lib/pubspec_parser.dart`.
@@ -39,12 +39,12 @@ Binding decisions (do not deviate):
 ### 1.1 Pubspec & rename
 
 - `pubspec.yaml`:
-  - `name: flutter_launcher_icons_flavored`
+  - `name: flutter_launcher_icons_flavors`
   - Bump version → `0.15.0-dev.1` (will become `0.15.0` at Phase 5).
   - Leave `homepage`/`repository`/`issue_tracker` URLs alone for now (maintainer will set them at release time in Phase 5).
   - Do not yet add `topics` / `screenshots` (Phase 2).
   - Do NOT add `funding:`.
-- Rename all imports `package:flutter_launcher_icons/...` → `package:flutter_launcher_icons_flavored/...` everywhere in `lib/`, `bin/`, `test/`, `example/` (use grep + edit; verify zero remaining occurrences).
+- Rename all imports `package:flutter_launcher_icons/...` → `package:flutter_launcher_icons_flavors/...` everywhere in `lib/`, `bin/`, `test/`, `example/` (use grep + edit; verify zero remaining occurrences).
 - Update any internal references that hard-code the package name in error messages / log strings to the new name **except** for filenames the tool consumes (those keep `flutter_launcher_icons.yaml` etc.).
 - The `flutter_launcher_icons.code-workspace` file may be left as-is (not worth churn; optional rename).
 
@@ -169,7 +169,7 @@ Goal: remove `dynamic` from internal call sites while accepting the same bool-or
 
 | File | Action |
 |---|---|
-| `pubspec.yaml` | `name:` → `flutter_launcher_icons_flavored`. Bump to `0.15.0-dev.1`. Add `lints` dev dep. |
+| `pubspec.yaml` | `name:` → `flutter_launcher_icons_flavors`. Bump to `0.15.0-dev.1`. Add `lints` dev dep. |
 | `analysis_options.yaml` | `include: package:lints/recommended.yaml`. Remove dead rules. Drop `strong-mode` block. |
 | `lib/main.dart` | Update imports. Update `getFlavors()` to take `prefixPath`. Update logger usage. |
 | `bin/main.dart` | Update imports only. (CommandRunner is Phase 4.) |
@@ -188,7 +188,7 @@ Goal: remove `dynamic` from internal call sites while accepting the same bool-or
 | `lib/pubspec_parser.dart` | **Delete.** |
 | `lib/custom_exceptions.dart` | Update imports if any (probably none needed). |
 | `test/**/*.dart` | Update package imports. Add Phase-1 regression tests (see §4). |
-| `example/**/pubspec.yaml` | Update `dev_dependencies:` to `flutter_launcher_icons_flavored: ^0.15.0-dev.1` (path or version, your call — `path: ../../` is fine for in-repo examples). |
+| `example/**/pubspec.yaml` | Update `dev_dependencies:` to `flutter_launcher_icons_flavors: ^0.15.0-dev.1` (path or version, your call — `path: ../../` is fine for in-repo examples). |
 
 ---
 
@@ -218,7 +218,7 @@ All under `test/`. Target: every Phase 1 change has a regression or unit test. E
   - Returns non-null `Future<Image>` for valid file.
   - Throws `NoDecoderForImageFormatException` for an unrecognized file (existing behavior, but now without `?`).
 - `test/main_imports_test.dart` (lightweight):
-  - A trivial test that `import 'package:flutter_launcher_icons_flavored/...';` resolves. This catches missed renames.
+  - A trivial test that `import 'package:flutter_launcher_icons_flavors/...';` resolves. This catches missed renames.
 
 ---
 
@@ -236,7 +236,7 @@ Run through this list and report results.
 - [ ] `grep -rn "+ '/'" lib bin` returns zero matches (path.join everywhere).
 - [ ] `print(` and `stderr.writeln(` no longer appear in `lib/` or `bin/` (except logger.dart itself).
 - [ ] `lib/pubspec_parser.dart` is deleted.
-- [ ] `pubspec.yaml` `name` is `flutter_launcher_icons_flavored`, version is `0.15.0-dev.1`.
+- [ ] `pubspec.yaml` `name` is `flutter_launcher_icons_flavors`, version is `0.15.0-dev.1`.
 - [ ] `pubspec.yaml` does NOT contain a `funding:` field.
 - [ ] No uses of `dynamic` for the `android`/`ios` config field types remain in `lib/config/`.
 - [ ] All examples in `example/` build (`dart pub get` from each example directory succeeds; smoke-run the default example to ensure icons still generate).

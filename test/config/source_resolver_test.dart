@@ -1,6 +1,6 @@
-import 'package:flutter_launcher_icons_flavored/config/source_resolver.dart';
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;

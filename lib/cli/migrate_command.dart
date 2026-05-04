@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 

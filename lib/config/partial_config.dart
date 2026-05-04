@@ -1,7 +1,7 @@
-import 'package:flutter_launcher_icons_flavored/config/macos_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/platform_toggle.dart';
-import 'package:flutter_launcher_icons_flavored/config/web_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/windows_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/macos_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/platform_toggle.dart';
+import 'package:flutter_launcher_icons_flavors/config/web_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/windows_config.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'partial_config.g.dart';

@@ -3,9 +3,9 @@
 ## 0.15.0
 
 ### Breaking
-- Renamed package to `flutter_launcher_icons_flavored`. Update `dev_dependencies` and `dart run` invocations.
+- Renamed package to `flutter_launcher_icons_flavors`. Update `dev_dependencies` and `dart run` invocations.
 - Default `min_sdk_android` raised from 21 to 24. Set it explicitly in config to keep the old value.
-- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. The bare `dart run flutter_launcher_icons_flavored` now prints help; pass `generate` to keep prior behavior.
+- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. The bare `dart run flutter_launcher_icons_flavors` now prints help; pass `generate` to keep prior behavior.
 - With the consolidated `flutter_launcher_icons_flavors.yaml` present and more than one flavor defined, `generate` requires `--flavor <name>` or `--all-flavors`. Exits 64 otherwise. Legacy `flutter_launcher_icons-<flavor>.yaml` workflows are unchanged and still build all flavors by default.
 
 ### Added

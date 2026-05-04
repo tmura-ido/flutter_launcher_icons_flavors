@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/cli/command_runner.dart';
+import 'package:flutter_launcher_icons_flavors/cli/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;

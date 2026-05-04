@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/config/macos_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/web_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/windows_config.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/config/macos_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/web_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/windows_config.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 
 /// A base class to generate icons
 abstract class IconGenerator {

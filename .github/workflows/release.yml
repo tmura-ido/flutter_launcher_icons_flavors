@@ -2,13 +2,13 @@
 #
 # PRE-RELEASE SETUP REQUIRED (one-time, before pushing the first tag):
 #
-#   1. Claim the package name `flutter_launcher_icons_flavored` on
+#   1. Claim the package name `flutter_launcher_icons_flavors` on
 #      pub.dev under a publisher you control (verified domain or
 #      Google account).
 #
 #   2. On pub.dev, under the publisher's "Automated publishing"
 #      settings, add an OIDC trust entry for:
-#        Repository:    tmura-ido/flutter_launcher_icons_flavored
+#        Repository:    tmura-ido/flutter_launcher_icons_flavors
 #        Workflow:      .github/workflows/release.yml
 #        Tag pattern:   v*.*.*
 #

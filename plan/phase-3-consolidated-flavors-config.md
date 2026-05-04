@@ -8,7 +8,7 @@
 
 ## 0. Context
 
-You are working on the Dart package `flutter_launcher_icons_flavored`. Phases 1 and 2 set the stage. Phase 3 introduces the headline feature: a single file containing all flavor configurations with a shared base.
+You are working on the Dart package `flutter_launcher_icons_flavors`. Phases 1 and 2 set the stage. Phase 3 introduces the headline feature: a single file containing all flavor configurations with a shared base.
 
 Why a new file format:
 
@@ -140,7 +140,7 @@ Binding decisions (do not deviate):
   1. If `explicitFilePath != null` → return `explicitFile` with that path. (No fallback. Hard error if file doesn't exist.)
   2. If `<prefix>/flutter_launcher_icons_flavors.yaml` exists:
      - Discover any coexisting legacy files (`flutter_launcher_icons-*.yaml`) under `<prefix>` → put in `ignoredLegacy`.
-     - If `ignoredLegacy` is non-empty: emit `logger.warn(...)` listing them and recommending `dart run flutter_launcher_icons_flavored migrate` (the `migrate` subcommand arrives in Phase 4; until then the warning still references it as the future remediation path).
+     - If `ignoredLegacy` is non-empty: emit `logger.warn(...)` listing them and recommending `dart run flutter_launcher_icons_flavors migrate` (the `migrate` subcommand arrives in Phase 4; until then the warning still references it as the future remediation path).
      - Return `consolidatedFlavors`.
   3. Else if any `<prefix>/flutter_launcher_icons-*.yaml` exists → return `legacyFlavors` and emit a deprecation warning recommending the new file.
   4. Else if `<prefix>/flutter_launcher_icons.yaml` exists → return `singleFile`.
@@ -267,7 +267,7 @@ Use `test_descriptor` to lay down combinations under a fresh temp dir; assert th
 - [ ] `dart analyze --fatal-infos` clean.
 - [ ] `dart test` — all tests pass, including new merge / flavors-file / flavors-config / source-resolver / consolidated-flow suites.
 - [ ] Existing single-config and legacy-multi-flavor flows continue to work (existing tests still green).
-- [ ] `lib/config/flavors_file.dart`, `lib/config/merge.dart`, `lib/config/flavors_config.dart`, `lib/config/source_resolver.dart` exist and are exported only via existing `package:flutter_launcher_icons_flavored/...` paths.
+- [ ] `lib/config/flavors_file.dart`, `lib/config/merge.dart`, `lib/config/flavors_config.dart`, `lib/config/source_resolver.dart` exist and are exported only via existing `package:flutter_launcher_icons_flavors/...` paths.
 - [ ] No reference to `--strict`, `--flavor`, `--all-flavors`, `migrate`, or `doctor` in code yet (those are Phase 4).
 - [ ] Coexistence of new + legacy files emits a clear warning at runtime; the new file wins. Verified via end-to-end test.
 - [ ] CHANGELOG.md / README.md untouched (Phase 5 owns them).

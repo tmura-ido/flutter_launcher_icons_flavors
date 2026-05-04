@@ -28,7 +28,7 @@ Suggested prompt for each phase:
 
 ## Binding decisions (apply to every phase)
 
-1. Package rename: `flutter_launcher_icons` → **`flutter_launcher_icons_flavored`**.
+1. Package rename: `flutter_launcher_icons` → **`flutter_launcher_icons_flavors`**.
 2. Default `min_sdk_android` raised 21 → **24** (breaking).
 3. Deprecated `flutter_icons:` pubspec key continues to work with a warning until 0.17.
 4. Delete dead file `lib/pubspec_parser.dart`.

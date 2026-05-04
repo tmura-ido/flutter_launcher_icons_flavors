@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:flutter_launcher_icons_flavored/android.dart' as android;
-import 'package:flutter_launcher_icons_flavored/config/flavors_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/source_resolver.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
-import 'package:flutter_launcher_icons_flavored/src/version.dart';
+import 'package:flutter_launcher_icons_flavors/android.dart' as android;
+import 'package:flutter_launcher_icons_flavors/config/flavors_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
@@ -64,7 +64,7 @@ class DoctorCommand extends Command<int> {
     final absolutePrefix = p.normalize(p.absolute(prefix));
 
     // 1. Tool version.
-    stdout.writeln('flutter_launcher_icons_flavored doctor');
+    stdout.writeln('flutter_launcher_icons_flavors doctor');
     stdout.writeln('  version: $packageVersion');
 
     // 2. Resolved prefix.

@@ -1,6 +1,6 @@
-import 'package:flutter_launcher_icons_flavored/abs/icon_generator.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavors/abs/icon_generator.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
 import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 

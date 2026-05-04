@@ -1,6 +1,6 @@
-# `flutter_launcher_icons_flavored` — Upgrade & Consolidated Flavors Plan
+# `flutter_launcher_icons_flavors` — Upgrade & Consolidated Flavors Plan
 
-> **Project rename**: `flutter_launcher_icons` → **`flutter_launcher_icons_flavored`** (per maintainer decision).
+> **Project rename**: `flutter_launcher_icons` → **`flutter_launcher_icons_flavors`** (per maintainer decision).
 > Target release: **0.15.0** (additive minor; full backward compatibility for config schema).
 > Target toolchain: **Flutter 3.41.9 / Dart 3.10** (CI-verified).
 > Status: planning. This document is the executable spec for the change. Implementers should follow it phase by phase; each phase is independently revertable.
@@ -18,7 +18,7 @@ These were settled during planning and are reflected in the plan below:
 3. **Flavor-name regex**: `^[A-Za-z0-9][A-Za-z0-9_-]*$` (allows `prod-eu`, `stagingV2`).
 4. **`min_sdk_android` default**: **break** the legacy default and raise from 21 → **24**. This is a breaking change; reflected in the changelog and bumped to a 0.15.0 entry called out under "Breaking changes." Users on lower SDKs must specify `min_sdk_android` explicitly.
 5. **`lib/pubspec_parser.dart`**: dead code; delete in PR 1.
-6. **Project rename**: `flutter_launcher_icons` → `flutter_launcher_icons_flavored`. Pubspec `name:`, repository links, README headings, command name, and example imports all change. Existing users migrating from `flutter_launcher_icons` get a documented migration path. Filenames the package *consumes* (`flutter_launcher_icons.yaml`, `flutter_launcher_icons-<flavor>.yaml`, `flutter_launcher_icons_flavors.yaml`) **stay unchanged** so 0.14.x configs continue to work without edits.
+6. **Project rename**: `flutter_launcher_icons` → `flutter_launcher_icons_flavors`. Pubspec `name:`, repository links, README headings, command name, and example imports all change. Existing users migrating from `flutter_launcher_icons` get a documented migration path. Filenames the package *consumes* (`flutter_launcher_icons.yaml`, `flutter_launcher_icons-<flavor>.yaml`, `flutter_launcher_icons_flavors.yaml`) **stay unchanged** so 0.14.x configs continue to work without edits.
 
 ---
 
@@ -27,7 +27,7 @@ These were settled during planning and are reflected in the plan below:
 ### Goals
 1. Officially support Flutter 3.41.9 / Dart 3.10 (CI-verified).
 2. Introduce a single consolidated multi-flavor config file: **`flutter_launcher_icons_flavors.yaml`**.
-3. Rename the published package to **`flutter_launcher_icons_flavored`**.
+3. Rename the published package to **`flutter_launcher_icons_flavors`**.
 4. Fix accumulated tech debt discovered during planning (see §10).
 5. Ship production-ready: deterministic precedence, typed schema where it matters, clear errors, real tests, real CI.
 6. **Full backward compatibility** for existing config files: every 0.14.x config schema continues to be parsed, with at most a deprecation warning. (The package import name is changing; that's a one-time pubspec edit for users.)
@@ -136,7 +136,7 @@ When the CLI runs, config sources resolve in this order — **first match wins**
 
 ### 3.1 Coexistence policy (new file + legacy `-<flavor>.yaml` both present)
 
-- **Default**: use the new file; emit a loud `WARNING:` listing legacy files being ignored, recommend `dart run flutter_launcher_icons_flavored migrate`.
+- **Default**: use the new file; emit a loud `WARNING:` listing legacy files being ignored, recommend `dart run flutter_launcher_icons_flavors migrate`.
 - **`--strict` flag** (and config-level `strict: true`): coexistence becomes a hard error (exit 65). Teams that want CI-fail-on-drift opt in.
 
 Rationale: a hard error by default would break developers who `git pull` a branch introducing the new file while their working tree still has legacy files. The warning + `--strict` opt-in resolves that without silently shadowing edits.
@@ -169,7 +169,7 @@ Rationale: a hard error by default would break developers who `git pull` a branc
 ### 4.1 Subcommands (via `package:args` `CommandRunner`)
 
 Bare invocation defaults to `generate` for back-compat. Command name reflects the rename:
-`dart run flutter_launcher_icons_flavored ...`
+`dart run flutter_launcher_icons_flavors ...`
 
 | Subcommand | Purpose |
 |---|---|
@@ -202,7 +202,7 @@ Bare invocation defaults to `generate` for back-compat. Command name reflects th
 
 ### 4.4 `migrate` subcommand
 
-`dart run flutter_launcher_icons_flavored migrate`:
+`dart run flutter_launcher_icons_flavors migrate`:
 
 1. Discovers `flutter_launcher_icons-*.yaml` (respects `--prefix`).
 2. Parses each, extracting the `flutter_launcher_icons` / `flutter_icons` block.
@@ -309,10 +309,10 @@ Per user decision. Reflected as a breaking change in CHANGELOG and README upgrad
 ### 6.10 Delete `lib/pubspec_parser.dart`
 Dead code per user decision. Remove the file and any dangling imports.
 
-### 6.11 Project rename to `flutter_launcher_icons_flavored`
-- `pubspec.yaml`: `name: flutter_launcher_icons_flavored`, update `homepage`/`repository`/`issue_tracker` to the new repo (final URL TBD by maintainer).
-- All `import 'package:flutter_launcher_icons/...'` → `import 'package:flutter_launcher_icons_flavored/...'` across `lib/`, `bin/`, `test/`, `example/`.
-- `bin/main.dart` invocation becomes `dart run flutter_launcher_icons_flavored`.
+### 6.11 Project rename to `flutter_launcher_icons_flavors`
+- `pubspec.yaml`: `name: flutter_launcher_icons_flavors`, update `homepage`/`repository`/`issue_tracker` to the new repo (final URL TBD by maintainer).
+- All `import 'package:flutter_launcher_icons/...'` → `import 'package:flutter_launcher_icons_flavors/...'` across `lib/`, `bin/`, `test/`, `example/`.
+- `bin/main.dart` invocation becomes `dart run flutter_launcher_icons_flavors`.
 - README rewrites the package name everywhere; adds a top-of-readme migration callout for users of the original `flutter_launcher_icons`.
 - **Filenames the package consumes do not change** — `flutter_launcher_icons.yaml`, `flutter_launcher_icons-<flavor>.yaml`, `flutter_launcher_icons_flavors.yaml`, and the pubspec key `flutter_launcher_icons:` all remain. This means existing users only edit their `dependencies:` block; no config edits required.
 
@@ -322,7 +322,7 @@ Dead code per user decision. Remove the file and any dangling imports.
 
 | File | Change |
 |---|---|
-| `pubspec.yaml` | `name: flutter_launcher_icons_flavored`. Bump version → `0.15.0`. Verify SDK constraint. Update `homepage`/`repository`/`issue_tracker`. Add `topics`, `screenshots`. (No `funding`.) |
+| `pubspec.yaml` | `name: flutter_launcher_icons_flavors`. Bump version → `0.15.0`. Verify SDK constraint. Update `homepage`/`repository`/`issue_tracker`. Add `topics`, `screenshots`. (No `funding`.) |
 | `analysis_options.yaml` | `include: package:lints/recommended.yaml`. Remove dead rules. Drop `strong-mode` block. |
 | `bin/main.dart` | Thin wrapper that constructs `CommandRunner` and dispatches. Update package import to new name. |
 | `lib/main.dart` | Refactored: precedence resolver, `CommandRunner` setup, exit-code handling. |
@@ -340,10 +340,10 @@ Dead code per user decision. Remove the file and any dangling imports.
 | `lib/logger.dart` | Levels: error / warn / info / verbose. Respect `NO_COLOR`. Used everywhere instead of bare `print`/`stderr.writeln`. |
 | `lib/custom_exceptions.dart` | Add `MixedConfigSourcesException`, `UnknownFlavorException`. |
 | `lib/pubspec_parser.dart` | **Delete.** Remove imports. |
-| All `import 'package:flutter_launcher_icons/...'` | Rename to `flutter_launcher_icons_flavored`. |
+| All `import 'package:flutter_launcher_icons/...'` | Rename to `flutter_launcher_icons_flavors`. |
 | `test/**` | New suites per §8. Update package imports for rename. |
 | `test/fixtures/**` (NEW) | Gradle fixtures, sample multi-flavor files, golden migrate inputs/outputs. |
-| `example/**` | Update pubspec dependency entries to `flutter_launcher_icons_flavored: ^0.15.0` (path or version). Update generation commands. |
+| `example/**` | Update pubspec dependency entries to `flutter_launcher_icons_flavors: ^0.15.0` (path or version). Update generation commands. |
 | `README.md` | Top-of-readme rename callout + migration-from-`flutter_launcher_icons` instructions. New "Multi-flavor (consolidated)" section. Migration guide for legacy multi-file. Precedence table. Exit-code table. **Note about `min_sdk_android` default raise.** |
 | `doc/flavors.md` (NEW) | Schema reference, merge semantics, examples, troubleshooting. |
 | `CHANGELOG.md` | 0.15.0 entry (see §11) including Breaking changes section. |
@@ -439,7 +439,7 @@ Add a `pana` job (informational, non-blocking) and a publish-dry-run job on tagg
 15. Tests exist but coverage of flavors / Windows paths / KTS is shallow — §8.
 16. Deprecated `flutter_icons` key handling silent until parse — explicit deprecation warning preserved; removal scheduled for 0.17.
 17. Default `min_sdk_android = 21` is below modern Flutter minimums — **bump to 24** (§6.9).
-18. Project name does not signal flavor focus — **rename to `flutter_launcher_icons_flavored`** (§6.11).
+18. Project name does not signal flavor focus — **rename to `flutter_launcher_icons_flavors`** (§6.11).
 
 ---
 
@@ -447,11 +447,11 @@ Add a `pana` job (informational, non-blocking) and a publish-dry-run job on tagg
 
 ### 11.1 README rewrite outline
 
-1. **Top callout**: "This package was renamed from `flutter_launcher_icons` to `flutter_launcher_icons_flavored`. To migrate, update your `dev_dependencies:` entry. Config files do not need to change."
+1. **Top callout**: "This package was renamed from `flutter_launcher_icons` to `flutter_launcher_icons_flavors`. To migrate, update your `dev_dependencies:` entry. Config files do not need to change."
 2. Quick start (single config) — unchanged behavior, lightly modernized.
 3. Configuration reference — unchanged keys, with a note pointing to the flavors guide. Call out new `min_sdk_android` default of 24.
 4. **Multi-flavor projects (recommended): `flutter_launcher_icons_flavors.yaml`** — full schema example, merge semantics, `--flavor` / `--all-flavors` usage.
-5. **Migrating from legacy `flutter_launcher_icons-<flavor>.yaml`** — side-by-side example, `dart run flutter_launcher_icons_flavored migrate` walkthrough.
+5. **Migrating from legacy `flutter_launcher_icons-<flavor>.yaml`** — side-by-side example, `dart run flutter_launcher_icons_flavors migrate` walkthrough.
 6. Precedence table (§3 verbatim).
 7. CLI reference (`generate`, `migrate`, `doctor`, all flags).
 8. Exit codes table (§4.3 verbatim).
@@ -467,7 +467,7 @@ Deep-dive companion: schema reference, merge rules with worked examples (includi
 ## 0.15.0
 
 ### Breaking changes
-- Package renamed from `flutter_launcher_icons` to `flutter_launcher_icons_flavored`.
+- Package renamed from `flutter_launcher_icons` to `flutter_launcher_icons_flavors`.
   Update your `dev_dependencies:` entry. Config files (pubspec key, .yaml filenames)
   remain unchanged.
 - Default `min_sdk_android` raised from 21 to 24, matching modern Flutter project
@@ -507,7 +507,7 @@ Deep-dive companion: schema reference, merge rules with worked examples (includi
 ### Deprecated
 - Per-file `flutter_launcher_icons-<flavor>.yaml` layout. Continues to work
   for now; emits a deprecation warning. Run
-  `dart run flutter_launcher_icons_flavored migrate` to convert.
+  `dart run flutter_launcher_icons_flavors migrate` to convert.
   Removal targeted for 0.17.
 - `flutter_icons:` pubspec key (already deprecated since 0.13.1) — removal
   remains targeted for 0.17.
@@ -523,7 +523,7 @@ Deep-dive companion: schema reference, merge rules with worked examples (includi
 ## 12. Phased delivery (5 PRs, each independently revertable)
 
 **PR 1 — Internal refactor + rename (no schema change).**
-- Pubspec rename to `flutter_launcher_icons_flavored`.
+- Pubspec rename to `flutter_launcher_icons_flavors`.
 - Update all `package:flutter_launcher_icons/...` imports to new name.
 - `PartialConfig` / `Config` split.
 - `PlatformToggle` (replacing `dynamic`).
@@ -557,7 +557,7 @@ Deep-dive companion: schema reference, merge rules with worked examples (includi
 - CHANGELOG.
 - CI matrix.
 - `pub publish --dry-run` clean.
-- Tag `v0.15.0`, publish to pub.dev as `flutter_launcher_icons_flavored`.
+- Tag `v0.15.0`, publish to pub.dev as `flutter_launcher_icons_flavors`.
 
 ---
 
@@ -601,10 +601,10 @@ Deep-dive companion: schema reference, merge rules with worked examples (includi
 | 3 | Flavor-name regex `^[A-Za-z0-9][A-Za-z0-9_-]*$`? | **Yes**. |
 | 4 | `min_sdk_android` default 21 → 24? | **Yes — break and bump to 24.** Documented as a breaking change. |
 | 5 | Delete dead `lib/pubspec_parser.dart`? | **Yes — remove.** |
-| 6 | Project rename? | **Yes — rename to `flutter_launcher_icons_flavored`.** |
+| 6 | Project rename? | **Yes — rename to `flutter_launcher_icons_flavors`.** |
 
 ### 13.4 Items still requiring maintainer action at release time
 
-- Confirm/secure pub.dev ownership of the name `flutter_launcher_icons_flavored` before tagging.
+- Confirm/secure pub.dev ownership of the name `flutter_launcher_icons_flavors` before tagging.
 - Confirm new repository URL (or keep the same repo and rename via GitHub) before updating `homepage`/`repository`/`issue_tracker` in `pubspec.yaml`.
 - Maintainer to perform `pub publish` after PR 5 merges.

@@ -10,7 +10,7 @@ import 'migrate_command.dart';
 const Set<String> knownSubcommands = {'generate', 'migrate', 'doctor', 'help'};
 
 /// Builds the top-level [CommandRunner] for the
-/// `flutter_launcher_icons_flavored` CLI.
+/// `flutter_launcher_icons_flavors` CLI.
 ///
 /// Returning a `CommandRunner<int>` lets each subcommand return the
 /// desired process exit code; the entry point (`bin/main.dart`)
@@ -18,7 +18,7 @@ const Set<String> knownSubcommands = {'generate', 'migrate', 'doctor', 'help'};
 CommandRunner<int> buildCommandRunner() {
   final runner =
       CommandRunner<int>(
-          'flutter_launcher_icons_flavored',
+          'flutter_launcher_icons_flavors',
           'Generate launcher icons for Flutter apps.',
         )
         ..addCommand(GenerateCommand())
@@ -31,7 +31,7 @@ CommandRunner<int> buildCommandRunner() {
 ///
 /// If [args] is empty, or its first non-flag token is not one of
 /// [knownSubcommands], we prepend `'generate'` so that bare invocations
-/// (`dart run flutter_launcher_icons_flavored -f my.yaml`) keep
+/// (`dart run flutter_launcher_icons_flavors -f my.yaml`) keep
 /// behaving exactly as they did before the `CommandRunner` migration.
 ///
 /// Two edge cases worth calling out:

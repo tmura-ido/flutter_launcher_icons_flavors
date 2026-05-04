@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons_flavored/config/merge.dart';
+import 'package:flutter_launcher_icons_flavors/config/merge.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -2,14 +2,14 @@
 
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/constants.dart';
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
-import 'package:flutter_launcher_icons_flavored/src/min_sdk_patterns.dart';
-import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
-import 'package:flutter_launcher_icons_flavored/xml_templates.dart'
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/constants.dart';
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/src/min_sdk_patterns.dart';
+import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavors/xml_templates.dart'
     as xml_template;
 import 'package:image/image.dart';
 import 'package:path/path.dart' as path;

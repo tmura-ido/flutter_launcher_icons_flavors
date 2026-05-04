@@ -1,6 +1,6 @@
 # Flavors guide
 
-`flutter_launcher_icons_flavored` adds a consolidated, deep-merged configuration file for multi-flavor Flutter projects. This guide is the long-form reference; the [README](../README.md) has the quick start.
+`flutter_launcher_icons_flavors` adds a consolidated, deep-merged configuration file for multi-flavor Flutter projects. This guide is the long-form reference; the [README](../README.md) has the quick start.
 
 ## 1. Why a consolidated file
 
@@ -146,13 +146,13 @@ If both a `flutter_launcher_icons_flavors.yaml` **and** legacy `flutter_launcher
 warning: ignoring legacy config files because flutter_launcher_icons_flavors.yaml is present:
   - flutter_launcher_icons-dev.yaml
   - flutter_launcher_icons-prod.yaml
-Run `dart run flutter_launcher_icons_flavored migrate` to merge them, or delete the legacy files.
+Run `dart run flutter_launcher_icons_flavors migrate` to merge them, or delete the legacy files.
 ```
 
 Pass `--strict` to escalate this warning to a fatal error (exit code **65**):
 
 ```shell
-dart run flutter_launcher_icons_flavored generate --all-flavors --strict
+dart run flutter_launcher_icons_flavors generate --all-flavors --strict
 ```
 
 This is the recommended setting for CI: it makes leftover legacy files an explicit failure rather than a silent ignore.
@@ -162,7 +162,7 @@ This is the recommended setting for CI: it makes leftover legacy files an explic
 ### Step 1 — Inspect
 
 ```shell
-dart run flutter_launcher_icons_flavored migrate --dry-run
+dart run flutter_launcher_icons_flavors migrate --dry-run
 ```
 
 This prints the YAML that *would* be written to `flutter_launcher_icons_flavors.yaml`, plus a **promotion candidates** report listing keys whose values are identical across every flavor block. Auto-promotion to `defaults:` is intentionally **not** done — you decide which candidates are real shared defaults and which are coincidental matches.
@@ -170,7 +170,7 @@ This prints the YAML that *would* be written to `flutter_launcher_icons_flavors.
 ### Step 2 — Apply
 
 ```shell
-dart run flutter_launcher_icons_flavored migrate
+dart run flutter_launcher_icons_flavors migrate
 ```
 
 Writes `flutter_launcher_icons_flavors.yaml`. Each legacy file is copied to `<original>.bak` first; the originals are left in place. Pass `--in-place` to delete the originals after writing (the `.bak` copies are kept regardless). Pass `--force` to overwrite an existing `flutter_launcher_icons_flavors.yaml`.

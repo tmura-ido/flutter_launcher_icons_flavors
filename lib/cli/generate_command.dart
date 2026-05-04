@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/config/flavors_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/source_resolver.dart';
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
-import 'package:flutter_launcher_icons_flavored/main.dart' as fli_main;
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/config/flavors_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/main.dart' as fli_main;
 
 /// `generate` subcommand — the default action of the CLI.
 ///

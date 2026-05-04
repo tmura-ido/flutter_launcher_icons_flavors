@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons_flavored/utils.dart';
+import 'package:flutter_launcher_icons_flavors/utils.dart';
 
 /// Exception to be thrown whenever we have an invalid configuration
 class InvalidConfigException implements Exception {
@@ -77,7 +77,7 @@ class MixedConfigSourcesException implements Exception {
       'Both flutter_launcher_icons_flavors.yaml and legacy '
       'flutter_launcher_icons-<flavor>.yaml file(s) were found:\n'
       '  ${ignoredLegacy.join('\n  ')}\n'
-      'Run `dart run flutter_launcher_icons_flavored migrate` to consolidate, '
+      'Run `dart run flutter_launcher_icons_flavors migrate` to consolidate, '
       'or remove the legacy files.',
     );
   }

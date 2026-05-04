@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter_launcher_icons_flavored/android.dart' as android;
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart';
+import 'package:flutter_launcher_icons_flavors/android.dart' as android;
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart';
 import 'package:test/test.dart';
 
 // unit tests for android.dart

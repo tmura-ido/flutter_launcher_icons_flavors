@@ -1,4 +1,4 @@
-import 'package:flutter_launcher_icons_flavored/utils.dart' as utils;
+import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;

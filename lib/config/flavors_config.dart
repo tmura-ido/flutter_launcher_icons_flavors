@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:checked_yaml/checked_yaml.dart' as yaml;
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/config/flavors_file.dart';
-import 'package:flutter_launcher_icons_flavored/config/merge.dart';
-import 'package:flutter_launcher_icons_flavored/config/partial_config.dart';
-import 'package:flutter_launcher_icons_flavored/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
-import 'package:flutter_launcher_icons_flavored/logger.dart';
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/config/flavors_file.dart';
+import 'package:flutter_launcher_icons_flavors/config/merge.dart';
+import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:json_annotation/json_annotation.dart'
     show CheckedFromJsonException;
 

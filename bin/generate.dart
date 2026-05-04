@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'package:flutter_launcher_icons_flavored/constants.dart';
-import 'package:flutter_launcher_icons_flavored/src/version.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart';
+import 'package:flutter_launcher_icons_flavors/src/version.dart';
 
 const _defaultConfigFileName = './flutter_launcher_icons.yaml';
 
 /// The function will be called from command line
 /// using the following command:
 /// ```sh
-/// dart run flutter_launcher_icons_flavored:generate
+/// dart run flutter_launcher_icons_flavors:generate
 /// ```
 ///
 /// Calling this function will generate a flutter_launcher_icons.yaml file
@@ -69,7 +69,7 @@ void _generateConfigFile(File configFile) {
     stdout.writeln('\nConfig file generated successfully 🎉');
     stdout.writeln(
       'You can now use this new config file by using the command below:\n\n'
-      'dart run flutter_launcher_icons_flavored'
+      'dart run flutter_launcher_icons_flavors'
       '${configFile.path == _defaultConfigFileName ? '' : ' -f ${configFile.path}'}\n',
     );
   } on Exception catch (e) {
@@ -78,7 +78,7 @@ void _generateConfigFile(File configFile) {
 }
 
 const _configFileTemplate = '''
-# dart run flutter_launcher_icons_flavored
+# dart run flutter_launcher_icons_flavors
 flutter_launcher_icons:
   image_path: "assets/icon/icon.png"
 

@@ -1,7 +1,7 @@
-import 'package:flutter_launcher_icons_flavored/config/config.dart';
-import 'package:flutter_launcher_icons_flavored/config/partial_config.dart';
-import 'package:flutter_launcher_icons_flavored/config/platform_toggle.dart';
-import 'package:flutter_launcher_icons_flavored/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/config/config.dart';
+import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/platform_toggle.dart';
+import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:test/test.dart';
 
 void main() {
