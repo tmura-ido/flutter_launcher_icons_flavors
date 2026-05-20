@@ -219,7 +219,7 @@ flavors:
       expect(code, 0);
     });
 
-    test('multi-flavor consolidated, neither flag → exit 64', () async {
+    test('multi-flavor consolidated, neither flag → builds all (new default)', () async {
       final dir = await _makeWebSandbox('multi');
       await File(
         p.join(dir, 'flutter_launcher_icons_flavors.yaml'),
@@ -240,7 +240,7 @@ flavors:
         '--prefix',
         dir,
       ]);
-      expect(code, 64);
+      expect(code, 0);
     });
 
     test(

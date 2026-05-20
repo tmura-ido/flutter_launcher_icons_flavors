@@ -26,7 +26,7 @@ void main() {
     late MockFLILogger mockLogger;
     final assetPath = path.join(Directory.current.path, 'test', 'assets');
 
-    group('#validateRequirments', () {
+    group('#validateRequirements', () {
       setUpAll(() {
         // make sure test file exists before starting test
         testImageFile = File(path.join(assetPath, 'app_icon.png'));
@@ -43,7 +43,7 @@ void main() {
           logger: mockLogger,
         );
         generator = WindowsIconGenerator(context);
-        // initilize mock defaults
+        // initialize mock defaults
         when(mockLogger.isVerbose).thenReturn(false);
         when(mockConfig.windowsConfig).thenReturn(mockWindowsConfig);
         when(mockWindowsConfig.generate).thenReturn(true);

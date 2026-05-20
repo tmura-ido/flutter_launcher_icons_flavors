@@ -5,7 +5,7 @@ part 'macos_config.g.dart';
 /// The flutter_launcher_icons configuration set for MacOS
 @JsonSerializable(anyMap: true, checked: true)
 class MacOSConfig {
-  /// Specifies weather to generate icons for macos
+  /// Specifies whether to generate icons for macos
   @JsonKey()
   final bool generate;
 
@@ -16,10 +16,10 @@ class MacOSConfig {
   /// Creates a instance of [MacOSConfig]
   const MacOSConfig({this.generate = false, this.imagePath});
 
-  /// Creates [WebConfig] from [json]
+  /// Creates [MacOSConfig] from [json]
   factory MacOSConfig.fromJson(Map json) => _$MacOSConfigFromJson(json);
 
-  /// Creates [Map] from [WebConfig]
+  /// Creates [Map] from [MacOSConfig]
   Map<String, dynamic> toJson() => _$MacOSConfigToJson(this);
 
   @override

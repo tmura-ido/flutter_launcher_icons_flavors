@@ -72,37 +72,33 @@ const String iosDefaultIconName = 'Icon-App';
 /// favicon.ico size
 const int kFaviconSize = 16;
 
-/// Relative web direcotry path
-String webDirPath = path.join('web');
+/// Relative web directory path
+const String webDirPath = 'web';
 
 /// Relative web icons directory path
-String webIconsDirPath = path.join(webDirPath, 'icons');
+const String webIconsDirPath = 'web/icons';
 
 /// Relative web manifest.json file path
-String webManifestFilePath = path.join(webDirPath, 'manifest.json');
+const String webManifestFilePath = 'web/manifest.json';
 // TODO(RatakondalaArun): support for other images formats
 /// Relative favicon.png path
-String webFaviconFilePath = path.join(webDirPath, 'favicon.png');
+const String webFaviconFilePath = 'web/favicon.png';
 
 /// Relative index.html file path
-String webIndexFilePath = path.join(webDirPath, 'index.html');
+const String webIndexFilePath = 'web/index.html';
 
 /// Relative pubspec.yaml path
-String pubspecFilePath = path.join('pubspec.yaml');
+const String pubspecFilePath = 'pubspec.yaml';
 
 // Windows
 /// Relative path to windows directory
-String windowsDirPath = path.join('windows');
+const String windowsDirPath = 'windows';
 
 /// Relative path to windows resources directory
-String windowsResourcesDirPath = path.join(
-  windowsDirPath,
-  'runner',
-  'resources',
-);
+const String windowsResourcesDirPath = 'windows/runner/resources';
 
 /// Relative path to windows icon file path
-String windowsIconFilePath = path.join(windowsResourcesDirPath, 'app_icon.ico');
+const String windowsIconFilePath = 'windows/runner/resources/app_icon.ico';
 
 /// Default windows icon size for flutter
 ///
@@ -111,18 +107,15 @@ const int windowsDefaultIconSize = 48;
 // MacOS
 
 /// Relative path to macos folder
-final macOSDirPath = path.join('macos');
+const String macOSDirPath = 'macos';
 
 /// Relative path to macos icons folder
-final macOSIconsDirPath = path.join(
-  macOSDirPath,
-  'Runner',
-  'Assets.xcassets',
-  'AppIcon.appiconset',
-);
+const String macOSIconsDirPath =
+    'macos/Runner/Assets.xcassets/AppIcon.appiconset';
 
 /// Relative path to macos contents.json
-final macOSContentsFilePath = path.join(macOSIconsDirPath, 'Contents.json');
+const String macOSContentsFilePath =
+    'macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json';
 
 const String errorMissingImagePath =
     'Missing "image_path" or "image_path_android" + "image_path_ios" within configuration';

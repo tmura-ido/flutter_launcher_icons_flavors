@@ -1,27 +1,29 @@
 # example_with_flavors_consolidated
 
-A Flutter project showcasing the consolidated single-file flavors config (`flutter_launcher_icons_flavors.yaml`).
+A Flutter project showcasing the **consolidated** single-file flavors config (`flutter_launcher_icons_flavors.yaml`).
 
-Unlike the legacy `example/flavors/` setup which uses one yaml per flavor, this example defines all flavors in a single file with shared `defaults` and per-flavor overrides.
+Unlike the legacy [`../flavors`](../flavors) example which uses one yaml per flavor, this example defines all flavors in a single file with shared `defaults` and per-flavor overrides.
 
-## How to run this project
+## Prerequisites
 
-Before being able to run this example you need to navigate to this directory and run the following command
+Before running this example, navigate to this directory and scaffold the platform folders:
 
-```
+```shell
 flutter create .
 ```
 
-This project has the following flavors:
+## Flavors
 
-- production: `flutter run --flavor production`
-- development: `flutter run --flavor development`
-- integration: `flutter run --flavor integration`
+This project defines three flavors:
+
+- `production` — `flutter run --flavor production`
+- `development` — `flutter run --flavor development`
+- `integration` — `flutter run --flavor integration`
 
 ## Generating icons
 
-```
-flutter pub run flutter_launcher_icons
+```shell
+dart run flutter_launcher_icons_flavors generate --all-flavors
 ```
 
-The tool auto-discovers `flutter_launcher_icons_flavors.yaml` and generates icons for every flavor listed under `flavors:`.
+Build a single flavor with `--flavor <name>`. With no selector, `generate` builds every flavor declared in `flavors:` (same as `--all-flavors`).

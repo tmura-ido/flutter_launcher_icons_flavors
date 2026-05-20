@@ -1,12 +1,12 @@
 # Changelog
 
-## 0.15.0
+## 0.15.0 (2026-05-20)
 
 ### Breaking
 - Renamed package to `flutter_launcher_icons_flavors`. Update `dev_dependencies` and `dart run` invocations.
 - Default `min_sdk_android` raised from 21 to 24. Set it explicitly in config to keep the old value.
-- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. The bare `dart run flutter_launcher_icons_flavors` now prints help; pass `generate` to keep prior behavior.
-- With the consolidated `flutter_launcher_icons_flavors.yaml` present and more than one flavor defined, `generate` requires `--flavor <name>` or `--all-flavors`. Exits 64 otherwise. Legacy `flutter_launcher_icons-<flavor>.yaml` workflows are unchanged and still build all flavors by default.
+- CLI restructured under subcommands: `generate`, `migrate`, `doctor`. `generate` is the **default subcommand** — `dart run flutter_launcher_icons_flavors` (no args) is equivalent to `dart run flutter_launcher_icons_flavors generate`.
+- With the consolidated `flutter_launcher_icons_flavors.yaml` present, `generate` builds every flavor declared in `flavors:` by default. Pass `--flavor <name>` (repeatable) to narrow, or `--all-flavors` to be explicit. Legacy `flutter_launcher_icons-<flavor>.yaml` workflows continue to build all flavors by default.
 
 ### Added
 - Consolidated multi-flavor config file `flutter_launcher_icons_flavors.yaml` with `defaults:` deep-merged into each flavor, and explicit `null` to delete inherited keys.
@@ -37,7 +37,7 @@
 ## 0.14.4 (10th June 2025)
 
 - Removed rules which no longer exist from analysis_options [#598](https://github.com/fluttercommunity/flutter_launcher_icons/issues/598)
-- Fix template generated within thegenerate command [#642](https://github.com/fluttercommunity/flutter_launcher_icons/issues/642)
+- Fix template generated within the `generate` command [#642](https://github.com/fluttercommunity/flutter_launcher_icons/issues/642)
 - Standardize on async I/O and waiting for work to complete [#646](https://github.com/fluttercommunity/flutter_launcher_icons/issues/646)
 
 ## 0.14.3 (17th January 2025)
@@ -85,7 +85,7 @@
 
 ## 0.11.0 (27th September 2022)
     
-- Support for Macos Icons [#407](https://github.com/fluttercommunity/flutter_launcher_icons/pull/407)
+- Support for macOS Icons [#407](https://github.com/fluttercommunity/flutter_launcher_icons/pull/407)
 - Cli-improvement [#400](https://github.com/fluttercommunity/flutter_launcher_icons/pull/400)
 - Add `repository` and `issue_tracker` [#411](https://github.com/fluttercommunity/flutter_launcher_icons/pull/411) (thanks to [@patelpathik](https://github.com/patelpathik))
 - Fix indent in web/manifest.json [#407](https://github.com/fluttercommunity/flutter_launcher_icons/pull/407)
@@ -109,7 +109,7 @@
 
 ## 0.9.2 (22nd August 2021)
 
-- Fixed issue where success message printed even when exception occured (thanks to @happy-san)
+- Fixed issue where success message printed even when exception occurred (thanks to @happy-san)
 
 ## 0.9.1 (25th July 2021)
 
@@ -204,7 +204,7 @@
 
 ## 0.3.0 (1st May 2018)
 
-- Fixed issue where icons produced weren't the correct size (Due to images not with a 1:1 aspect r    ation)
+- Fixed issue where icons produced weren't the correct size (Due to images not with a 1:1 aspect ratio)
 - Improved quality of smaller icons produced (Thanks to PR #17 - Thank you!)
 - Updated console printed messages to keep them consistent
 - Added example folder to GitHub project

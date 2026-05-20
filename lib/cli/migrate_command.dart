@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:flutter_launcher_icons_flavors/config/legacy_discovery.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/utils/yaml_convert.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
@@ -161,27 +163,8 @@ class MigrateCommand extends Command<int> {
   ///
   /// Sorting keeps the YAML output deterministic across filesystems
   /// whose `Directory.list` order is not stable.
-  List<_LegacyEntry> _discoverLegacyFiles(String prefix) {
-    final dir = Directory(prefix);
-    if (!dir.existsSync()) {
-      return const <_LegacyEntry>[];
-    }
-    final pattern = RegExp(constants.legacyFlavorConfigFilePattern);
-    final out = <_LegacyEntry>[];
-    for (final entity in dir.listSync()) {
-      if (entity is! File) {
-        continue;
-      }
-      final basename = p.basename(entity.path);
-      final match = pattern.firstMatch(basename);
-      if (match == null) {
-        continue;
-      }
-      out.add(_LegacyEntry(flavor: match.group(1)!, path: entity.path));
-    }
-    out.sort((a, b) => a.flavor.compareTo(b.flavor));
-    return out;
-  }
+  List<LegacyFlavorFile> _discoverLegacyFiles(String prefix) =>
+      findLegacyFlavorFiles(prefix);
 
   /// Reads a legacy file and returns the inner
   /// `flutter_launcher_icons` (or deprecated `flutter_icons`) block
@@ -214,30 +197,7 @@ class MigrateCommand extends Command<int> {
         '"flutter_launcher_icons" block is not a mapping.',
       );
     }
-    return _toPlainMap(block);
-  }
-
-  /// Recursively converts `YamlMap`/`YamlList` to plain Dart
-  /// containers, normalizing keys to `String`.
-  Map<String, dynamic> _toPlainMap(Map source) {
-    final out = <String, dynamic>{};
-    source.forEach((k, v) {
-      out[k.toString()] = _convertValue(v);
-    });
-    return out;
-  }
-
-  Object? _convertValue(Object? v) {
-    if (v == null) {
-      return null;
-    }
-    if (v is Map) {
-      return _toPlainMap(v);
-    }
-    if (v is List) {
-      return v.map(_convertValue).toList();
-    }
-    return v;
+    return yamlToPlainMap(block) ?? <String, dynamic>{};
   }
 
   /// Returns the keys whose values are present and identical across
@@ -320,12 +280,6 @@ class MigrateCommand extends Command<int> {
       '  Move these into the `defaults:` block manually if desired.',
     );
   }
-}
-
-class _LegacyEntry {
-  const _LegacyEntry({required this.flavor, required this.path});
-  final String flavor;
-  final String path;
 }
 
 class _MigrateParseException implements Exception {

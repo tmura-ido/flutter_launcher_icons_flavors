@@ -53,7 +53,7 @@ class WindowsIconGenerator extends IconGenerator {
       );
       return false;
     }
-    final entitesToCheck = [
+    final entitiesToCheck = [
       path.join(context.prefixPath, constants.windowsDirPath),
       path.join(
         context.prefixPath,
@@ -61,10 +61,10 @@ class WindowsIconGenerator extends IconGenerator {
       ),
     ];
 
-    final failedEntityPath = utils.areFSEntiesExist(entitesToCheck);
+    final failedEntityPath = utils.areFSEntitiesExist(entitiesToCheck);
     if (failedEntityPath != null) {
       context.logger.error(
-        '$failedEntityPath this file or folder is required to generate web icons',
+        '$failedEntityPath this file or folder is required to generate windows icons',
       );
       return false;
     }

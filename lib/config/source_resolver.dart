@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_launcher_icons_flavors/config/legacy_discovery.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
@@ -93,7 +94,7 @@ ResolvedSource resolveSource({
     constants.consolidatedFlavorsFileName,
   );
   if (File(consolidatedPath).existsSync()) {
-    final ignoredLegacy = _findLegacyFlavorFiles(prefixPath);
+    final ignoredLegacy = findLegacyFlavorPaths(prefixPath);
     if (ignoredLegacy.isNotEmpty) {
       logger.warn(
         'Both $consolidatedPath and legacy '
@@ -114,7 +115,7 @@ ResolvedSource resolveSource({
   }
 
   // (3) Legacy multi-flavor.
-  final legacyFiles = _findLegacyFlavorFiles(prefixPath);
+  final legacyFiles = findLegacyFlavorPaths(prefixPath);
   if (legacyFiles.isNotEmpty) {
     logger.warn(
       'Found legacy flutter_launcher_icons-<flavor>.yaml file(s). '
@@ -157,27 +158,6 @@ String _resolveExplicitPath(String prefixPath, String explicitFilePath) {
     return explicitFilePath;
   }
   return path.join(prefixPath, explicitFilePath);
-}
-
-/// Returns the sorted list of legacy
-/// `flutter_launcher_icons-<flavor>.yaml` files in [prefixPath].
-List<String> _findLegacyFlavorFiles(String prefixPath) {
-  final dir = Directory(prefixPath);
-  if (!dir.existsSync()) {
-    return const <String>[];
-  }
-  final pattern = RegExp(constants.legacyFlavorConfigFilePattern);
-  final results = <String>[];
-  for (final entity in dir.listSync()) {
-    if (entity is File) {
-      final basename = path.basename(entity.path);
-      if (pattern.hasMatch(basename)) {
-        results.add(entity.path);
-      }
-    }
-  }
-  results.sort();
-  return results;
 }
 
 /// Sniffs whether a YAML file has a top-level `flavors:` mapping (i.e.

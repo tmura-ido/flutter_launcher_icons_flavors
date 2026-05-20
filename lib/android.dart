@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:flutter_launcher_icons_flavors/config/config.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
-import 'package:flutter_launcher_icons_flavors/constants.dart';
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/src/min_sdk_patterns.dart';
@@ -15,13 +14,13 @@ import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 
 class AndroidIconTemplate {
-  AndroidIconTemplate({required this.size, required this.directoryName});
+  const AndroidIconTemplate({required this.size, required this.directoryName});
 
   final String directoryName;
   final int size;
 }
 
-final List<AndroidIconTemplate> adaptiveForegroundIcons = <AndroidIconTemplate>[
+const List<AndroidIconTemplate> adaptiveForegroundIcons = <AndroidIconTemplate>[
   AndroidIconTemplate(directoryName: 'drawable-mdpi', size: 108),
   AndroidIconTemplate(directoryName: 'drawable-hdpi', size: 162),
   AndroidIconTemplate(directoryName: 'drawable-xhdpi', size: 216),
@@ -29,7 +28,7 @@ final List<AndroidIconTemplate> adaptiveForegroundIcons = <AndroidIconTemplate>[
   AndroidIconTemplate(directoryName: 'drawable-xxxhdpi', size: 432),
 ];
 
-List<AndroidIconTemplate> androidIcons = <AndroidIconTemplate>[
+const List<AndroidIconTemplate> androidIcons = <AndroidIconTemplate>[
   AndroidIconTemplate(directoryName: 'mipmap-mdpi', size: 48),
   AndroidIconTemplate(directoryName: 'mipmap-hdpi', size: 72),
   AndroidIconTemplate(directoryName: 'mipmap-xhdpi', size: 96),
@@ -45,7 +44,7 @@ Future<void> createDefaultIcons(
   utils.printStatus('Creating default icons Android');
   final String? relativeImagePath = config.getImagePathAndroid();
   if (relativeImagePath == null) {
-    throw const InvalidConfigException(errorMissingImagePath);
+    throw const InvalidConfigException(constants.errorMissingImagePath);
   }
   final String filePath = path.join(prefixPath, relativeImagePath);
   final Image image = await utils.decodeImageFile(filePath);
@@ -112,7 +111,7 @@ Future<void> createAdaptiveIcons(
   final String? backgroundConfig = config.adaptiveIconBackground;
   final String? foregroundImagePath = config.adaptiveIconForeground;
   if (backgroundConfig == null || foregroundImagePath == null) {
-    throw const InvalidConfigException(errorMissingImagePath);
+    throw const InvalidConfigException(constants.errorMissingImagePath);
   }
   final Image foregroundImage = await utils.decodeImageFile(
     path.join(prefixPath, foregroundImagePath),
@@ -158,7 +157,7 @@ Future<void> createAdaptiveMonochromeIcons(
   // Retrieve the necessary Flutter Launcher Icons configuration from the pubspec.yaml file
   final String? monochromeImagePath = config.adaptiveIconMonochrome;
   if (monochromeImagePath == null) {
-    throw const InvalidConfigException(errorMissingImagePath);
+    throw const InvalidConfigException(constants.errorMissingImagePath);
   }
   final Image monochromeImage = await utils.decodeImageFile(
     path.join(prefixPath, monochromeImagePath),

@@ -65,7 +65,7 @@ class WebIconGenerator extends IconGenerator {
     context.logger.verbose('Generating icons from $imgFilePath...');
     await _generateIcons(imgFile);
 
-    // update manifest.json in web/mainfest.json
+    // update manifest.json in web/manifest.json
     context.logger.verbose(
       'Updating ${path.join(context.prefixPath, constants.webManifestFilePath)}...',
     );
@@ -96,18 +96,19 @@ class WebIconGenerator extends IconGenerator {
     }
 
     // verify web platform related files and directories exists
-    final entitesToCheck = [
+    final entitiesToCheck = [
       path.join(context.prefixPath, constants.webDirPath),
       path.join(context.prefixPath, constants.webManifestFilePath),
       path.join(context.prefixPath, constants.webIndexFilePath),
     ];
 
     // web platform related files must exist to continue
-    final failedEntityPath = utils.areFSEntiesExist(entitesToCheck);
+    final failedEntityPath = utils.areFSEntitiesExist(entitiesToCheck);
     if (failedEntityPath != null) {
       context.logger.error(
         '$failedEntityPath this file or folder is required to generate web icons',
       );
+      return false;
     }
 
     return true;

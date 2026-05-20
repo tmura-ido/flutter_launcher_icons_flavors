@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 void main() {
-  group('#areFSEntitesExist', () {
+  group('#areFSEntitiesExist', () {
     late String prefixPath;
     setUp(() async {
       prefixPath = path.join(d.sandbox, 'fli_test');
@@ -14,9 +14,9 @@ void main() {
       ]).create();
     });
 
-    test('should return null when entites exists', () async {
+    test('should return null when entities exist', () async {
       expect(
-        utils.areFSEntiesExist([
+        utils.areFSEntitiesExist([
           path.join(prefixPath, 'file1.txt'),
           path.join(prefixPath, 'dir1'),
         ]),
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('should return the file path that does not exist', () {
-      final result = utils.areFSEntiesExist([
+      final result = utils.areFSEntitiesExist([
         path.join(prefixPath, 'dir1'),
         path.join(prefixPath, 'file_that_does_not_exist.txt'),
       ]);
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('should return the dir path that does not exist', () {
-      final result = utils.areFSEntiesExist([
+      final result = utils.areFSEntitiesExist([
         path.join(prefixPath, 'dir_that_does_not_exist'),
         path.join(prefixPath, 'file.txt'),
       ]);
@@ -46,9 +46,9 @@ void main() {
     });
 
     test('should return the first entity path that does not exist', () {
-      final result = utils.areFSEntiesExist([
+      final result = utils.areFSEntitiesExist([
         path.join(prefixPath, 'dir_that_does_not_exist'),
-        path.join(prefixPath, 'file_that_dodes_not_exist.txt'),
+        path.join(prefixPath, 'file_that_does_not_exist.txt'),
       ]);
       expect(result, isNotNull);
       expect(result, equals(path.join(prefixPath, 'dir_that_does_not_exist')));
@@ -124,7 +124,7 @@ void main() {
   });
 
   group('#prettifyJsonEncode', () {
-    test('should return prettiffed json string 4 indents', () {
+    test('should return prettified json string with 4-space indents', () {
       const expectedValue = r'''
 {
     "key1": "value1",

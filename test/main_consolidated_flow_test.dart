@@ -55,12 +55,9 @@ flavors:
         // before any I/O; if validation failed we'd see exit(65) and the
         // test process would die.
         //
-        // Phase 4 behavior change: a multi-flavor consolidated file now
-        // requires `--all-flavors` (or one or more `--flavor`) to select
-        // which flavors to build. Previously the default was "build
-        // everything"; that ergonomic shortcut moved behind the explicit
-        // flag so users don't accidentally generate every flavor when
-        // they meant just one.
+        // With no selector, the consolidated flow now builds every flavor
+        // by default. `--all-flavors` is passed here for explicitness;
+        // omitting it would behave identically.
         await fli_main.createIconsFromArguments([
           '--prefix',
           projDir,

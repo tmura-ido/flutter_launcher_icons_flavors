@@ -8,6 +8,7 @@ import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/utils/yaml_convert.dart';
 import 'package:json_annotation/json_annotation.dart'
     show CheckedFromJsonException;
 
@@ -206,32 +207,8 @@ class FlavorsConfig {
   /// `package:yaml` yields `YamlMap` / `YamlList` instances with `dynamic`
   /// keys; this function flattens those into the JSON-shaped tree the
   /// rest of the pipeline expects.
-  static Map<String, dynamic>? _asStringKeyedMap(Object? raw) {
-    if (raw == null) {
-      return null;
-    }
-    if (raw is! Map) {
-      return null;
-    }
-    final out = <String, dynamic>{};
-    raw.forEach((k, v) {
-      out[k.toString()] = _convertValue(v);
-    });
-    return out;
-  }
-
-  static Object? _convertValue(Object? v) {
-    if (v == null) {
-      return null;
-    }
-    if (v is Map) {
-      return _asStringKeyedMap(v);
-    }
-    if (v is List) {
-      return v.map(_convertValue).toList();
-    }
-    return v;
-  }
+  static Map<String, dynamic>? _asStringKeyedMap(Object? raw) =>
+      yamlToPlainMap(raw);
 
   /// Parses [content] and returns the top-level map.
   static Map<String, dynamic> _parseYamlAsMap(String content, String path) {

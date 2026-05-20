@@ -121,6 +121,17 @@ class Config {
       );
     }
 
+    // README contract: adaptive_icon_foreground without adaptive_icon_background
+    // is a hard error. (The downstream pipeline would otherwise silently
+    // skip adaptive-icon generation, which surprised users.)
+    if (!isBlank(partial.adaptiveIconForeground) &&
+        isBlank(partial.adaptiveIconBackground)) {
+      throw const InvalidConfigException(
+        'adaptive_icon_background: required when adaptive_icon_foreground '
+        'is set (color "#RRGGBB" or path to a background image).',
+      );
+    }
+
     return Config(
       imagePath: partial.imagePath,
       android: partial.android,

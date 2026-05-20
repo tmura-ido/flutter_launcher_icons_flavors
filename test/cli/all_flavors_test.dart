@@ -66,14 +66,14 @@ flavors:
       expect(code, 0);
     });
 
-    test('multi-flavor without selector fails 64', () async {
+    test('multi-flavor without selector builds all (new default)', () async {
       final dir = await _seed('af3', yaml);
       final code = await buildCommandRunner().run([
         'generate',
         '--prefix',
         dir,
       ]);
-      expect(code, 64);
+      expect(code, 0);
     });
   });
 }

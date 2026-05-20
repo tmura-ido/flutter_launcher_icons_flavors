@@ -31,7 +31,7 @@ void main() {
       );
     });
     test(
-      'should execute createIcons() when validateRequiremnts() returns true',
+      'should execute createIcons() when validateRequirements() returns true',
       () {
         when(mockGenerator.validateRequirements()).thenReturn(true);
         generateIconsFor(
@@ -47,7 +47,7 @@ void main() {
     );
 
     test(
-      'should not execute createIcons() when validateRequiremnts() returns false',
+      'should not execute createIcons() when validateRequirements() returns false',
       () {
         when(mockGenerator.validateRequirements()).thenReturn(false);
         generateIconsFor(

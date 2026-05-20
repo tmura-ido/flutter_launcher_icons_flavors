@@ -31,7 +31,7 @@ void main() {
     late MockFLILogger mockLogger;
     final assetPath = path.join(Directory.current.path, 'test', 'assets');
 
-    group('#validateRequirments', () {
+    group('#validateRequirements', () {
       setUpAll(() {
         testImageFile = File(path.join(assetPath, 'app_icon.png'));
         expect(testImageFile.existsSync(), isTrue);
@@ -48,7 +48,7 @@ void main() {
         );
         generator = MacOSIconGenerator(context);
 
-        // initilize mock defaults
+        // initialize mock defaults
         when(mockLogger.isVerbose).thenReturn(false);
         when(mockConfig.macOSConfig).thenReturn(mockMacOSConfig);
         when(mockMacOSConfig.generate).thenReturn(true);

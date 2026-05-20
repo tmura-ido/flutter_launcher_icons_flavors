@@ -1,9 +1,19 @@
-# flutter_launcher_icons
+# flutter_launcher_icons_flavors — default example
 
-A new example Flutter project to quickly test flutter_launcher_icons.
+A minimal Flutter project that exercises the single-config (`flutter_launcher_icons.yaml`) workflow.
 
-Before being able to run this example you need to navigate to this directory and run the following command
+## Prerequisites
 
-```
+Before running this example, navigate to this directory and scaffold the platform folders:
+
+```shell
 flutter create .
 ```
+
+## Generating icons
+
+```shell
+dart run flutter_launcher_icons_flavors generate
+```
+
+The default subcommand is `generate`, so `dart run flutter_launcher_icons_flavors` (no args) is equivalent.

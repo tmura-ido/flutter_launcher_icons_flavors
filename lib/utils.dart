@@ -32,7 +32,7 @@ void printStatus(String message) {
 
 String generateError(Exception e, String? error) {
   final errorOutput = error == null ? '' : ' \n$error';
-  return '\n✗ ERROR: ${(e).runtimeType.toString()}$errorOutput';
+  return '\n✕ ERROR: ${(e).runtimeType.toString()}$errorOutput';
 }
 
 /// Decodes an image file at [filePath].
@@ -75,9 +75,9 @@ Future<Directory> createDirIfNotExist(String dirPath) async {
 String prettifyJsonEncode(Object? map) =>
     JsonEncoder.withIndent(' ' * 4).convert(map);
 
-/// Check if give [File] or [Directory] exists at the give [paths],
+/// Check if given [File] or [Directory] exists at the given [paths],
 /// if not returns the failed [FileSystemEntity] path
-String? areFSEntiesExist(List<String> paths) {
+String? areFSEntitiesExist(List<String> paths) {
   for (final path in paths) {
     // Using the sync method here due to `avoid_slow_async_io` lint suggestion.
     final fsType = FileSystemEntity.typeSync(path);

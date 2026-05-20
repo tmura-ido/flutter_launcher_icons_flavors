@@ -4,9 +4,11 @@ import 'package:args/command_runner.dart';
 import 'package:flutter_launcher_icons_flavors/config/config.dart';
 import 'package:flutter_launcher_icons_flavors/config/flavors_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
+import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/main.dart' as fli_main;
+import 'package:path/path.dart' as p;
 
 /// `generate` subcommand — the default action of the CLI.
 ///
@@ -16,8 +18,8 @@ import 'package:flutter_launcher_icons_flavors/main.dart' as fli_main;
 /// documented in plan §1.2:
 ///   * 0  — success.
 ///   * 1  — runtime/IO failure during generation.
-///   * 64 — usage error (unknown flavor, conflicting flags,
-///          multi-flavor consolidated without `--flavor`/`--all-flavors`).
+///   * 64 — usage error (unknown flavor, conflicting flags such as
+///          `--flavor` together with `--all-flavors`).
 ///   * 65 — config validation error / strict-mode coexistence /
 ///          preflight failure / `NoConfigFoundException`.
 class GenerateCommand extends Command<int> {
@@ -97,6 +99,16 @@ class GenerateCommand extends Command<int> {
     final listFlavors = results['list-flavors'] as bool;
     final continueOnError = results['continue-on-error'] as bool;
     final strict = results['strict'] as bool;
+
+    // README contract: --flavor and --all-flavors are mutually exclusive.
+    // Conflicting flags → usage error (64).
+    if (flavors.isNotEmpty && allFlavors) {
+      logger.error('Could not generate launcher icons');
+      logger.error(
+        '--flavor and --all-flavors are mutually exclusive; pass one or the other.',
+      );
+      return 64;
+    }
 
     // 1. Resolve which config source to use.
     final ResolvedSource resolved;
@@ -243,18 +255,13 @@ class GenerateCommand extends Command<int> {
       selected = requestedFlavors;
     } else if (allFlavors) {
       selected = available;
-    } else if (available.length == 1) {
-      // Ergonomic build: a single-flavor consolidated file does not
-      // require an explicit selector.
-      selected = available;
     } else {
-      logger.error('Could not generate launcher icons');
-      logger.error(
-        'Multiple flavors are defined in ${resolved.path}. '
-        'Pass --flavor <name> (repeatable) or --all-flavors to choose. '
-        'Available: ${available.join(', ')}',
-      );
-      return 64;
+      // Default behavior: with no selector, build every flavor declared
+      // in the consolidated file. This mirrors the legacy multi-flavor
+      // layout (which has always built all flavors by default) and
+      // removes the "you must pass --flavor or --all-flavors" foot-gun.
+      // Pass --flavor <name> to narrow.
+      selected = available;
     }
 
     // Preflight: validate every selected flavor BEFORE doing any I/O.
@@ -267,6 +274,19 @@ class GenerateCommand extends Command<int> {
       logger.error('Could not generate launcher icons');
       logger.error('$e');
       return 65;
+    }
+
+    // Snapshot native-side configuration state BEFORE generation,
+    // because the Android pipeline creates `android/app/src/<flavor>/`
+    // folders on demand and would mask a missing-folder check
+    // performed after the fact.
+    final detector = _FlavorGapDetector(prefix: prefix);
+    final gaps = <_FlavorPlatformGap>[];
+    for (final name in selected) {
+      gaps.addAll(detector.missingForFlavor(name, resolvedConfigs[name]!));
+    }
+    if (allFlavors) {
+      gaps.addAll(detector.extrasNotInConfig(available.toSet()));
     }
 
     // Generate sequentially. Track per-flavor outcomes for the summary.
@@ -318,6 +338,7 @@ class GenerateCommand extends Command<int> {
       );
       return allConfig ? 65 : 1;
     }
+    _emitGapWarnings(gaps, logger);
     stdout.writeln('\n✓ Successfully generated launcher icons for flavors');
     return 0;
   }
@@ -368,6 +389,8 @@ class GenerateCommand extends Command<int> {
       selected = discovered;
     }
 
+    final detector = _FlavorGapDetector(prefix: prefix);
+    final gaps = <_FlavorPlatformGap>[];
     final failures = <String, Object>{};
     for (final flavor in selected) {
       stdout.writeln('\nFlavor: $flavor');
@@ -378,6 +401,10 @@ class GenerateCommand extends Command<int> {
             'No configuration found for $flavor flavor.',
           );
         }
+        // Snapshot native-side state BEFORE generation for this flavor;
+        // the Android pipeline creates `android/app/src/<flavor>/` on
+        // demand.
+        gaps.addAll(detector.missingForFlavor(flavor, cfg));
         await fli_main.createIconsFromConfig(cfg, logger, prefix, flavor);
       } catch (e) {
         if (!continueOnError) {
@@ -388,6 +415,10 @@ class GenerateCommand extends Command<int> {
         failures[flavor] = e;
         logger.error('Flavor "$flavor" failed: $e');
       }
+    }
+
+    if (allFlavors) {
+      gaps.addAll(detector.extrasNotInConfig(discovered.toSet()));
     }
 
     if (failures.isNotEmpty) {
@@ -401,6 +432,7 @@ class GenerateCommand extends Command<int> {
       }
       return 1;
     }
+    _emitGapWarnings(gaps, logger);
     stdout.writeln('\n✓ Successfully generated launcher icons for flavors');
     return 0;
   }
@@ -462,5 +494,207 @@ class GenerateCommand extends Command<int> {
       logger.error('$e');
       return 1;
     }
+  }
+}
+
+// =====================================================================
+// Missing / extra flavor configuration detection.
+// =====================================================================
+
+/// A single gap between the launcher icons configuration and the
+/// project's native (Android/iOS) side.
+///
+/// Emitted as a one-line warning by [_emitGapWarnings].
+class _FlavorPlatformGap {
+  _FlavorPlatformGap({
+    required this.flavor,
+    required this.platform,
+    required this.detail,
+  });
+
+  /// Flavor name (as appears in the launcher icons config or on the
+  /// native side, depending on the gap kind).
+  final String flavor;
+
+  /// Either `'Android'` or `'iOS'`.
+  final String platform;
+
+  /// Human-readable explanation of the gap.
+  final String detail;
+}
+
+/// Probes the project for missing / extra flavor configuration on the
+/// native (Android/iOS) side. Caches `project.pbxproj` content so that
+/// repeated calls do not re-read the file.
+class _FlavorGapDetector {
+  _FlavorGapDetector({required this.prefix});
+
+  /// Project prefix path (same as `--prefix`).
+  final String prefix;
+
+  String? _pbxprojContent;
+  bool _pbxprojRead = false;
+
+  String? get _pbxproj {
+    if (!_pbxprojRead) {
+      _pbxprojRead = true;
+      final f = File(p.join(prefix, constants.iosConfigFile));
+      if (f.existsSync()) {
+        _pbxprojContent = f.readAsStringSync();
+      }
+    }
+    return _pbxprojContent;
+  }
+
+  /// Returns gaps where the [config] enables a platform for [flavor]
+  /// but the matching native-side reference is absent.
+  List<_FlavorPlatformGap> missingForFlavor(String flavor, Config config) {
+    final gaps = <_FlavorPlatformGap>[];
+
+    if (config.android.isEnabled) {
+      final folder = Directory(
+        p.join(prefix, 'android', 'app', 'src', flavor),
+      );
+      if (!folder.existsSync()) {
+        gaps.add(
+          _FlavorPlatformGap(
+            flavor: flavor,
+            platform: 'Android',
+            detail: 'no android/app/src/$flavor/ folder found',
+          ),
+        );
+      }
+    }
+
+    if (config.ios.isEnabled) {
+      final content = _pbxproj;
+      if (content == null) {
+        gaps.add(
+          _FlavorPlatformGap(
+            flavor: flavor,
+            platform: 'iOS',
+            detail: 'no ${constants.iosConfigFile} found',
+          ),
+        );
+      } else if (!_pbxprojReferencesFlavor(content, flavor)) {
+        gaps.add(
+          _FlavorPlatformGap(
+            flavor: flavor,
+            platform: 'iOS',
+            detail:
+                'no -$flavor xcconfig reference in '
+                '${constants.iosConfigFile}',
+          ),
+        );
+      }
+    }
+
+    return gaps;
+  }
+
+  /// Returns gaps for native-side flavors that are NOT present in
+  /// [configFlavors]. Intended for the `--all-flavors` flow.
+  List<_FlavorPlatformGap> extrasNotInConfig(Set<String> configFlavors) {
+    final gaps = <_FlavorPlatformGap>[];
+
+    // Android: subfolders of `android/app/src/` other than the
+    // built-in source sets (`main`, build types, test source sets).
+    final androidSrcDir = Directory(p.join(prefix, 'android', 'app', 'src'));
+    if (androidSrcDir.existsSync()) {
+      const reserved = {
+        'main',
+        'debug',
+        'release',
+        'profile',
+        'androidTest',
+        'test',
+      };
+      final discovered = <String>[];
+      for (final entity in androidSrcDir.listSync()) {
+        if (entity is! Directory) {
+          continue;
+        }
+        final name = p.basename(entity.path);
+        if (reserved.contains(name)) {
+          continue;
+        }
+        if (configFlavors.contains(name)) {
+          continue;
+        }
+        discovered.add(name);
+      }
+      discovered.sort();
+      for (final name in discovered) {
+        gaps.add(
+          _FlavorPlatformGap(
+            flavor: name,
+            platform: 'Android',
+            detail:
+                'android/app/src/$name/ folder exists but flavor is '
+                'not declared in launcher icons config',
+          ),
+        );
+      }
+    }
+
+    // iOS: candidate flavors extracted from `<BuildType>-<flavor>.xcconfig`
+    // references in project.pbxproj. Restricted to the conventional
+    // Flutter build types (Debug/Release/Profile) to avoid false
+    // positives from CocoaPods-generated configs like
+    // `Pods-Runner.debug.xcconfig`.
+    final content = _pbxproj;
+    if (content != null) {
+      final regex = RegExp(
+        r'/\*\s*(?:Debug|Release|Profile)-([A-Za-z0-9_-]+?)\.xcconfig\s*\*/',
+      );
+      final discovered = <String>{};
+      for (final m in regex.allMatches(content)) {
+        discovered.add(m.group(1)!);
+      }
+      final sorted = discovered.toList()..sort();
+      for (final flavor in sorted) {
+        if (configFlavors.contains(flavor)) {
+          continue;
+        }
+        gaps.add(
+          _FlavorPlatformGap(
+            flavor: flavor,
+            platform: 'iOS',
+            detail:
+                '${constants.iosConfigFile} references -$flavor '
+                'xcconfig but flavor is not declared in launcher icons '
+                'config',
+          ),
+        );
+      }
+    }
+
+    return gaps;
+  }
+
+  /// Mirrors the matching rule used by `changeIosLauncherIcon` in
+  /// `lib/ios.dart`: an xcconfig basename (the part before `.xcconfig`
+  /// in a `/* X.xcconfig */` comment) must contain `-<flavor>` as a
+  /// substring.
+  static bool _pbxprojReferencesFlavor(String content, String flavor) {
+    final regex = RegExp(r'/\*\s*([^/\s*]+)\.xcconfig\s*\*/');
+    final needle = '-$flavor';
+    for (final m in regex.allMatches(content)) {
+      if (m.group(1)!.contains(needle)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+void _emitGapWarnings(List<_FlavorPlatformGap> gaps, FLILogger logger) {
+  if (gaps.isEmpty) {
+    return;
+  }
+  for (final gap in gaps) {
+    logger.warn(
+      'Flavor "${gap.flavor}" (${gap.platform}): ${gap.detail}.',
+    );
   }
 }

@@ -71,14 +71,14 @@ class MacOSIconGenerator extends IconGenerator {
       return false;
     }
 
-    // this files and folders should exist to create macos icons
-    final enitiesToCheck = [
+    // these files and folders should exist to create macos icons
+    final entitiesToCheck = [
       path.join(context.prefixPath, constants.macOSDirPath),
       path.join(context.prefixPath, constants.macOSIconsDirPath),
       path.join(context.prefixPath, constants.macOSContentsFilePath),
     ];
 
-    final failedEntityPath = utils.areFSEntiesExist(enitiesToCheck);
+    final failedEntityPath = utils.areFSEntitiesExist(entitiesToCheck);
     if (failedEntityPath != null) {
       context.logger.error(
         '$failedEntityPath this file or folder is required to generate $platformName icons',

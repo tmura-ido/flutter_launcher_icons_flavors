@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:flutter_launcher_icons_flavors/android.dart' as android;
 import 'package:flutter_launcher_icons_flavors/config/flavors_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/legacy_discovery.dart';
 import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
@@ -161,7 +162,7 @@ class DoctorCommand extends Command<int> {
       stdout.writeln(
         "  ⚠ Deprecated key 'flutter_icons:' in pubspec.yaml — rename to "
         "'flutter_launcher_icons:' or migrate to "
-        'flutter_launcher_icons_flavors.yaml. See doc/migration-0.15.md.',
+        'flutter_launcher_icons_flavors.yaml.',
       );
     } else {
       stdout.writeln('Deprecated keys: none detected');
@@ -187,21 +188,7 @@ class DoctorCommand extends Command<int> {
     }
   }
 
-  List<String> _findLegacyFiles(String prefix) {
-    final dir = Directory(prefix);
-    if (!dir.existsSync()) {
-      return const <String>[];
-    }
-    final pattern = RegExp(constants.legacyFlavorConfigFilePattern);
-    final out = <String>[];
-    for (final entity in dir.listSync()) {
-      if (entity is File && pattern.hasMatch(p.basename(entity.path))) {
-        out.add(entity.path);
-      }
-    }
-    out.sort();
-    return out;
-  }
+  List<String> _findLegacyFiles(String prefix) => findLegacyFlavorPaths(prefix);
 
   _PubspecInline _pubspecHasInline(String pubspecPath) {
     final file = File(pubspecPath);
@@ -304,20 +291,8 @@ class DoctorCommand extends Command<int> {
         }
         break;
       case ConfigSourceKind.legacyFlavors:
-        final pattern = RegExp(constants.legacyFlavorConfigFilePattern);
-        final dir = Directory(prefix);
-        final names = <String>[];
-        if (dir.existsSync()) {
-          for (final e in dir.listSync()) {
-            if (e is File) {
-              final m = pattern.firstMatch(p.basename(e.path));
-              if (m != null) {
-                names.add(m.group(1)!);
-              }
-            }
-          }
-        }
-        names.sort();
+        final names = findLegacyFlavorFiles(prefix).map((e) => e.flavor).toList()
+          ..sort();
         for (final n in names) {
           stdout.writeln('  - $n');
         }

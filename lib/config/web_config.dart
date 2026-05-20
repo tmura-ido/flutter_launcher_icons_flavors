@@ -5,7 +5,7 @@ part 'web_config.g.dart';
 /// The flutter_launcher_icons configuration set for Web
 @JsonSerializable(anyMap: true, checked: true)
 class WebConfig {
-  /// Specifies weather to generate icons for web
+  /// Specifies whether to generate icons for web
   final bool generate;
 
   /// Image path for web

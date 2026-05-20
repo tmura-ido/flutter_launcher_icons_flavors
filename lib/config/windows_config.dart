@@ -5,10 +5,10 @@ part 'windows_config.g.dart';
 /// The flutter_launcher_icons configuration set for Windows
 @JsonSerializable(anyMap: true, checked: true)
 class WindowsConfig {
-  /// Specifies weather to generate icons for web
+  /// Specifies whether to generate icons for windows
   final bool generate;
 
-  /// Image path for web
+  /// Image path for windows
   @JsonKey(name: 'image_path')
   final String? imagePath;
 
