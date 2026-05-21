@@ -273,9 +273,7 @@ Future<void> updateColorsXmlFile(
   // whether to update or create the file. Async I/O is reserved for the
   // image read/encode/write hot paths.
   if (colorsXml.existsSync()) {
-    logger.info(
-      'Updating colors.xml with color for adaptive icon background',
-    );
+    logger.info('Updating colors.xml with color for adaptive icon background');
     await updateColorsFile(colorsXml, backgroundConfig);
   } else {
     logger.info('No colors.xml file found in your Android project');

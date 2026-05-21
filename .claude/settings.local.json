@@ -8,7 +8,8 @@
       "Bash(Out-String)",
       "Bash(grep -E \"\\(lib|bin|test\\)$\")",
       "Bash(dart format *)",
-      "Bash(rtk read *)"
+      "Bash(rtk read *)",
+      "Bash(rtk gh *)"
     ]
   }
 }
