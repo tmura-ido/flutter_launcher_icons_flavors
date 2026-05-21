@@ -138,8 +138,28 @@ Future<void> createIcons(
   String iconName;
   String? darkIconName;
   String? tintedIconName;
-  final List<IosIconTemplate> generateIosIcons =
-      (darkImage == null && tintedImage == null) ? legacyIosIcons : iosIcons;
+  // Resolve the iOS template list:
+  // * `ios_single_size: true` → only the 1024 marketing slot (Xcode 14+
+  //   "single size" mode, upstream #592). Overrides every other flag.
+  // * `ios_legacy_sizes: true` → union of legacy + modern, so the app
+  //   switcher's 1x assets are present (upstream #661).
+  // * Otherwise: legacy when no dark/tinted; modern when dark/tinted set.
+  final List<IosIconTemplate> generateIosIcons;
+  if (config.iosSingleSize) {
+    generateIosIcons = const [
+      // Marketing slot only.
+    ]..add(IosIconTemplate(name: '-1024x1024@1x', size: 1024));
+  } else if (config.iosLegacySizes) {
+    final seen = <String>{};
+    final union = <IosIconTemplate>[];
+    for (final t in [...legacyIosIcons, ...iosIcons]) {
+      if (seen.add(t.name)) union.add(t);
+    }
+    generateIosIcons = union;
+  } else {
+    generateIosIcons =
+        (darkImage == null && tintedImage == null) ? legacyIosIcons : iosIcons;
+  }
   final concurrentIconUpdates = <Future<void>>[];
   if (flavor != null) {
     final String catalogName = 'AppIcon-$flavor';
@@ -189,7 +209,13 @@ Future<void> createIcons(
       }
     }
     iconName = iosDefaultIconName;
-    await changeIosLauncherIcon(catalogName, flavor, prefixPath: prefixPath);
+    await changeIosLauncherIcon(
+      catalogName,
+      flavor,
+      prefixPath: prefixPath,
+      xcodeprojPath: config.xcodeprojPath,
+      logger: logger,
+    );
     await modifyContentsFile(
       catalogName,
       darkIconName,
@@ -243,7 +269,13 @@ Future<void> createIcons(
       }
     }
     iconName = newIconName;
-    await changeIosLauncherIcon(iconName, flavor, prefixPath: prefixPath);
+    await changeIosLauncherIcon(
+      iconName,
+      flavor,
+      prefixPath: prefixPath,
+      xcodeprojPath: config.xcodeprojPath,
+      logger: logger,
+    );
     await modifyContentsFile(
       iconName,
       darkIconName,
@@ -279,7 +311,13 @@ Future<void> createIcons(
       tintedIconName = '$iosDefaultIconName-Tinted';
     }
     iconName = iosDefaultIconName;
-    await changeIosLauncherIcon('AppIcon', flavor, prefixPath: prefixPath);
+    await changeIosLauncherIcon(
+      'AppIcon',
+      flavor,
+      prefixPath: prefixPath,
+      xcodeprojPath: config.xcodeprojPath,
+      logger: logger,
+    );
     // Still need to modify the Contents.json file
     // since the user could have added dark and tinted icons
     await modifyDefaultContentsFile(
@@ -301,6 +339,17 @@ Future<void> overwriteDefaultIcons(
   String iconNameSuffix = '',
   String prefixPath = '.',
 ]) async {
+  final dir = Directory(path.join(prefixPath, iosDefaultIconFolder));
+  if (!dir.existsSync()) {
+    // Friendly error replacing the previous opaque `FileSystemException`
+    // when the default `AppIcon.appiconset/` directory is missing
+    // (upstream #161).
+    throw InvalidConfigException(
+      'Expected iOS asset catalog at ${dir.path} but the directory was '
+      'not found. Run `flutter create .` in the project root to '
+      'regenerate the iOS asset catalog, then re-run.',
+    );
+  }
   final Image newImage = createResizedImage(template, image);
   await File(
     path.join(
@@ -352,14 +401,85 @@ Image createResizedImage(IosIconTemplate template, Image image) {
   }
 }
 
+/// Resolves the iOS `project.pbxproj` path honoring (in order):
+/// 1. explicit `xcodeproj_path` config override (upstream #637),
+/// 2. auto-detect by globbing `ios/*.xcodeproj` (upstream #543),
+/// 3. fall back to `ios/Runner.xcodeproj/project.pbxproj`.
+///
+/// Throws an [InvalidConfigException] when multiple `*.xcodeproj` dirs
+/// exist and no explicit override was given.
+String resolveIosPbxprojPath({
+  required String prefixPath,
+  String? explicit,
+}) {
+  if (explicit != null && explicit.isNotEmpty) {
+    // Accept either a directory (`ios/MyApp.xcodeproj`) or a full file
+    // path; if directory, append `project.pbxproj`.
+    if (explicit.endsWith('project.pbxproj')) {
+      return explicit;
+    }
+    return path.join(explicit, 'project.pbxproj');
+  }
+  final iosDir = Directory(path.join(prefixPath, 'ios'));
+  if (iosDir.existsSync()) {
+    final candidates = iosDir
+        .listSync()
+        .whereType<Directory>()
+        .where((d) => d.path.endsWith('.xcodeproj'))
+        .toList();
+    if (candidates.length == 1) {
+      return path.join(
+        'ios',
+        path.basename(candidates.single.path),
+        'project.pbxproj',
+      );
+    }
+    if (candidates.length > 1) {
+      final names = candidates.map((d) => path.basename(d.path)).toList()
+        ..sort();
+      throw InvalidConfigException(
+        'Multiple .xcodeproj directories found under ios/: '
+        '${names.join(', ')}. Set `xcodeproj_path` explicitly to '
+        'disambiguate.',
+      );
+    }
+  }
+  return iosConfigFile;
+}
+
 /// Change the iOS launcher icon
 Future<void> changeIosLauncherIcon(
   String iconName,
   String? flavor, {
   String prefixPath = '.',
+  String? xcodeprojPath,
+  FLILogger? logger,
 }) async {
-  final File iOSConfigFile = File(path.join(prefixPath, iosConfigFile));
-  final List<String> lines = await iOSConfigFile.readAsLines();
+  final resolved =
+      resolveIosPbxprojPath(prefixPath: prefixPath, explicit: xcodeprojPath);
+  final File iOSConfigFile = File(path.join(prefixPath, resolved));
+  final List<String> lines;
+  try {
+    lines = await iOSConfigFile.readAsLines();
+  } on FileSystemException catch (e) {
+    // Windows file-lock guard: if another process (typically Xcode) has
+    // the pbxproj open, opening for read/write fails with errno 1224
+    // ("user-mapped section open"). On *nix the EBUSY / EACCES cases land
+    // here too. The pbxproj update is non-critical to icon emission —
+    // warn and skip rather than fail the whole run.
+    final isLocked = e.osError?.errorCode == 1224 ||
+        e.osError?.errorCode == 16 || // EBUSY
+        e.osError?.errorCode == 13;   // EACCES
+    if (isLocked) {
+      (logger ?? FLILogger(false)).warn(
+        'iOS pbxproj is locked by another process (likely Xcode): '
+        '${iOSConfigFile.path}. Skipping the AppIcon-name update. Close '
+        'Xcode and re-run to update the pbxproj.',
+      );
+      return;
+    }
+    rethrow;
+  }
 
   bool onConfigurationSection = false;
   String? currentConfig;
@@ -378,16 +498,52 @@ Future<void> changeIosLauncherIcon(
         currentConfig = match.group(1);
       }
 
+      // Anchor the flavor match on a delimiter so `style1` does not also
+      // match `-style10.xcconfig` (upstream #612). The flavor token must
+      // either end the string, or be followed by a non-word character
+      // (typically `.`, `-`, or `/`).
+      bool flavorMatches() {
+        if (flavor == null) return true;
+        final cc = currentConfig!;
+        final marker = '-$flavor';
+        final idx = cc.indexOf(marker);
+        if (idx < 0) return false;
+        final end = idx + marker.length;
+        if (end == cc.length) return true;
+        final next = cc.codeUnitAt(end);
+        // Word characters [0-9A-Za-z_] are NOT acceptable boundaries.
+        final isWord = (next >= 0x30 && next <= 0x39) || // 0-9
+            (next >= 0x41 && next <= 0x5A) || // A-Z
+            (next >= 0x61 && next <= 0x7A) || // a-z
+            next == 0x5F; // _
+        return !isWord;
+      }
+
       if (currentConfig != null &&
-          (flavor == null || currentConfig.contains('-$flavor')) &&
-          line.contains('ASSETCATALOG')) {
+          flavorMatches() &&
+          line.contains('ASSETCATALOG_COMPILER_APPICON_NAME')) {
         lines[x] = line.replaceAll(RegExp('=(.*);'), '= $iconName;');
       }
     }
   }
 
   final String entireFile = '${lines.join('\n')}\n';
-  await iOSConfigFile.writeAsString(entireFile);
+  try {
+    await iOSConfigFile.writeAsString(entireFile);
+  } on FileSystemException catch (e) {
+    final isLocked = e.osError?.errorCode == 1224 ||
+        e.osError?.errorCode == 16 || // EBUSY
+        e.osError?.errorCode == 13;   // EACCES
+    if (isLocked) {
+      (logger ?? FLILogger(false)).warn(
+        'iOS pbxproj is locked by another process (likely Xcode): '
+        '${iOSConfigFile.path}. Skipping the AppIcon-name update. Close '
+        'Xcode and re-run to update the pbxproj.',
+      );
+      return;
+    }
+    rethrow;
+  }
 }
 
 /// Create the Contents.json file
@@ -763,21 +919,66 @@ List<Map<String, dynamic>> createImageList(
   return imageList;
 }
 
+/// Returns the resolved iOS alpha-flatten hex color string. Useful for
+/// tests/doctor that want the literal hex value without decoding to a
+/// `Color` (upstream #432).
+String resolveIosAlphaFlattenHex(Config config) {
+  final explicit = config.backgroundColorIOS;
+  if (_isHexColorLiteral(explicit) &&
+      explicit.toLowerCase() != Config.defaultBackgroundColorIOS) {
+    return explicit;
+  }
+  final adaptive = config.adaptiveIconBackground;
+  if (adaptive != null && _isHexColorLiteral(adaptive)) {
+    return adaptive;
+  }
+  return Config.defaultBackgroundColorIOS;
+}
+
+/// Resolves the fill color used by the iOS alpha-flatten path. Precedence
+/// (upstream #432):
+///   1. `background_color_ios` if explicitly set (non-default),
+///   2. `adaptive_icon_background` if a hex literal (not a file path),
+///   3. white (`#FFFFFF`) as the final fallback.
+///
+/// White is the less-surprising default for App Store-bound icons.
 ColorUint8 _getBackgroundColor(Config config) {
-  final backgroundColorHex = config.backgroundColorIOS.startsWith('#')
-      ? config.backgroundColorIOS.substring(1)
-      : config.backgroundColorIOS;
-  if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(backgroundColorHex)) {
+  final explicit = config.backgroundColorIOS;
+  if (_isHexColorLiteral(explicit) &&
+      explicit.toLowerCase() != Config.defaultBackgroundColorIOS) {
+    return _hexToColor(explicit);
+  }
+  final adaptive = config.adaptiveIconBackground;
+  if (adaptive != null && _isHexColorLiteral(adaptive)) {
+    return _hexToColor(adaptive);
+  }
+  return _hexToColor(Config.defaultBackgroundColorIOS);
+}
+
+bool _isHexColorLiteral(String value) =>
+    RegExp(r'^#?[0-9A-Fa-f]{3,8}$').hasMatch(value);
+
+ColorUint8 _hexToColor(String value) {
+  final hex = value.startsWith('#') ? value.substring(1) : value;
+  if (hex.length != 6 && hex.length != 8) {
     throw InvalidConfigException(
-      'background_color_ios must be 6 hex digits (e.g. "FFFFFF"), got "${config.backgroundColorIOS}"',
+      'background color hex must be 6 or 8 digits (e.g. "FFFFFF"), got '
+      '"$value"',
     );
   }
-
-  final backgroundByte = int.parse(backgroundColorHex, radix: 16);
+  final byte = int.parse(hex, radix: 16);
+  if (hex.length == 8) {
+    return ColorUint8.rgba(
+      (byte >> 16) & 0xff,
+      (byte >> 8) & 0xff,
+      byte & 0xff,
+      (byte >> 24) & 0xff,
+    );
+  }
   return ColorUint8.rgba(
-    (backgroundByte >> 16) & 0xff,
-    (backgroundByte >> 8) & 0xff,
-    (backgroundByte >> 0) & 0xff,
+    (byte >> 16) & 0xff,
+    (byte >> 8) & 0xff,
+    byte & 0xff,
     0xff,
   );
 }

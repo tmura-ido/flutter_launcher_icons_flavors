@@ -9,14 +9,7 @@
 
 A command-line tool that generates Flutter launcher icons for **Android, iOS, macOS, Web, and Windows** from a single source image — or per-platform overrides, or per-flavor overrides, or any combination.
 
-`flutter_launcher_icons_flavors` is a **flavor-aware fork** of [`flutter_launcher_icons`](https://pub.dev/packages/flutter_launcher_icons). Compared to the upstream package, it adds:
-
-- A **consolidated multi-flavor config** (`flutter_launcher_icons_flavors.yaml`) so all flavors live in one file with shared `defaults:` and per-flavor overrides — no more `flutter_launcher_icons-prod.yaml` + `flutter_launcher_icons-staging.yaml` + `flutter_launcher_icons-dev.yaml` zoo.
-- A **`doctor` subcommand** that reports SDK versions, every config it can see, source-resolution precedence, and any conflicts — invaluable for triaging "why did it pick *that* file?" issues.
-- A **`migrate` subcommand** that auto-converts the legacy one-file-per-flavor layout into the consolidated format, with a "promotion candidates" report for keys identical across all flavors.
-- A **`--strict` flag** that promotes coexistence warnings (legacy + consolidated configs side-by-side) into hard exit-65 errors, for CI gates.
-- **First-class macOS support**, monochrome adaptive icons, iOS 18 dark/tinted variants, and a `copy_mipmap_xxxhdpi_to_drawable` Android convenience flag.
-- A modern **Dart `>=3.8.0`** baseline, async I/O on all hot paths, and a `min_sdk_android` default bumped from **21 → 24** to match Flutter's own minimum.
+`flutter_launcher_icons_flavors` is a **flavor-aware fork** of [`flutter_launcher_icons`](https://pub.dev/packages/flutter_launcher_icons). Using AI, a lot has changed under the hood: consolidated multi-flavor config, `doctor` + `migrate` subcommands, first-class macOS, iOS 18 dark/tinted variants, monochrome adaptive icons, a `--strict` CI gate, a modern Dart baseline, async I/O on hot paths, and more — discover the rest as you go.
 
 ---
 
@@ -26,6 +19,7 @@ A command-line tool that generates Flutter launcher icons for **Android, iOS, ma
 - [Install](#install)
 - [Quick start (single-flavor)](#quick-start-single-flavor)
 - [Multi-flavor (consolidated)](#multi-flavor-consolidated)
+- [Config finding order](#config-finding-order)
 - [Legacy multi-flavor layout](#legacy-multi-flavor-layout)
 - [CLI reference](#cli-reference)
   - [`generate`](#generate)
@@ -38,10 +32,10 @@ A command-line tool that generates Flutter launcher icons for **Android, iOS, ma
   - [Web](#web)
   - [Windows](#windows)
   - [macOS](#macos)
-- [Source-resolution precedence](#source-resolution-precedence)
 - [Deep-merge rules (multi-flavor)](#deep-merge-rules-multi-flavor)
 - [Exit codes](#exit-codes)
 - [Migrating from `flutter_launcher_icons`](#migrating-from-flutter_launcher_icons)
+- [Source image recommendations](#source-image-recommendations)
 - [Troubleshooting / FAQ](#troubleshooting--faq)
 - [Contributing](#contributing)
 - [License](#license)
@@ -56,6 +50,7 @@ A command-line tool that generates Flutter launcher icons for **Android, iOS, ma
 - A **PNG source image** for each icon (RGBA is fine; alpha is handled per-platform).
   - Android adaptive icons want the **foreground** to be ≥ `108 × 108 dp` (recommended `1024 × 1024 px`).
   - iOS App Store wants a **1024 × 1024 px** non-transparent square.
+  - See [Source image recommendations](#source-image-recommendations) below for the full sizing table.
 
 ## Install
 
@@ -228,6 +223,24 @@ Prints the flavors declared in the consolidated file (or discovered as legacy pe
 
 ---
 
+## Config finding order
+
+When you run `generate` (without `--file`), the resolver searches for a config in this order and stops at the first hit:
+
+1. `--file <path>` — explicit. Missing file is a hard error (exit 65).
+2. `<prefix>/flutter_launcher_icons_flavors.yaml` — **consolidated multi-flavor**.
+3. `<prefix>/flutter_launcher_icons-*.yaml` — **legacy multi-flavor** (zero or more files).
+4. `<prefix>/flutter_launcher_icons.yaml` — **single-config**.
+5. `<prefix>/pubspec.yaml` with a top-level `flutter_launcher_icons:` (or deprecated `flutter_icons:`) block — **pubspec inline**.
+
+If none match, the resolver throws `NoConfigFoundException` and exits **65**.
+
+When a **consolidated** file coexists with **legacy** files (case 2 + 3), the consolidated file wins, the legacy files are ignored, and a warning is emitted. `--strict` escalates that warning to an exit-65 error — useful in CI to force a clean migration.
+
+Run `doctor` to see exactly which source the resolver picked and why.
+
+---
+
 ## Legacy multi-flavor layout
 
 The original `flutter_launcher_icons` convention — one `flutter_launcher_icons-<flavor>.yaml` per flavor — **still works** in 0.15.x.
@@ -343,8 +356,8 @@ All examples below show the **single-flavor** `flutter_launcher_icons.yaml` form
 | `image_path` | `String` | — | Source PNG used by every enabled platform unless overridden. |
 | `image_path_android` | `String` | `image_path` | Android-specific source override. |
 | `image_path_ios` | `String` | `image_path` | iOS-specific source override. |
-| `android` | `bool` \| `String` | `false` | `true` uses the default filename `ic_launcher`; a string sets the filename (without extension); `false` skips Android. |
-| `ios` | `bool` \| `String` | `false` | `true` uses the default Asset Catalog name `AppIcon`; a string sets it; `false` skips iOS. |
+| `android` | `bool` \| `String` | `false` | `true` uses the default resource name `ic_launcher`; a string sets the **Android resource name** matching `[a-z0-9_]+` (lowercase letters, digits, underscore — **not a file path**); `false` skips Android. Invalid names throw `InvalidAndroidIconNameException`. For the source image path see `image_path` / `image_path_android`. |
+| `ios` | `bool` \| `String` | `false` | `true` uses the default Asset Catalog name `AppIcon`; a string sets the catalog basename (**not a file path**); `false` skips iOS. For the source image path see `image_path` / `image_path_ios`. |
 | `min_sdk_android` | `int` | `24` | Android minSdk floor. Below 26, only legacy icons are emitted; at 26+, adaptive icons too. **Default changed from 21 → 24 in 0.15.0.** |
 | `copy_mipmap_xxxhdpi_to_drawable` | `bool` | `false` | If `true`, copies the generated `mipmap-xxxhdpi/<icon>.png` into the same flavor's `drawable/` folder under the same filename. Useful when other code (notifications, widgets) needs the icon as a `drawable` resource. |
 
@@ -358,6 +371,42 @@ All examples below show the **single-flavor** `flutter_launcher_icons.yaml` form
 | `adaptive_icon_monochrome` | `String` | — | Path to a Android-13+ themed-icon foreground (white-on-transparent PNG). Used when the user enables themed icons on their device. |
 
 If `adaptive_icon_foreground` is set but `adaptive_icon_background` is not, the build fails with a clear error.
+
+Foreground / monochrome sources must be **PNGs**. Vector drawables (`.xml`) are not supported and are rejected at config time.
+
+#### Designing your adaptive foreground
+
+Adaptive icons are masked by each launcher (circle, squircle, teardrop, …). The visible region is only the **central 66 %** of the canvas — the outer 33 % is cropped.
+
+- Use a **1024 × 1024 transparent PNG canvas**.
+- Keep the logo inside the central **~676 × 676 px safe zone**.
+- Anything in the outer band will be cut off; don't put text, edges, or a frame there.
+
+See Material's [adaptive-icon design guidelines](https://m3.material.io/styles/icons/designing-icons#9fe6e96e-3aaa-475f-9b25-ce82a4af14fb) for the full safe-zone diagram and the launcher-mask gallery.
+
+#### Where files are written
+
+| Directory | What lands there |
+| --- | --- |
+| `android/app/src/main/res/mipmap-<density>/` | Legacy PNG launcher icons (referenced as `@mipmap/<name>` in `AndroidManifest.xml`). |
+| `android/app/src/main/res/mipmap-anydpi-v26/` | The adaptive-icon XML descriptor for API 26+. |
+| `android/app/src/main/res/drawable-<density>/` | Adaptive foreground / monochrome assets. |
+| `android/app/src/main/res/values/colors.xml` | `ic_launcher_background` (and round variant) when `adaptive_icon_background` is a hex color. |
+
+Setting `copy_mipmap_xxxhdpi_to_drawable: true` additionally copies `mipmap-xxxhdpi/<icon>.png` into `drawable-xxxhdpi/`, so other code (notifications, widgets) can reference the launcher icon as `@drawable/<name>`.
+
+#### Android notification icons
+
+Android requires notification icons to be a **monochrome drawable with a transparent background** (not the colored launcher icon). The system renders any colored pixels as a white silhouette.
+
+If your launcher icon is already monochrome you can re-use it: set `copy_mipmap_xxxhdpi_to_drawable: true` and reference `@drawable/<name>` from your AndroidManifest, e.g.:
+
+```xml
+<meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+           android:resource="@drawable/ic_launcher" />
+```
+
+If your launcher icon has color, the system will still strip it and you'll see a white silhouette — for a different shape, ship your own monochrome drawable under `android/app/src/main/res/drawable/`. This tool does not auto-derive monochrome silhouettes.
 
 ### iOS specifics
 
@@ -401,9 +450,9 @@ windows:
 | --- | --- | --- | --- |
 | `generate` | `bool` | `false` | Master switch. |
 | `image_path` | `String` | top-level `image_path` | Source PNG. |
-| `icon_size` | `int` (48–256) | `48` | Resolution of the embedded `.ico` representations. |
+| `icon_size` | `int` (48–256) | `48` | **Max** embedded size. The writer emits a multi-image ICO (16/24/32/48/64/128/256, capped at this value) so Windows can pick the best fit per DPI without rescaling. |
 
-Outputs: `windows/runner/resources/app_icon.ico`.
+Outputs: `windows/runner/resources/app_icon.ico` (multi-image, includes every standard shell size up to `icon_size`).
 
 ### macOS
 
@@ -419,24 +468,6 @@ macos:
 | `image_path` | `String` | top-level `image_path` | Source PNG. |
 
 Outputs: every Apple-required size into `macos/Runner/Assets.xcassets/AppIcon.appiconset/`, plus an updated `Contents.json`.
-
----
-
-## Source-resolution precedence
-
-When you run `generate` (without `--file`), the resolver searches for a config in this order and stops at the first hit:
-
-1. `--file <path>` — explicit. Missing file is a hard error (exit 65).
-2. `<prefix>/flutter_launcher_icons_flavors.yaml` — **consolidated multi-flavor**.
-3. `<prefix>/flutter_launcher_icons-*.yaml` — **legacy multi-flavor** (zero or more files).
-4. `<prefix>/flutter_launcher_icons.yaml` — **single-config**.
-5. `<prefix>/pubspec.yaml` with a top-level `flutter_launcher_icons:` (or deprecated `flutter_icons:`) block — **pubspec inline**.
-
-If none match, the resolver throws `NoConfigFoundException` and exits **65**.
-
-When a **consolidated** file coexists with **legacy** files (case 2 + 3), the consolidated file wins, the legacy files are ignored, and a warning is emitted. `--strict` escalates that warning to an exit-65 error — useful in CI to force a clean migration.
-
-Run `doctor` to see exactly which source the resolver picked and why.
 
 ---
 
@@ -508,6 +539,22 @@ Exit-code convention follows `sysexits.h`: **64 = the user did something wrong**
 
 ---
 
+## Source image recommendations
+
+| Target | Recommended source PNG | Notes |
+| --- | --- | --- |
+| iOS App Store icon | 1024×1024, **no alpha** | App Store rejects icons with alpha; pair with `remove_alpha_ios: true`. |
+| Android legacy icon | 192×192 (xxxhdpi) minimum | Downscaled to every density bucket. |
+| Android adaptive foreground | 432×432, safe zone in central 66 % (~285×285) | Anything outside the safe zone is masked by the launcher. |
+| Android monochrome | 432×432, white-on-transparent | API 33+ themed icons only. |
+| Windows `.ico` | 256×256 | `icon_size` selects the embedded size (48–256). |
+| macOS | 1024×1024, no alpha | Auto-downsized to every required slot. |
+| Web favicon + PWA | 512×512 | PWA expects 192 + 512; favicon is scaled down. |
+
+Source paths are configured via `image_path` (shared) and `image_path_android` / `image_path_ios` / per-platform `image_path` overrides.
+
+---
+
 ## Troubleshooting / FAQ
 
 **Q. I ran `generate` and nothing happened.**
@@ -521,6 +568,19 @@ Run `flutter clean` and rebuild. Android caches the manifest aggressively, and G
 
 **Q. iOS App Store Connect rejects my icon with "alpha channel".**
 Set `remove_alpha_ios: true` and (optionally) `background_color_ios: "#FFFFFF"`. Re-run `generate` and re-upload.
+
+**Q. I switched from adaptive to non-adaptive icons (or dropped a flavor) and old files are still being picked up.**
+There's no `clean` subcommand — that would be a footgun across the dozens of files-per-platform combinations. Delete stale outputs by hand:
+
+- *Adaptive → non-adaptive:* delete `android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` (and `_round.xml` if present); remove the `ic_launcher_background` entry from `android/app/src/main/res/values/colors.xml`.
+- *Dropping a flavor:* delete `android/app/src/<flavor>/res/` and the per-flavor `AppIcon-<flavor>.appiconset/` under `ios/Runner/Assets.xcassets/`; revert the matching pbxproj `ASSETCATALOG_COMPILER_APPICON_NAME` setting.
+- *Removing dark / tinted iOS variants:* delete the `*_dark.png` / `*_tinted.png` files and re-run `generate` so the iOS Contents.json gets rewritten without the appearance entries.
+
+**Q. Can I switch icons at runtime (alternate icons)?**
+This tool generates the icon **assets** only. Runtime switching is a separate concern: on iOS, call `UIApplication.shared.setAlternateIconName(_:)` from your app or use a community plugin (`flutter_dynamic_icon`, `flutter_app_icon_switcher`). Android requires an `activity-alias` swap, also handled by the same plugins. Per-flavor alternate icon **asset sets** for iOS are tracked on the roadmap.
+
+**Q. The macOS icon didn't update after `generate`.**
+The PNGs land on disk but Xcode and Launch Services cache aggressively. Try, in order: `flutter clean`; remove the project's `~/Library/Developer/Xcode/DerivedData/<project>-*` folder; if the icon shows in Finder but not in a built `.app`, `touch /Applications/<App>.app` to nudge Launch Services. Run `doctor` to confirm the generator actually wrote the files.
 
 **Q. How does `generate` choose what to build when I don't pass any selector?**
 With no `--flavor` and no `--all-flavors`, the consolidated file builds **every** flavor declared in `flavors:`. The legacy per-flavor-file layout does the same. Pass `--flavor <name>` (repeatable) to narrow.

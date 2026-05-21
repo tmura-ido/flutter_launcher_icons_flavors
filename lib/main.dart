@@ -11,6 +11,7 @@ import 'package:flutter_launcher_icons_flavors/config/config.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart';
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/ios.dart' as ios_launcher_icons;
+import 'package:flutter_launcher_icons_flavors/linux/linux_icon_generator.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/macos/macos_icon_generator.dart';
 import 'package:flutter_launcher_icons_flavors/web/web_icon_generator.dart';
@@ -26,8 +27,17 @@ const String flavorConfigFilePattern = r'^flutter_launcher_icons-(.*).yaml$';
 
 Future<List<String>> getFlavors(String prefixPath) async {
   final List<String> flavors = [];
-  await for (var item in Directory(prefixPath).list()) {
+  final dir = Directory(prefixPath);
+  if (!dir.existsSync()) return flavors;
+  // Recursively scan so per-flavor configs organized in subfolders (e.g.
+  // `config/generate_appicons/flutter_launcher_icons-<flavor>.yaml`) are
+  // discovered alongside root-level files (upstream #312).
+  await for (var item in dir.list(recursive: true, followLinks: false)) {
     if (item is File) {
+      // Skip common noise — pubspec, .dart_tool, build, .git, node_modules.
+      final rel = path.relative(item.path, from: prefixPath);
+      final segs = path.split(rel);
+      if (segs.any(_skipScanSegments.contains)) continue;
       final name = path.basename(item.path);
       final match = RegExp(flavorConfigFilePattern).firstMatch(name);
       if (match != null) {
@@ -37,6 +47,15 @@ Future<List<String>> getFlavors(String prefixPath) async {
   }
   return flavors;
 }
+
+const Set<String> _skipScanSegments = {
+  '.dart_tool',
+  'build',
+  '.git',
+  'node_modules',
+  '.gradle',
+  '.idea',
+};
 
 /// Backward-compat shim. Phase 4 routes everything through the
 /// `CommandRunner` in `lib/cli/command_runner.dart`. This entry point
@@ -61,6 +80,7 @@ Future<void> createIconsFromConfig(
   FLILogger logger,
   String prefixPath, [
   String? flavor,
+  bool strict = false,
 ]) async {
   if (!flutterConfigs.hasPlatformConfig) {
     throw const InvalidConfigException(errorMissingPlatform);
@@ -145,6 +165,7 @@ Future<void> createIconsFromConfig(
     logger: logger,
     prefixPath: prefixPath,
     flavor: flavor,
+    strict: strict,
     platforms: (context) {
       final platforms = <IconGenerator>[];
       if (flutterConfigs.hasWebConfig) {
@@ -155,6 +176,9 @@ Future<void> createIconsFromConfig(
       }
       if (flutterConfigs.hasMacOSConfig) {
         platforms.add(MacOSIconGenerator(context));
+      }
+      if (flutterConfigs.linuxConfig?.generate == true) {
+        platforms.add(LinuxIconGenerator(context));
       }
       return platforms;
     },

@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:checked_yaml/checked_yaml.dart' as yaml;
+import 'package:flutter_launcher_icons_flavors/config/badge_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/ios_alternate_icons_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/linux_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/macos_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/platform_toggle.dart';
@@ -57,8 +60,72 @@ class Config {
     this.webConfig,
     this.windowsConfig,
     this.macOSConfig,
+    this.flavor,
+    this.xcodeprojPath,
+    this.iosLegacySizes = false,
+    this.iosSingleSize = false,
+    this.optimizePng = false,
+    this.iosDisableLiquidGlass = false,
+    this.nonSquareImageOk = false,
+    this.linuxConfig,
+    this.iosAlternateIcons,
+    this.badge,
   }) : android = android ?? PlatformToggle.disabled(),
        ios = ios ?? PlatformToggle.disabled();
+
+  /// Optional explicit flavor name set in the YAML (upstream #490).
+  /// Resolution precedence at the call site: explicit `flavor:` > filename
+  /// suffix > none.
+  @JsonKey(name: 'flavor')
+  final String? flavor;
+
+  /// Optional Xcode project path override (upstream #543 + #637). When
+  /// unset, iOS auto-detects from `ios/*.xcodeproj`; falls back to
+  /// `ios/Runner.xcodeproj` when there are zero matches.
+  @JsonKey(name: 'xcodeproj_path')
+  final String? xcodeprojPath;
+
+  /// When true, emit legacy 1x iOS sizes (`-20x20@1x`, `-29x29@1x`,
+  /// `-40x40@1x`, `-76x76@1x`) alongside the modern set so the iPhone app
+  /// switcher and older system surfaces find every size (upstream #661).
+  /// Default false to preserve existing fork output.
+  @JsonKey(name: 'ios_legacy_sizes')
+  final bool iosLegacySizes;
+
+  /// When true, the iOS writer emits only `AppIcon-1024x1024@1x.png` plus
+  /// a minimal Contents.json (Xcode 14+ "single size" mode, upstream
+  /// #592). Overrides [iosLegacySizes]. Default false.
+  @JsonKey(name: 'ios_single_size')
+  final bool iosSingleSize;
+
+  /// When true, every PNG the generator writes uses the `image` package's
+  /// max-compression encoder (slower; ~30–70 % smaller files). Upstream
+  /// #139 / #199. Default false.
+  @JsonKey(name: 'optimize_png')
+  final bool optimizePng;
+
+  /// When true, the iOS Contents.json carries the Liquid-Glass opt-out
+  /// marker for Xcode 26+ (upstream #657). Stub: the exact Apple metadata
+  /// key is under investigation and not yet emitted.
+  @JsonKey(name: 'ios_disable_liquid_glass')
+  final bool iosDisableLiquidGlass;
+
+  /// When true, the doctor's "non-square source" warning is suppressed
+  /// (upstream #214). Default false.
+  @JsonKey(name: 'non_square_image_ok')
+  final bool nonSquareImageOk;
+
+  /// Linux platform config (upstream #666). Optional.
+  @JsonKey(name: 'linux')
+  final LinuxConfig? linuxConfig;
+
+  /// iOS alternate-icon sets (upstream #92, phase 1).
+  @JsonKey(name: 'ios_alternate_icons')
+  final IosAlternateIconsConfig? iosAlternateIcons;
+
+  /// Per-flavor environment-badge overlay (upstream #622, phase 1).
+  @JsonKey(name: 'badge')
+  final BadgeConfig? badge;
 
   /// Builds a fully-validated [Config] from a [PartialConfig], filling in
   /// defaults for omitted fields.
@@ -132,6 +199,29 @@ class Config {
       );
     }
 
+    // adaptive_icon_foreground / _monochrome must be an image path; a hex
+    // literal here would later be opened as a file and crash with
+    // `FileSystemException: Cannot open file, path = '#FFFFFF'`
+    // (upstream #175).
+    void rejectHexImagePath(String field, String? value) {
+      if (value == null || value.isEmpty) return;
+      if (RegExp(r'^#?[0-9A-Fa-f]{3,8}$').hasMatch(value)) {
+        throw InvalidConfigException(
+          "$field: '$value' must be an image path; hex color literals are "
+          'not valid here.',
+        );
+      }
+    }
+
+    rejectHexImagePath(
+      'adaptive_icon_foreground',
+      partial.adaptiveIconForeground,
+    );
+    rejectHexImagePath(
+      'adaptive_icon_monochrome',
+      partial.adaptiveIconMonochrome,
+    );
+
     return Config(
       imagePath: partial.imagePath,
       android: partial.android,
@@ -165,6 +255,16 @@ class Config {
       webConfig: partial.webConfig,
       windowsConfig: partial.windowsConfig,
       macOSConfig: partial.macOSConfig,
+      flavor: partial.flavor,
+      xcodeprojPath: partial.xcodeprojPath,
+      iosLegacySizes: partial.iosLegacySizes ?? false,
+      iosSingleSize: partial.iosSingleSize ?? false,
+      optimizePng: partial.optimizePng ?? false,
+      iosDisableLiquidGlass: partial.iosDisableLiquidGlass ?? false,
+      nonSquareImageOk: partial.nonSquareImageOk ?? false,
+      linuxConfig: partial.linuxConfig,
+      iosAlternateIcons: partial.iosAlternateIcons,
+      badge: partial.badge,
     );
   }
 
@@ -190,6 +290,16 @@ class Config {
       webConfig: webConfig,
       windowsConfig: windowsConfig,
       macOSConfig: macOSConfig,
+      flavor: flavor,
+      xcodeprojPath: xcodeprojPath,
+      iosLegacySizes: iosLegacySizes,
+      iosSingleSize: iosSingleSize,
+      optimizePng: optimizePng,
+      iosDisableLiquidGlass: iosDisableLiquidGlass,
+      nonSquareImageOk: nonSquareImageOk,
+      linuxConfig: linuxConfig,
+      iosAlternateIcons: iosAlternateIcons,
+      badge: badge,
     );
   }
 

@@ -69,7 +69,9 @@ void main() {
       final ps = File(p.join(_projectRoot, 'pubspec.yaml')).readAsStringSync();
       final doc = loadYaml(ps) as YamlMap;
       final sdk = (doc['environment'] as YamlMap)['sdk'] as String;
-      expect(sdk, '>=3.8.0 <4.0.0');
+      // Accept either the explicit range or the semantically-equivalent
+      // canonical caret form `^3.8.0`.
+      expect(sdk, anyOf('>=3.8.0 <4.0.0', '^3.8.0'));
     });
 
     test(
@@ -78,6 +80,15 @@ void main() {
         expect(constants.androidDefaultAndroidMinSDK, 24);
       },
     );
+
+    test('README uses `dart run`, not deprecated `flutter pub run`', () {
+      final readme = File(p.join(_projectRoot, 'README.md')).readAsStringSync();
+      expect(
+        readme.contains('flutter pub run'),
+        isFalse,
+        reason: '`flutter pub run` is deprecated by Dart; use `dart run`.',
+      );
+    });
   });
 
   // ---------------------------------------------------------------------

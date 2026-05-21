@@ -109,13 +109,28 @@ const int windowsDefaultIconSize = 48;
 /// Relative path to macos folder
 const String macOSDirPath = 'macos';
 
-/// Relative path to macos icons folder
+/// Relative path to macos icons folder (flavor-agnostic default; kept for
+/// backward compatibility with existing callers and tests).
 const String macOSIconsDirPath =
     'macos/Runner/Assets.xcassets/AppIcon.appiconset';
 
-/// Relative path to macos contents.json
+/// Relative path to macos contents.json (flavor-agnostic default).
 const String macOSContentsFilePath =
     'macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json';
+
+/// Flavor-aware macOS asset-set directory (upstream #638). When [flavor]
+/// is null, returns the default `AppIcon.appiconset` path; otherwise
+/// `AppIcon-<flavor>.appiconset`, mirroring the iOS per-flavor pattern.
+String macOSIconsDirPathFor(String? flavor) {
+  if (flavor == null || flavor.isEmpty) {
+    return macOSIconsDirPath;
+  }
+  return 'macos/Runner/Assets.xcassets/AppIcon-$flavor.appiconset';
+}
+
+/// Flavor-aware macOS Contents.json path (upstream #638).
+String macOSContentsFilePathFor(String? flavor) =>
+    '${macOSIconsDirPathFor(flavor)}/Contents.json';
 
 const String errorMissingImagePath =
     'Missing "image_path" or "image_path_android" + "image_path_ios" within configuration';

@@ -32,6 +32,13 @@ abstract class IconGenerator {
   /// has all the requirements to create icons.
   /// This runs before to [createIcons]
   bool validateRequirements();
+
+  /// Whether the user opted into this platform in the config (e.g. `generate:
+  /// true` for web/windows/macos, or a truthy `android`/`ios` toggle).
+  /// Distinct from [validateRequirements], which can also fail for opted-in
+  /// platforms with broken configs. Used to suppress the "Creating Icons for
+  /// X" header when the platform isn't even configured (upstream #476).
+  bool get isOptedIn => true;
 }
 
 /// Provides easy access to user arguments and configuration
@@ -73,6 +80,7 @@ Future<void> generateIconsFor({
   required String prefixPath,
   required FLILogger logger,
   required List<IconGenerator> Function(IconGeneratorContext context) platforms,
+  bool strict = false,
 }) async {
   try {
     final platformList = platforms(
@@ -83,11 +91,21 @@ Future<void> generateIconsFor({
         flavor: flavor,
       ),
     );
-    if (platformList.isEmpty) {
+    if (platformList.isEmpty && strict) {
       logger.info('No platform provided');
     }
 
     for (final platform in platformList) {
+      // Don't print the "Creating Icons for X" header for platforms the user
+      // didn't opt into. The "[skipped: not configured]" verbose line still
+      // surfaces under `-v` so debuggers can see the full iteration
+      // (upstream #476).
+      if (!platform.isOptedIn) {
+        logger.verbose(
+          '${platform.platformName}: [skipped: not configured]',
+        );
+        continue;
+      }
       final progress = logger.progress(
         'Creating Icons for ${platform.platformName}',
       );

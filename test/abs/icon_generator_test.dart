@@ -22,6 +22,7 @@ void main() {
       logger = FLILogger(false);
       mockGenerator = MockIconGenerator();
       when(mockGenerator.platformName).thenReturn('Mock');
+      when(mockGenerator.isOptedIn).thenReturn(true);
       when(mockGenerator.context).thenReturn(
         IconGeneratorContext(
           config: mockFLIConfig,

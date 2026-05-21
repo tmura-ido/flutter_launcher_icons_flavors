@@ -88,3 +88,38 @@ class FLILogger {
   static String _safeString(Object? message) =>
       message == null ? '' : message.toString();
 }
+
+/// A silent [FLILogger] for library consumers that need quiet/embedded use
+/// (build pipelines, IDE plugins). Every method is a no-op (upstream #552).
+class NoopLogger extends FLILogger {
+  /// Creates a quiet logger that produces no output.
+  NoopLogger() : super(false);
+
+  @override
+  void error(Object? message) {}
+
+  @override
+  void warn(Object? message) {}
+
+  @override
+  void info(Object? message) {}
+
+  @override
+  void verbose(Object? message) {}
+
+  @override
+  Progress progress(String message) => _NoopProgress();
+}
+
+class _NoopProgress extends Progress {
+  _NoopProgress() : super('');
+
+  @override
+  Duration get elapsed => Duration.zero;
+
+  @override
+  void cancel() {}
+
+  @override
+  void finish({String? message, bool showTiming = false}) {}
+}

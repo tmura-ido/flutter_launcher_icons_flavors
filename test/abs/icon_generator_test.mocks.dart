@@ -278,4 +278,12 @@ class MockIconGenerator extends _i1.Mock implements _i4.IconGenerator {
             returnValue: false,
           )
           as bool);
+
+  @override
+  bool get isOptedIn =>
+      (super.noSuchMethod(
+            Invocation.getter(#isOptedIn),
+            returnValue: false,
+          )
+          as bool);
 }

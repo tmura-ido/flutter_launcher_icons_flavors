@@ -50,8 +50,42 @@ class WebIconGenerator extends IconGenerator {
   WebIconGenerator(IconGeneratorContext context) : super(context, 'Web');
 
   @override
+  bool get isOptedIn => context.webConfig?.generate ?? false;
+
+  /// Resolved web output directory honoring (in order):
+  /// 1. `web.output_path` (per-flavor explicit override),
+  /// 2. `web_<flavor>/` when a flavor is active AND the directory already
+  ///    exists in the project (so legacy single-`web/` projects keep
+  ///    working until the user opts in by creating the dir),
+  /// 3. plain `web/` (legacy default).
+  /// Upstream #426.
+  String get _resolvedWebDir {
+    final explicit = context.webConfig?.outputPath;
+    if (explicit != null && explicit.isNotEmpty) return explicit;
+    final flavor = context.flavor;
+    if (flavor != null && flavor.isNotEmpty) {
+      final candidate = 'web_$flavor';
+      if (Directory(path.join(context.prefixPath, candidate)).existsSync()) {
+        return candidate;
+      }
+    }
+    return constants.webDirPath;
+  }
+
+  String get _resolvedFaviconPath =>
+      path.join(_resolvedWebDir, 'favicon.png');
+  String get _resolvedFaviconIcoPath =>
+      path.join(_resolvedWebDir, 'favicon.ico');
+  String get _resolvedIconsDir => path.join(_resolvedWebDir, 'icons');
+  String get _resolvedManifestPath =>
+      path.join(_resolvedWebDir, 'manifest.json');
+  String get _resolvedIndexPath =>
+      path.join(_resolvedWebDir, 'index.html');
+
+  @override
   Future<void> createIcons() async {
-    final imagePath = context.webConfig?.imagePath ?? context.config.imagePath;
+    final webConfig = context.webConfig!;
+    final imagePath = webConfig.imagePath ?? context.config.imagePath;
     if (imagePath == null) {
       throw const InvalidConfigException(constants.errorMissingImagePath);
     }
@@ -62,23 +96,43 @@ class WebIconGenerator extends IconGenerator {
     );
     final imgFile = await utils.decodeImageFile(imgFilePath);
 
-    // generate favicon in web/favicon.png
-    context.logger.verbose('Generating favicon from $imgFilePath...');
-    await _generateFavicon(imgFile);
+    // Resolve the favicon source — `web.favicon_path` (per #515/#635) wins
+    // over `web.image_path` and the top-level. Lets users supply a tight
+    // low-padding source for the small favicon while PWA icons keep their
+    // safe-zone padding.
+    Image faviconSource = imgFile;
+    if (webConfig.faviconPath != null &&
+        webConfig.faviconPath!.isNotEmpty) {
+      faviconSource = await utils.decodeImageFile(
+        path.join(context.prefixPath, webConfig.faviconPath!),
+      );
+    }
+
+    // generate favicon.png (always, when web is enabled)
+    context.logger.verbose('Generating favicon.png from $imgFilePath...');
+    await _generateFavicon(faviconSource);
+
+    // generate favicon.ico when enabled (upstream #540 / #152)
+    if (webConfig.generateFavicon) {
+      context.logger.verbose(
+        'Generating multi-size favicon.ico from $imgFilePath...',
+      );
+      await _generateFaviconIco(faviconSource);
+    }
 
     // generate icons in web/icons/
     context.logger.verbose('Generating icons from $imgFilePath...');
     await _generateIcons(imgFile);
 
-    // update manifest.json in web/manifest.json
+    // update manifest.json in <web-dir>/manifest.json
     context.logger.verbose(
-      'Updating ${path.join(context.prefixPath, constants.webManifestFilePath)}...',
+      'Updating ${path.join(context.prefixPath, _resolvedManifestPath)}...',
     );
     await _updateManifestFile();
 
-    // inject PWA meta tags into web/index.html
+    // inject PWA meta tags into <web-dir>/index.html
     context.logger.verbose(
-      'Updating ${path.join(context.prefixPath, constants.webIndexFilePath)}...',
+      'Updating ${path.join(context.prefixPath, _resolvedIndexPath)}...',
     );
     await _updateIndexFile();
   }
@@ -110,9 +164,9 @@ class WebIconGenerator extends IconGenerator {
 
     // verify web platform related files and directories exists
     final entitiesToCheck = [
-      path.join(context.prefixPath, constants.webDirPath),
-      path.join(context.prefixPath, constants.webManifestFilePath),
-      path.join(context.prefixPath, constants.webIndexFilePath),
+      path.join(context.prefixPath, _resolvedWebDir),
+      path.join(context.prefixPath, _resolvedManifestPath),
+      path.join(context.prefixPath, _resolvedIndexPath),
     ];
 
     // web platform related files must exist to continue
@@ -128,16 +182,32 @@ class WebIconGenerator extends IconGenerator {
   }
 
   Future<void> _generateFavicon(Image image) async {
-    final favIcon = utils.createResizedImage(constants.kFaviconSize, image);
+    final size = context.webConfig?.faviconSize ?? constants.kFaviconSize;
+    final favIcon = utils.createResizedImage(size, image);
     final favIconFile = await utils.createFileIfNotExist(
-      path.join(context.prefixPath, constants.webFaviconFilePath),
+      path.join(context.prefixPath, _resolvedFaviconPath),
     );
-    await favIconFile.writeAsBytes(encodePng(favIcon));
+    await favIconFile.writeAsBytes(
+      utils.encodePngOptimized(favIcon, optimize: context.config.optimizePng),
+    );
+  }
+
+  /// Emits a multi-size `favicon.ico` (16/32/48). Re-uses the same
+  /// `IcoEncoder().encodeImages([...])` API the Windows writer uses
+  /// (upstream #540 / #152).
+  Future<void> _generateFaviconIco(Image image) async {
+    final frames = [16, 32, 48]
+        .map((s) => utils.createResizedImage(s, image))
+        .toList();
+    final out = await utils.createFileIfNotExist(
+      path.join(context.prefixPath, _resolvedFaviconIcoPath),
+    );
+    await out.writeAsBytes(IcoEncoder().encodeImages(frames));
   }
 
   Future<void> _generateIcons(Image image) async {
     final iconsDir = await utils.createDirIfNotExist(
-      path.join(context.prefixPath, constants.webIconsDirPath),
+      path.join(context.prefixPath, _resolvedIconsDir),
     );
     // generate icons
     for (final template in _webIconSizeTemplates) {
@@ -151,7 +221,7 @@ class WebIconGenerator extends IconGenerator {
 
   Future<void> _updateManifestFile() async {
     final manifestFile = await utils.createFileIfNotExist(
-      path.join(context.prefixPath, constants.webManifestFilePath),
+      path.join(context.prefixPath, _resolvedManifestPath),
     );
     final manifestConfig =
         jsonDecode(await manifestFile.readAsString()) as Map<String, dynamic>;
@@ -183,7 +253,7 @@ class WebIconGenerator extends IconGenerator {
   /// when a `<head>` is present; otherwise the file is left untouched and
   /// a warning is logged so the user can paste the snippet manually.
   Future<void> _updateIndexFile() async {
-    final indexPath = path.join(context.prefixPath, constants.webIndexFilePath);
+    final indexPath = path.join(context.prefixPath, _resolvedIndexPath);
     final indexFile = File(indexPath);
     if (!indexFile.existsSync()) {
       context.logger.verbose(

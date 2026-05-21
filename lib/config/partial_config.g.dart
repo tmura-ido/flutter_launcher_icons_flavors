@@ -32,6 +32,16 @@ PartialConfig _$PartialConfigFromJson(Map json) => $checkedCreate(
         'web',
         'windows',
         'macos',
+        'flavor',
+        'xcodeproj_path',
+        'ios_legacy_sizes',
+        'ios_single_size',
+        'optimize_png',
+        'ios_disable_liquid_glass',
+        'non_square_image_ok',
+        'linux',
+        'ios_alternate_icons',
+        'badge',
       ],
     );
     final val = PartialConfig(
@@ -102,6 +112,30 @@ PartialConfig _$PartialConfigFromJson(Map json) => $checkedCreate(
         'macos',
         (v) => v == null ? null : MacOSConfig.fromJson(v as Map),
       ),
+      flavor: $checkedConvert('flavor', (v) => v as String?),
+      xcodeprojPath: $checkedConvert(
+        'xcodeproj_path',
+        (v) => v as String?,
+      ),
+      iosLegacySizes: $checkedConvert('ios_legacy_sizes', (v) => v as bool?),
+      iosSingleSize: $checkedConvert('ios_single_size', (v) => v as bool?),
+      optimizePng: $checkedConvert('optimize_png', (v) => v as bool?),
+      iosDisableLiquidGlass:
+          $checkedConvert('ios_disable_liquid_glass', (v) => v as bool?),
+      nonSquareImageOk:
+          $checkedConvert('non_square_image_ok', (v) => v as bool?),
+      linuxConfig: $checkedConvert(
+        'linux',
+        (v) => v == null ? null : LinuxConfig.fromJson(v as Map),
+      ),
+      iosAlternateIcons: $checkedConvert(
+        'ios_alternate_icons',
+        (v) => v == null ? null : IosAlternateIconsConfig.fromJson(v as Map),
+      ),
+      badge: $checkedConvert(
+        'badge',
+        (v) => v == null ? null : BadgeConfig.fromJson(v as Map),
+      ),
     );
     return val;
   },
@@ -149,4 +183,14 @@ Map<String, dynamic> _$PartialConfigToJson(
   'web': ?instance.webConfig,
   'windows': ?instance.windowsConfig,
   'macos': ?instance.macOSConfig,
+  'flavor': ?instance.flavor,
+  'xcodeproj_path': ?instance.xcodeprojPath,
+  'ios_legacy_sizes': ?instance.iosLegacySizes,
+  'ios_single_size': ?instance.iosSingleSize,
+  'optimize_png': ?instance.optimizePng,
+  'ios_disable_liquid_glass': ?instance.iosDisableLiquidGlass,
+  'non_square_image_ok': ?instance.nonSquareImageOk,
+  'linux': ?instance.linuxConfig,
+  'ios_alternate_icons': ?instance.iosAlternateIcons?.toJson(),
+  'badge': ?instance.badge?.toJson(),
 };

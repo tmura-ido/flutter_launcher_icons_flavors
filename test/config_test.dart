@@ -49,6 +49,10 @@ void main() {
             'image_path': 'app_icon.png',
             'background_color': '#0175C2',
             'theme_color': '#0175C2',
+            'output_path': null,
+            'generate_favicon': true,
+            'favicon_path': null,
+            'favicon_size': null,
           }),
         );
         // windows
@@ -62,6 +66,7 @@ void main() {
             'generate': true,
             'image_path': 'app_icon.png',
             'icon_size': 48,
+            'tray_icon': null,
           }),
         );
         // macos
@@ -73,6 +78,10 @@ void main() {
           equals(<String, dynamic>{
             'generate': true,
             'image_path': 'app_icon.png',
+            'padding': false,
+            'dark_image_path': null,
+            'tinted_image_path': null,
+            'tray_icon': null,
           }),
         );
       });
@@ -158,6 +167,10 @@ void main() {
             'image_path': 'app_icon.png',
             'background_color': '#0175C2',
             'theme_color': '#0175C2',
+            'output_path': null,
+            'generate_favicon': true,
+            'favicon_path': null,
+            'favicon_size': null,
           }),
         );
         // windows
@@ -171,6 +184,7 @@ void main() {
             'generate': true,
             'image_path': 'app_icon.png',
             'icon_size': 48,
+            'tray_icon': null,
           }),
         );
         // macos
@@ -182,6 +196,10 @@ void main() {
           equals(<String, dynamic>{
             'generate': true,
             'image_path': 'app_icon.png',
+            'padding': false,
+            'dark_image_path': null,
+            'tinted_image_path': null,
+            'tray_icon': null,
           }),
         );
       });
@@ -238,6 +256,10 @@ void main() {
             'image_path': 'app_icon.png',
             'background_color': '#0175C2',
             'theme_color': '#0175C2',
+            'output_path': null,
+            'generate_favicon': true,
+            'favicon_path': null,
+            'favicon_size': null,
           }),
         );
         // windows
@@ -251,6 +273,7 @@ void main() {
             'generate': true,
             'image_path': 'app_icon.png',
             'icon_size': 48,
+            'tray_icon': null,
           }),
         );
         // macos
@@ -262,6 +285,10 @@ void main() {
           equals(<String, dynamic>{
             'generate': true,
             'image_path': 'app_icon.png',
+            'padding': false,
+            'dark_image_path': null,
+            'tinted_image_path': null,
+            'tray_icon': null,
           }),
         );
       });

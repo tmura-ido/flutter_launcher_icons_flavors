@@ -158,6 +158,7 @@ class GenerateCommand extends Command<int> {
           requestedFlavors: flavors,
           allFlavors: allFlavors,
           listFlavors: listFlavors,
+          strict: strict,
         );
 
       case ConfigSourceKind.legacyFlavors:
@@ -168,6 +169,7 @@ class GenerateCommand extends Command<int> {
           allFlavors: allFlavors,
           listFlavors: listFlavors,
           continueOnError: continueOnError,
+          strict: strict,
         );
 
       case ConfigSourceKind.singleFile:
@@ -178,6 +180,7 @@ class GenerateCommand extends Command<int> {
           requestedFlavors: flavors,
           allFlavors: allFlavors,
           listFlavors: listFlavors,
+          strict: strict,
         );
 
       case ConfigSourceKind.pubspecInline:
@@ -188,6 +191,7 @@ class GenerateCommand extends Command<int> {
           requestedFlavors: flavors,
           allFlavors: allFlavors,
           listFlavors: listFlavors,
+          strict: strict,
         );
     }
   }
@@ -296,13 +300,14 @@ class GenerateCommand extends Command<int> {
     // Generate sequentially. Track per-flavor outcomes for the summary.
     final failures = <String, Object>{};
     for (final name in selected) {
-      stdout.writeln('\nFlavor: $name');
+      stdout.writeln('\n### Flavor: $name');
       try {
         await fli_main.createIconsFromConfig(
           resolvedConfigs[name]!,
           logger,
           prefix,
           name,
+          strict,
         );
       } on InvalidConfigException catch (e) {
         // Spec exit-code matrix: schema/validation failures are config
@@ -357,6 +362,7 @@ class GenerateCommand extends Command<int> {
     required bool allFlavors,
     required bool listFlavors,
     required bool continueOnError,
+    required bool strict,
   }) async {
     final discovered = await fli_main.getFlavors(prefix);
     discovered.sort();
@@ -409,7 +415,13 @@ class GenerateCommand extends Command<int> {
         // the Android pipeline creates `android/app/src/<flavor>/` on
         // demand.
         gaps.addAll(detector.missingForFlavor(flavor, cfg));
-        await fli_main.createIconsFromConfig(cfg, logger, prefix, flavor);
+        await fli_main.createIconsFromConfig(
+          cfg,
+          logger,
+          prefix,
+          flavor,
+          strict,
+        );
       } catch (e) {
         if (!continueOnError) {
           logger.error('Could not generate launcher icons for $flavor');
@@ -451,6 +463,7 @@ class GenerateCommand extends Command<int> {
     required List<String> requestedFlavors,
     required bool allFlavors,
     required bool listFlavors,
+    required bool strict,
   }) async {
     if (listFlavors) {
       stdout.writeln('No flavors; this project uses a single-config source.');
@@ -486,7 +499,13 @@ class GenerateCommand extends Command<int> {
       return 65;
     }
     try {
-      await fli_main.createIconsFromConfig(cfg, logger, prefix);
+      await fli_main.createIconsFromConfig(
+        cfg,
+        logger,
+        prefix,
+        null,
+        strict,
+      );
       stdout.writeln('\n✓ Successfully generated launcher icons');
       return 0;
     } on InvalidConfigException catch (e) {

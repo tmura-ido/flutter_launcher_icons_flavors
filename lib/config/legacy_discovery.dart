@@ -26,9 +26,21 @@ class LegacyFlavorFile {
   final String path;
 }
 
+/// Directory segments skipped during the recursive legacy-file scan.
+/// Matches the skip set in `getFlavors` (lib/main.dart) for consistency.
+const Set<String> _skipScanSegments = {
+  '.dart_tool',
+  'build',
+  '.git',
+  'node_modules',
+  '.gradle',
+  '.idea',
+};
+
 /// Returns every legacy `flutter_launcher_icons-<flavor>.yaml` file under
-/// [prefixPath], sorted by flavor name (ascending) for deterministic output
-/// across filesystems whose directory iteration order is unstable.
+/// [prefixPath] (recursively, skipping noise like `.dart_tool`/`build`),
+/// sorted by flavor name (ascending) for deterministic output across
+/// filesystems whose directory iteration order is unstable.
 ///
 /// Returns an empty list — never throws — when [prefixPath] does not exist.
 List<LegacyFlavorFile> findLegacyFlavorFiles(String prefixPath) {
@@ -38,8 +50,13 @@ List<LegacyFlavorFile> findLegacyFlavorFiles(String prefixPath) {
   }
   final pattern = RegExp(constants.legacyFlavorConfigFilePattern);
   final out = <LegacyFlavorFile>[];
-  for (final entity in dir.listSync()) {
+  for (final entity in dir.listSync(recursive: true, followLinks: false)) {
     if (entity is! File) {
+      continue;
+    }
+    final rel = p.relative(entity.path, from: prefixPath);
+    final segs = p.split(rel);
+    if (segs.any(_skipScanSegments.contains)) {
       continue;
     }
     final match = pattern.firstMatch(p.basename(entity.path));

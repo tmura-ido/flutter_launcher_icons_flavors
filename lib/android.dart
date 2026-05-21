@@ -90,6 +90,31 @@ Future<void> createDefaultIcons(
   await Future.wait(concurrentIconUpdates);
 }
 
+/// Rejects vector-drawable (.xml) sources for adaptive foreground / monochrome
+/// with a clear, actionable error. The image pipeline cannot rasterize XML
+/// drawables; the previous behavior was an opaque `getter 'width' was called
+/// on null` deep inside the `image` package.
+void rejectVectorDrawableSource({
+  required String field,
+  required String value,
+}) {
+  if (value.toLowerCase().endsWith('.xml')) {
+    throw InvalidConfigException(
+      "$field: '$value' — vector drawable (.xml) sources are not supported. "
+      'Supply a PNG, or open an issue if you need vector support.',
+    );
+  }
+  // adaptive_icon_foreground / _monochrome must be an image path. A hex
+  // literal would later be opened as a file and crash with `FileSystemException:
+  // Cannot open file, path = '#FFFFFF'` (upstream #175).
+  if (isHexColorLiteral(value)) {
+    throw InvalidConfigException(
+      "$field: '$value' must be an image path; hex color literals are not "
+      'valid here.',
+    );
+  }
+}
+
 /// Ensures that the Android icon name is in the correct format
 bool isAndroidIconNameCorrectFormat(String iconName) {
   // assure the icon only consists of lowercase letters, numbers and underscore
@@ -115,6 +140,10 @@ Future<void> createAdaptiveIcons(
   if (backgroundConfig == null || foregroundImagePath == null) {
     throw const InvalidConfigException(constants.errorMissingImagePath);
   }
+  rejectVectorDrawableSource(
+    field: 'adaptive_icon_foreground',
+    value: foregroundImagePath,
+  );
   final Image foregroundImage = await utils.decodeImageFile(
     path.join(prefixPath, foregroundImagePath),
   );
@@ -167,6 +196,10 @@ Future<void> createAdaptiveMonochromeIcons(
   if (monochromeImagePath == null) {
     throw const InvalidConfigException(constants.errorMissingImagePath);
   }
+  rejectVectorDrawableSource(
+    field: 'adaptive_icon_monochrome',
+    value: monochromeImagePath,
+  );
   final Image monochromeImage = await utils.decodeImageFile(
     path.join(prefixPath, monochromeImagePath),
   );
@@ -327,8 +360,23 @@ Future<void> createNewColorsFile(
   await updateColorsFile(colorsFile, backgroundColor);
 }
 
-/// Updates the colors.xml with the new adaptive launcher icon color
+/// Updates the colors.xml with the new adaptive launcher icon color.
+///
+/// Rejects values that are neither a hex color literal nor an existing file
+/// path, so we never write `<color name="ic_launcher_background">assets/x.jpg</color>`
+/// or `<color name="ic_launcher_background">not-a-color</color>` and break
+/// `mergeDebugResources` at build time (upstream #132).
 Future<void> updateColorsFile(File colorsFile, String backgroundColor) async {
+  if (!isHexColorLiteral(backgroundColor)) {
+    final asPath = File(backgroundColor);
+    if (!asPath.existsSync()) {
+      throw InvalidConfigException(
+        "adaptive_icon_background: '$backgroundColor' is not a hex color "
+        "(e.g. '#FFFFFF') and not an existing file path. Refusing to write "
+        'an invalid value into colors.xml.',
+      );
+    }
+  }
   // Write foreground color
   final List<String> lines = await colorsFile.readAsLines();
   bool foundExisting = false;
@@ -762,16 +810,29 @@ Future<int> resolveMinSdkAndroid({
   return constants.androidDefaultAndroidMinSDK;
 }
 
-/// Returns true if the adaptive icon configuration is a PNG image
+/// Hex color literal regex. Accepts `#RGB`, `#RGBA`, `#RRGGBB`, `#AARRGGBB`,
+/// and the unhashed forms (lenient). Used to classify `adaptive_icon_*`
+/// values as either a color or a file path.
+final RegExp _hexColorLiteral = RegExp(r'^#?[0-9A-Fa-f]{3,8}$');
+
+/// True if the value is a hex color literal (any of the forms above).
+bool isHexColorLiteral(String value) => _hexColorLiteral.hasMatch(value);
+
+/// Returns true if the adaptive icon background should be treated as an
+/// image file (vs a hex color literal). Anything that isn't a hex color
+/// literal is treated as a file path, supporting `.png`, `.jpg`, `.jpeg`,
+/// `.webp`, and any other extension the decoder accepts. The old
+/// `endsWith('.png')` check mis-routed non-PNG paths into `colors.xml`,
+/// breaking `mergeDebugResources` (upstream #616/#617/#665).
 bool isAdaptiveIconConfigPngFile(String backgroundFile) {
-  return backgroundFile.endsWith('.png');
+  return !isHexColorLiteral(backgroundFile);
 }
 
 /// (NOTE THIS IS JUST USED FOR UNIT TEST)
 /// Ensures the correct path is used for generating adaptive icons
 /// "Next you must create alternative drawable resources in your app for use with
 /// Android 8.0 (API level 26) in res/mipmap-anydpi/ic_launcher.xml"
-/// Source: https://developer.android.com/guide/practices/ui_guidelines/icon_design_adaptive
+/// Source: https://developer.android.com/develop/ui/views/launch/icon_design_adaptive
 bool isCorrectMipmapDirectoryForAdaptiveIcon(String dir) {
   return path.equals(
     path.normalize(dir),

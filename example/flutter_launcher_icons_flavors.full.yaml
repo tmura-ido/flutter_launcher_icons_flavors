@@ -1,0 +1,177 @@
+# Reference example: every supported `flutter_launcher_icons_flavors`
+# option, shown in one consolidated multi-flavor file.
+#
+# Copy this verbatim into your project root as
+# `flutter_launcher_icons_flavors.yaml`, then prune to taste — nothing
+# below is required, the file is a menu, not a recipe.
+#
+# Resolution rules:
+#   - `defaults:` is deep-merged into each flavor block.
+#   - A scalar / list in a flavor REPLACES the inherited value.
+#   - Explicit `null` (or YAML `~`) DELETES an inherited key.
+
+version: 1
+
+# ---------------------------------------------------------------------
+# defaults: shared across every flavor below.
+# ---------------------------------------------------------------------
+defaults:
+  # --- Source images -------------------------------------------------
+  image_path: "assets/icon/icon.png"
+  image_path_android: "assets/icon/icon-android.png"
+  image_path_ios: "assets/icon/icon-ios.png"
+  image_path_ios_dark_transparent: "assets/icon/icon-ios-dark.png"
+  image_path_ios_tinted_grayscale: "assets/icon/icon-ios-tinted.png"
+
+  # --- Platform toggles ---------------------------------------------
+  # `true`  → use the default resource/catalog name (`ic_launcher`,
+  #           `AppIcon`).
+  # `"foo"` → set a custom resource name (lowercase + digits + _ for
+  #           Android; any string for iOS).
+  # `false` → skip the platform entirely.
+  android: "launcher_icon"
+  ios: true
+
+  # --- Android knobs -------------------------------------------------
+  min_sdk_android: 24
+  copy_mipmap_xxxhdpi_to_drawable: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/foreground.png"
+  adaptive_icon_foreground_inset: 16
+  adaptive_icon_monochrome: "assets/icon/monochrome.png"
+
+  # --- iOS knobs -----------------------------------------------------
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
+  desaturate_tinted_to_grayscale_ios: false
+  ios_legacy_sizes: false
+  ios_single_size: false
+  ios_disable_liquid_glass: false
+  xcodeproj_path: "ios/Runner.xcodeproj"
+
+  # --- Cross-cutting -------------------------------------------------
+  optimize_png: true
+  non_square_image_ok: false
+
+  # --- Web ----------------------------------------------------------
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#0175C2"
+    output_path: "web"
+    generate_favicon: true
+    favicon_path: "assets/icon/favicon.png"
+    favicon_size: 16
+
+  # --- Windows ------------------------------------------------------
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 256
+    tray_icon:
+      image_path: "assets/icon/tray.png"
+      sizes: [16, 24, 32, 48]
+      output: "windows/runner/resources/tray.ico"
+
+  # --- macOS --------------------------------------------------------
+  macos:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    padding: true
+    dark_image_path: "assets/icon/icon-mac-dark.png"
+    tinted_image_path: "assets/icon/icon-mac-tinted.png"
+    tray_icon:
+      template_image_path: "assets/icon/tray-template.png"
+      sizes: [22, 44]
+      output: "macos/Runner/Assets.xcassets/TrayIcon.imageset"
+
+  # --- Linux --------------------------------------------------------
+  linux:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 256
+    output_path: "linux/runner/resources/app_icon.png"
+    tray_icon:
+      image_path: "assets/icon/tray.png"
+      sizes: [22, 24, 32, 48]
+      output: "linux/runner/resources/tray/"
+
+  # --- iOS alternate icons ------------------------------------------
+  ios_alternate_icons:
+    enabled: true
+    icons:
+      classic:
+        image_path: "assets/icon/alt-classic.png"
+      halloween:
+        image_path: "assets/icon/alt-halloween.png"
+        image_path_dark_transparent: "assets/icon/alt-halloween-dark.png"
+        image_path_tinted_grayscale: "assets/icon/alt-halloween-tinted.png"
+
+  # --- Environment badge overlay ------------------------------------
+  badge:
+    text: "DEV"
+    color: "#FFFFFF"
+    background_color: "#FF3B30"
+    position: "br"          # tl | tr | bl | br | banner-top | banner-bottom
+    font_size_pct: 18
+    font_family: "Roboto"   # or a path to a .ttf file
+    padding_pct: 4
+
+# ---------------------------------------------------------------------
+# flavors: each block overrides / extends `defaults` above.
+# ---------------------------------------------------------------------
+flavors:
+  # --- Development ---------------------------------------------------
+  dev:
+    image_path: "assets/icon/icon-dev.png"
+    adaptive_icon_background: "#FF8800"
+    adaptive_icon_foreground: "assets/icon/fg-dev.png"
+    web:
+      image_path: "assets/icon/icon-dev.png"
+      theme_color: "#FF8800"
+      output_path: "web_dev"
+    badge:
+      text: "DEV"
+      background_color: "#FF8800"
+
+  # --- Staging -------------------------------------------------------
+  staging:
+    image_path: "assets/icon/icon-staging.png"
+    adaptive_icon_background: "#9933CC"
+    adaptive_icon_foreground: "assets/icon/fg-staging.png"
+    web:
+      image_path: "assets/icon/icon-staging.png"
+      theme_color: "#9933CC"
+      output_path: "web_staging"
+    badge:
+      text: "STAGE"
+      background_color: "#9933CC"
+
+  # --- Production ----------------------------------------------------
+  # No badge, no alternate icons — show how to DELETE inherited keys
+  # by explicitly setting them to null (`~`).
+  prod:
+    image_path: "assets/icon/icon-prod.png"
+    adaptive_icon_background: "#0175C2"
+    adaptive_icon_foreground: "assets/icon/fg-prod.png"
+    web:
+      image_path: "assets/icon/icon-prod.png"
+      theme_color: "#003E70"
+      output_path: "web"
+    badge: ~                    # remove the inherited DEV badge
+    ios_alternate_icons: ~      # ship only the primary icon in prod
+
+  # --- Internal build (mobile-only) ----------------------------------
+  # Show how to disable a whole platform per-flavor with `~`.
+  internal:
+    image_path: "assets/icon/icon-internal.png"
+    adaptive_icon_background: "#333333"
+    adaptive_icon_foreground: "assets/icon/fg-internal.png"
+    web: ~        # no web build for internal
+    windows: ~    # no Windows build
+    macos: ~      # no macOS build
+    linux: ~      # no Linux build
+    badge:
+      text: "INT"
+      position: "banner-top"

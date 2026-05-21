@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'tray_icon_config.dart';
+
 part 'windows_config.g.dart';
 
 /// The flutter_launcher_icons configuration set for Windows
@@ -16,8 +18,18 @@ class WindowsConfig {
   @JsonKey(name: 'icon_size')
   final int? iconSize;
 
+  /// Optional Windows system-tray icon (upstream #510). Phase 1: config
+  /// schema only; emission lands separately.
+  @JsonKey(name: 'tray_icon')
+  final TrayIconConfig? trayIcon;
+
   /// Creates a instance of [WindowsConfig]
-  const WindowsConfig({this.generate = false, this.imagePath, this.iconSize});
+  const WindowsConfig({
+    this.generate = false,
+    this.imagePath,
+    this.iconSize,
+    this.trayIcon,
+  });
 
   /// Creates [WindowsConfig] from [json]
   factory WindowsConfig.fromJson(Map json) => _$WindowsConfigFromJson(json);

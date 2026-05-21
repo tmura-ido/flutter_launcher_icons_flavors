@@ -11,6 +11,9 @@ class WindowsIconGenerator extends IconGenerator {
     : super(context, 'Windows');
 
   @override
+  bool get isOptedIn => context.windowsConfig?.generate ?? false;
+
+  @override
   Future<void> createIcons() async {
     final imgFilePath = path.join(
       context.prefixPath,
@@ -72,14 +75,26 @@ class WindowsIconGenerator extends IconGenerator {
     return true;
   }
 
+  /// Standard Windows shell-icon ladder. The OS picks the closest size at
+  /// the runtime DPI; embedding the full pyramid avoids the blurry
+  /// rescaling of a single embedded image (upstream #573).
+  static const List<int> _icoPyramid = [16, 24, 32, 48, 64, 128, 256];
+
   Future<void> _generateIcon(Image image) async {
-    final favIcon = utils.createResizedImage(
-      context.windowsConfig!.iconSize ?? constants.windowsDefaultIconSize,
-      image,
-    );
+    final cap =
+        context.windowsConfig!.iconSize ?? constants.windowsDefaultIconSize;
+    // Embed every standard size up to (and including) the cap.
+    final sizes = _icoPyramid.where((s) => s <= cap).toList();
+    if (sizes.isEmpty || sizes.last != cap) {
+      // Honor the cap even if it falls between standard sizes.
+      sizes.add(cap);
+    }
+    final frames = sizes
+        .map((s) => utils.createResizedImage(s, image))
+        .toList();
     final favIconFile = await utils.createFileIfNotExist(
       path.join(context.prefixPath, constants.windowsIconFilePath),
     );
-    await favIconFile.writeAsBytes(encodeIco(favIcon));
+    await favIconFile.writeAsBytes(IcoEncoder().encodeImages(frames));
   }
 }

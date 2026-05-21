@@ -143,6 +143,23 @@ ResolvedSource resolveSource({
     );
   }
 
+  // Last-ditch friendly message: if there are no configs at the prefix but
+  // there are legacy-style files anywhere under it (e.g. in `config/`),
+  // list them so the user knows what to point `--file` at (upstream #279).
+  final discovered = findLegacyFlavorFiles(prefixPath);
+  if (discovered.isNotEmpty) {
+    final lines = discovered
+        .map((f) => '  - ${f.path} (flavor: ${f.flavor})')
+        .join('\n');
+    throw NoConfigFoundException(
+      'No base flutter_launcher_icons config found in $prefixPath, but '
+      'discovered ${discovered.length} flavor config(s):\n$lines\n'
+      'Re-run with `--file <path>` or move one of these to the project '
+      'root, or pass `--flavor <name>` / `--all-flavors` if you have a '
+      'consolidated config elsewhere.',
+    );
+  }
+
   throw const NoConfigFoundException(
     'No flutter_launcher_icons config found '
     '(checked flutter_launcher_icons_flavors.yaml, '
