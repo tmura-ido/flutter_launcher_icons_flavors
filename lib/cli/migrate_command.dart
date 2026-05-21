@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:flutter_launcher_icons_flavors/config/legacy_discovery.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/logger.dart';
+import 'package:flutter_launcher_icons_flavors/utils/schema_injector.dart';
 import 'package:flutter_launcher_icons_flavors/utils/yaml_convert.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
@@ -46,6 +47,13 @@ class MigrateCommand extends Command<int> {
         'force',
         help: 'Overwrite an existing flutter_launcher_icons_flavors.yaml.',
         negatable: false,
+      )
+      ..addFlag(
+        'no-inject-schema',
+        help:
+            'Skip prepending the `# yaml-language-server: \$schema=...` '
+            'directive to the produced file.',
+        negatable: false,
       );
   }
 
@@ -64,6 +72,7 @@ class MigrateCommand extends Command<int> {
     final dryRun = results['dry-run'] as bool;
     final inPlace = results['in-place'] as bool;
     final force = results['force'] as bool;
+    final noInjectSchema = results['no-inject-schema'] as bool;
     // Verbose flag isn't on `migrate`'s parser; use a non-verbose
     // logger purely to access the stderr-routing `error()` helper.
     final logger = FLILogger(false);
@@ -138,6 +147,25 @@ class MigrateCommand extends Command<int> {
     } on Exception catch (e) {
       logger.error('Failed to write $targetPath: $e');
       return 1;
+    }
+
+    // Prepend the schema directive to the freshly-written file (and
+    // surviving legacy originals if --in-place wasn't passed).
+    if (!noInjectSchema) {
+      try {
+        await ensureSchemaDirective(targetPath, logger: logger);
+      } on Exception catch (e) {
+        logger.verbose('Schema injection skipped for $targetPath: $e');
+      }
+      if (!inPlace) {
+        for (final entry in legacy) {
+          try {
+            await ensureSchemaDirective(entry.path, logger: logger);
+          } on Exception catch (e) {
+            logger.verbose('Schema injection skipped for ${entry.path}: $e');
+          }
+        }
+      }
     }
 
     if (inPlace) {

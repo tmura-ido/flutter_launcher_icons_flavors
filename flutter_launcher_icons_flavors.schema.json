@@ -1,0 +1,483 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/tmura-ido/flutter_launcher_icons_flavors/master/flutter_launcher_icons_flavors.schema.json",
+  "title": "flutter_launcher_icons_flavors",
+  "description": "Config schema for flutter_launcher_icons_flavors. Accepts the consolidated multi-flavor layout, the single-config layout, and the pubspec-inline layout.",
+  "oneOf": [
+    {
+      "type": "object",
+      "description": "Consolidated multi-flavor file (`flutter_launcher_icons_flavors.yaml`).",
+      "required": [
+        "version",
+        "flavors"
+      ],
+      "properties": {
+        "version": {
+          "description": "Schema version. Must be 1 for this schema.",
+          "type": "integer",
+          "const": 1
+        },
+        "defaults": {
+          "description": "Shared base that is deep-merged into every flavor block.",
+          "$ref": "#/$defs/configFields"
+        },
+        "flavors": {
+          "description": "Map of flavor name → flavor-specific overrides.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/configFields"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "description": "Flat single-config file (`flutter_launcher_icons.yaml` or `flutter_launcher_icons-<flavor>.yaml`).",
+      "allOf": [
+        {
+          "$ref": "#/$defs/configFields"
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "description": "Pubspec inline (`pubspec.yaml` with `flutter_launcher_icons:` or deprecated `flutter_icons:` block).",
+      "properties": {
+        "flutter_launcher_icons": {
+          "$ref": "#/$defs/configFields"
+        },
+        "flutter_icons": {
+          "description": "Deprecated; use `flutter_launcher_icons` instead.",
+          "$ref": "#/$defs/configFields"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "configFields": {
+      "type": "object",
+      "properties": {
+        "image_path": {
+          "description": "Source PNG used by every enabled platform.",
+          "type": "string"
+        },
+        "image_path_android": {
+          "description": "Android-specific source override.",
+          "type": "string"
+        },
+        "image_path_ios": {
+          "description": "iOS-specific source override.",
+          "type": "string"
+        },
+        "image_path_ios_dark_transparent": {
+          "description": "iOS 18+ dark-mode variant (transparent PNG composited over system background).",
+          "type": "string"
+        },
+        "image_path_ios_tinted_grayscale": {
+          "description": "iOS 18+ tinted variant (grayscale PNG; iOS applies user tint).",
+          "type": "string"
+        },
+        "android": {
+          "description": "Android platform toggle. `true` → default name `ic_launcher`; a string sets a custom resource name `[a-z0-9_]+`; `false` skips Android.",
+          "$ref": "#/$defs/platformToggle"
+        },
+        "ios": {
+          "description": "iOS platform toggle. `true` → default catalog name `AppIcon`; a string sets a custom catalog basename; `false` skips iOS.",
+          "$ref": "#/$defs/platformToggle"
+        },
+        "min_sdk_android": {
+          "description": "Android minSdk floor. Below 26, only legacy icons are emitted; 26+ also produces adaptive icons. Default 24.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "copy_mipmap_xxxhdpi_to_drawable": {
+          "description": "Copy `mipmap-xxxhdpi/<icon>.png` into the same flavor’s `drawable/` folder. Useful for notification icons. Default false.",
+          "type": "boolean"
+        },
+        "adaptive_icon_background": {
+          "description": "Adaptive-icon background. Either a hex color (`#RRGGBB`) or a path to a background image. Required when `adaptive_icon_foreground` is set.",
+          "type": "string"
+        },
+        "adaptive_icon_foreground": {
+          "description": "Adaptive-icon foreground PNG. Keep logo in central 66 % safe-zone; outer 33 % is masked.",
+          "type": "string"
+        },
+        "adaptive_icon_foreground_inset": {
+          "description": "Percentage of additional padding around the foreground. Default 16.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "adaptive_icon_monochrome": {
+          "description": "Android-13+ themed-icon foreground (white-on-transparent PNG).",
+          "type": "string"
+        },
+        "remove_alpha_ios": {
+          "description": "Strip alpha channel before writing iOS icons. Required for App Store submission. Default false.",
+          "type": "boolean"
+        },
+        "background_color_ios": {
+          "description": "Opaque background color used when `remove_alpha_ios: true`. Default `#FFFFFF`.",
+          "$ref": "#/$defs/hexColor"
+        },
+        "desaturate_tinted_to_grayscale_ios": {
+          "description": "Desaturate `image_path_ios_tinted_grayscale` automatically. Default false.",
+          "type": "boolean"
+        },
+        "flavor": {
+          "description": "Explicit flavor name override. Wins over the filename-derived flavor (upstream #490).",
+          "type": "string"
+        },
+        "xcodeproj_path": {
+          "description": "Optional Xcode project path. Default auto-detects `ios/*.xcodeproj`, falling back to `ios/Runner.xcodeproj`.",
+          "type": "string"
+        },
+        "ios_legacy_sizes": {
+          "description": "Emit legacy 1x iOS sizes alongside the modern set so the app switcher / older surfaces find every size (upstream #661). Default false.",
+          "type": "boolean"
+        },
+        "ios_single_size": {
+          "description": "Xcode 14+ \"single size\" mode: emit only the 1024×1024 marketing slot. Overrides `ios_legacy_sizes`. Default false.",
+          "type": "boolean"
+        },
+        "optimize_png": {
+          "description": "Run every output PNG through max-compression encoding (slower; 30–70 % smaller files). Default false.",
+          "type": "boolean"
+        },
+        "ios_disable_liquid_glass": {
+          "description": "Mark Contents.json for Xcode 26+ Liquid-Glass opt-out (upstream #657, stub). Default false.",
+          "type": "boolean"
+        },
+        "non_square_image_ok": {
+          "description": "Suppress the doctor’s non-square source warning (upstream #214). Default false.",
+          "type": "boolean"
+        },
+        "web": {
+          "description": "Web platform config.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/webConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "windows": {
+          "description": "Windows platform config.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/windowsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "macos": {
+          "description": "macOS platform config.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/macosConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "linux": {
+          "description": "Linux platform config (upstream #666).",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/linuxConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ios_alternate_icons": {
+          "description": "iOS alternate app-icon sets (upstream #92).",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/iosAlternateIconsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "badge": {
+          "description": "Per-flavor environment-badge overlay (upstream #622).",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/badgeConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "webConfig": {
+      "type": "object",
+      "description": "Web platform config.",
+      "properties": {
+        "generate": {
+          "description": "Master switch for web icon generation.",
+          "type": "boolean"
+        },
+        "image_path": {
+          "description": "Source PNG override; falls back to top-level.",
+          "type": "string"
+        },
+        "background_color": {
+          "description": "manifest.json `background_color`.",
+          "$ref": "#/$defs/hexColor"
+        },
+        "theme_color": {
+          "description": "manifest.json `theme_color`.",
+          "$ref": "#/$defs/hexColor"
+        },
+        "output_path": {
+          "description": "Output directory. Defaults to `web_<flavor>/` if flavor is active, else `web/` (upstream #426).",
+          "type": "string"
+        },
+        "generate_favicon": {
+          "description": "Emit multi-size `favicon.ico` alongside `favicon.png`. Default true.",
+          "type": "boolean"
+        },
+        "favicon_path": {
+          "description": "Favicon source override. Falls back to `image_path`, then top-level `image_path`.",
+          "type": "string"
+        },
+        "favicon_size": {
+          "description": "PNG favicon side length in pixels. Default 16.",
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "windowsConfig": {
+      "type": "object",
+      "description": "Windows platform config.",
+      "properties": {
+        "generate": {
+          "description": "Master switch for Windows icon generation.",
+          "type": "boolean"
+        },
+        "image_path": {
+          "description": "Source PNG override; falls back to top-level.",
+          "type": "string"
+        },
+        "icon_size": {
+          "description": "Max embedded size for the multi-image ICO. Default 48; range 48–256.",
+          "type": "integer",
+          "minimum": 48,
+          "maximum": 256
+        },
+        "tray_icon": {
+          "$ref": "#/$defs/trayIconConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "macosConfig": {
+      "type": "object",
+      "description": "macOS platform config.",
+      "properties": {
+        "generate": {
+          "description": "Master switch for macOS icon generation.",
+          "type": "boolean"
+        },
+        "image_path": {
+          "description": "Source PNG override; falls back to top-level.",
+          "type": "string"
+        },
+        "padding": {
+          "description": "Resize source to 824×824 on a 1024×1024 transparent canvas (Apple’s recommended effective-design area, upstream #655). Default false.",
+          "type": "boolean"
+        },
+        "dark_image_path": {
+          "description": "Source for the macOS dark-mode appearance variant (upstream #660).",
+          "type": "string"
+        },
+        "tinted_image_path": {
+          "description": "Source for the macOS tinted appearance variant (upstream #660).",
+          "type": "string"
+        },
+        "tray_icon": {
+          "$ref": "#/$defs/trayIconConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "linuxConfig": {
+      "type": "object",
+      "description": "Linux platform config (upstream #666).",
+      "properties": {
+        "generate": {
+          "description": "Master switch for Linux icon generation.",
+          "type": "boolean"
+        },
+        "image_path": {
+          "description": "Source PNG override; falls back to top-level.",
+          "type": "string"
+        },
+        "icon_size": {
+          "description": "Output PNG side length. Default 256.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "output_path": {
+          "description": "Output path for the PNG. Default `linux/runner/resources/app_icon.png`.",
+          "type": "string"
+        },
+        "tray_icon": {
+          "$ref": "#/$defs/trayIconConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "badgeConfig": {
+      "type": "object",
+      "description": "Environment-badge overlay (upstream #622, phase 1: schema only).",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "description": "Badge text. Empty/whitespace triggers a warning.",
+          "type": "string"
+        },
+        "color": {
+          "description": "Text color. Default `#FFFFFF`.",
+          "$ref": "#/$defs/hexColor"
+        },
+        "background_color": {
+          "description": "Solid pill/banner background color.",
+          "$ref": "#/$defs/hexColor"
+        },
+        "position": {
+          "description": "Badge position on the icon.",
+          "type": "string",
+          "enum": [
+            "tl",
+            "topleft",
+            "tr",
+            "topright",
+            "bl",
+            "bottomleft",
+            "br",
+            "bottomright",
+            "banner-top",
+            "banner-bottom"
+          ],
+          "default": "tr"
+        },
+        "font_size_pct": {
+          "description": "Font size as % of image height. Default 18.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "font_family": {
+          "description": "Built-in font name (`Roboto`, `RobotoMono`, `Inter`) or path to a `.ttf` file.",
+          "type": "string"
+        },
+        "padding_pct": {
+          "description": "Padding from edge as % of image height. Default 4.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "iosAlternateIconsConfig": {
+      "type": "object",
+      "description": "iOS alternate app-icon sets (upstream #92).",
+      "properties": {
+        "enabled": {
+          "description": "Master switch.",
+          "type": "boolean"
+        },
+        "icons": {
+          "description": "Map of alternate-icon name → image source paths. Each entry produces a separate `<name>.appiconset/` directory.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "image_path": {
+                "description": "Primary source PNG.",
+                "type": "string"
+              },
+              "image_path_dark_transparent": {
+                "description": "iOS-18 dark variant (optional).",
+                "type": "string"
+              },
+              "image_path_tinted_grayscale": {
+                "description": "iOS-18 tinted variant (optional).",
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "trayIconConfig": {
+      "type": "object",
+      "description": "Desktop tray icon config (upstream #510, phase 1: schema only).",
+      "properties": {
+        "image_path": {
+          "description": "Source image (non-macOS). Falls back to the platform’s `image_path`.",
+          "type": "string"
+        },
+        "template_image_path": {
+          "description": "macOS template image (monochrome silhouette with alpha). The macOS writer refuses to default to the colored launcher image.",
+          "type": "string"
+        },
+        "sizes": {
+          "description": "Embedded sizes (Windows ICO / macOS imageset / Linux PNGs).",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "output": {
+          "description": "Output path. Defaults per-platform: `windows/runner/resources/tray.ico`, `macos/Runner/Assets.xcassets/TrayIcon.imageset`, `linux/runner/resources/tray/`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "platformToggle": {
+      "description": "Tri-state platform toggle. `false` disables, `true` uses the default name, a string sets a custom resource/catalog name.",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hexColor": {
+      "description": "Hex color string, `#RGB`, `#RRGGBB`, or `#RRGGBBAA`.",
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+    }
+  }
+}

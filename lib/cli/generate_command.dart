@@ -8,6 +8,7 @@ import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/main.dart' as fli_main;
+import 'package:flutter_launcher_icons_flavors/utils/schema_injector.dart';
 import 'package:path/path.dart' as p;
 
 /// `generate` subcommand — the default action of the CLI.
@@ -71,6 +72,13 @@ class GenerateCommand extends Command<int> {
         negatable: false,
       )
       ..addFlag(
+        'no-inject-schema',
+        help:
+            'Skip prepending the `# yaml-language-server: \$schema=...` '
+            'directive to discovered config files.',
+        negatable: false,
+      )
+      ..addFlag(
         'verbose',
         abbr: 'v',
         help: 'Enable verbose logging.',
@@ -99,6 +107,7 @@ class GenerateCommand extends Command<int> {
     final listFlavors = results['list-flavors'] as bool;
     final continueOnError = results['continue-on-error'] as bool;
     final strict = results['strict'] as bool;
+    final noInjectSchema = results['no-inject-schema'] as bool;
 
     // README contract: --flavor and --all-flavors are mutually exclusive.
     // Conflicting flags → usage error (64).
@@ -123,6 +132,15 @@ class GenerateCommand extends Command<int> {
       logger.error('$e');
       return 65;
     }
+
+    // 1b. Inject the YAML-language-server schema directive into every
+    // config file we found. Idempotent; skips pubspec.yaml.
+    await _injectSchemaIntoSources(
+      resolved: resolved,
+      prefix: prefix,
+      logger: logger,
+      skip: noInjectSchema,
+    );
 
     // 2. Dispatch by source kind.
     switch (resolved.kind) {
@@ -516,6 +534,39 @@ class GenerateCommand extends Command<int> {
       logger.error('Could not generate launcher icons');
       logger.error('$e');
       return 1;
+    }
+  }
+
+  /// Prepends the `# yaml-language-server: $schema=...` directive to
+  /// every config file the resolver found (the winner plus any
+  /// shadowed legacy siblings). Idempotent, pubspec-safe.
+  Future<void> _injectSchemaIntoSources({
+    required ResolvedSource resolved,
+    required String prefix,
+    required FLILogger logger,
+    required bool skip,
+  }) async {
+    if (skip) {
+      return;
+    }
+    final paths = <String>{
+      if (resolved.path != null) resolved.path!,
+      ...resolved.ignoredLegacy,
+    };
+    if (resolved.kind == ConfigSourceKind.legacyFlavors) {
+      // legacyFlavors resolves without a single winner path; inject
+      // into every discovered per-flavor file.
+      final discovered = await fli_main.getFlavors(prefix);
+      for (final f in discovered) {
+        paths.add(p.join(prefix, 'flutter_launcher_icons-$f.yaml'));
+      }
+    }
+    for (final path in paths) {
+      try {
+        await ensureSchemaDirective(path, logger: logger);
+      } on Exception catch (e) {
+        logger.verbose('Schema injection skipped for $path: $e');
+      }
     }
   }
 }

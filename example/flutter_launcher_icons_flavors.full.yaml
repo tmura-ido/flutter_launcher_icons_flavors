@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tmura-ido/flutter_launcher_icons_flavors/master/flutter_launcher_icons_flavors.schema.json
+
 # Reference example: every supported `flutter_launcher_icons_flavors`
 # option, shown in one consolidated multi-flavor file.
 #

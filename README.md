@@ -19,6 +19,7 @@ A command-line tool that generates Flutter launcher icons for **Android, iOS, ma
 - [Install](#install)
 - [Quick start (single-flavor)](#quick-start-single-flavor)
 - [Multi-flavor (consolidated)](#multi-flavor-consolidated)
+- [Editor autocomplete (JSON Schema)](#editor-autocomplete-json-schema)
 - [Config finding order](#config-finding-order)
 - [Legacy multi-flavor layout](#legacy-multi-flavor-layout)
 - [CLI reference](#cli-reference)
@@ -188,13 +189,14 @@ flavors:
 Build a single flavor, a subset, or all of them:
 
 ```shell
+dart run flutter_launcher_icons_flavors                                # generate all flavors
 dart run flutter_launcher_icons_flavors generate                       # all flavors
 dart run flutter_launcher_icons_flavors generate --flavor dev
 dart run flutter_launcher_icons_flavors generate --flavor dev --flavor staging
 dart run flutter_launcher_icons_flavors generate --all-flavors         # equivalent to no flag
 ```
 
-> **Default behavior:** with the consolidated file present, omitting both `--flavor` and `--all-flavors` builds **every** flavor declared in the file. This matches the legacy per-flavor-file layout and the principle of least surprise. Pass `--flavor <name>` (repeatable) to narrow.
+> **Default behavior:** with the consolidated file present, omitting both `--flavor` and `--all-flavors` builds **every** flavor declared in the file. Pass `--flavor <name>` (repeatable) to narrow.
 
 ### Deleting an inherited default
 
@@ -216,10 +218,33 @@ This is materially different from omitting the key (which keeps the default). Se
 ### Listing what's available
 
 ```shell
-dart run flutter_launcher_icons_flavors generate --list-flavors
+dart run flutter_launcher_icons_flavors --list-flavors
 ```
 
 Prints the flavors declared in the consolidated file (or discovered as legacy per-flavor files) and exits.
+
+---
+
+## Editor autocomplete (JSON Schema)
+
+Every config file the tool touches gets a `# yaml-language-server: $schema=...` directive auto-injected at the top on the next `generate`, `migrate`, or `doctor` run. This wires up:
+
+- **JetBrains IDEs** (Android Studio, IntelliJ, RustRover, PyCharm) — native YAML + JSON Schema support, no plugin needed.
+- **VS Code** — install the [Red Hat YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) (the de facto YAML extension; most Flutter devs already have it).
+
+What you get: autocomplete on every key, hover docs sourced from each option's description, inline validation (unknown keys, wrong types, malformed `#RRGGBB` colors, out-of-range integers), and "did you mean…" suggestions.
+
+The directive looks like:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tmura-ido/flutter_launcher_icons_flavors/master/flutter_launcher_icons_flavors.schema.json
+```
+
+Pinned to `master` (the repo's default branch) — the schema only ever adds optional fields, so older YAMLs always validate.
+
+**Opt out** with `--no-inject-schema` on any command. The injection is idempotent and skips files that already carry a `# yaml-language-server:` line (so a custom URL or pinned-tag override stays intact). `pubspec.yaml` is never touched.
+
+The schema lives at [`flutter_launcher_icons_flavors.schema.json`](flutter_launcher_icons_flavors.schema.json) in the repo and is regenerated via `dart run tool/generate_schema.dart`; a CI drift test catches any `@JsonKey` added to the config classes without a schema update.
 
 ---
 
@@ -228,14 +253,12 @@ Prints the flavors declared in the consolidated file (or discovered as legacy pe
 When you run `generate` (without `--file`), the resolver searches for a config in this order and stops at the first hit:
 
 1. `--file <path>` — explicit. Missing file is a hard error (exit 65).
-2. `<prefix>/flutter_launcher_icons_flavors.yaml` — **consolidated multi-flavor**.
-3. `<prefix>/flutter_launcher_icons-*.yaml` — **legacy multi-flavor** (zero or more files).
-4. `<prefix>/flutter_launcher_icons.yaml` — **single-config**.
-5. `<prefix>/pubspec.yaml` with a top-level `flutter_launcher_icons:` (or deprecated `flutter_icons:`) block — **pubspec inline**.
+2. `./flutter_launcher_icons_flavors.yaml` — **consolidated multi-flavor**.
+3. `./flutter_launcher_icons-*.yaml` — **legacy multi-flavor** (zero or more files).
+4. `./flutter_launcher_icons.yaml` — **single-config**.
+5. `./pubspec.yaml` with a top-level `flutter_launcher_icons:` (or deprecated `flutter_icons:`) block — **pubspec inline**.
 
 If none match, the resolver throws `NoConfigFoundException` and exits **65**.
-
-When a **consolidated** file coexists with **legacy** files (case 2 + 3), the consolidated file wins, the legacy files are ignored, and a warning is emitted. `--strict` escalates that warning to an exit-65 error — useful in CI to force a clean migration.
 
 Run `doctor` to see exactly which source the resolver picked and why.
 
@@ -243,7 +266,7 @@ Run `doctor` to see exactly which source the resolver picked and why.
 
 ## Legacy multi-flavor layout
 
-The original `flutter_launcher_icons` convention — one `flutter_launcher_icons-<flavor>.yaml` per flavor — **still works** in 0.15.x.
+The original `flutter_launcher_icons` convention — one `flutter_launcher_icons-<flavor>.yaml` per flavor — **still works**.
 
 ```text
 project/
@@ -253,8 +276,6 @@ project/
 ```
 
 Running `generate` discovers every matching file and builds them all by default (no `--flavor` required, matching the upstream behavior).
-
-If a `flutter_launcher_icons_flavors.yaml` is *also* present, the consolidated file wins and a warning is emitted listing the ignored legacy files. Use `--strict` to escalate that warning to an exit-65 error in CI:
 
 ```shell
 dart run flutter_launcher_icons_flavors generate --strict
@@ -334,12 +355,11 @@ dart run flutter_launcher_icons_flavors doctor [-p <prefix>] [-v]
 Read-only diagnostic. Prints:
 
 1. Package version + resolved prefix.
-2. Every config source the resolver considered, and whether each was found.
-3. The **winner** (which file `generate` would actually load) and the **reason** it won.
-4. Any **ignored** sources (e.g. legacy files shadowed by a consolidated file).
-5. The list of flavors discovered, with per-flavor platform toggles when `-v` is passed.
-6. Android Gradle detection: which `build.gradle{.kts}` was found and what `min_sdk_android` was auto-detected (including the matched pattern).
-7. Any **deprecated keys** still in use (e.g. `flutter_icons:` in `pubspec.yaml`).
+2. Config source **winner** and all other found sources.
+3. The list of flavors discovered, with per-flavor platform toggles when `-v` is passed.
+4. Android Gradle detection: which `build.gradle{.kts}` was found and what `min_sdk_android` was auto-detected (including the matched pattern).
+<!-- TODO what about ios files? -->
+5. Any **deprecated keys** still in use (e.g. `flutter_icons:` in `pubspec.yaml`).
 
 Exits **0** unless the project is actually broken (no config at all, or an unparseable consolidated file), in which case it exits **65** so CI gates can surface the problem.
 
