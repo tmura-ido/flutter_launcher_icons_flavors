@@ -35,6 +35,9 @@ void main() {
     final cases = <_MinSdkCase>[
       _MinSdkCase('groovy_basic', expected: 21),
       _MinSdkCase('groovy_with_eq', expected: 23),
+      // Regression: a `// ...` comment trailing the minSdk line must not
+      // block detection.
+      _MinSdkCase('groovy_with_trailing_comment', expected: 26),
       _MinSdkCase('kts_basic', expected: 24),
       _MinSdkCase('kts_call_form', expected: 26),
       // both present → KTS wins; KTS file says minSdk = 24.

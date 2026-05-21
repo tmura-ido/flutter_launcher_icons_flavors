@@ -1,7 +1,7 @@
 name: flutter_launcher_icons_flavors
-description: A flavor-aware fork of flutter_launcher_icons that generates Android, iOS, macOS, Web, and Windows launcher icons from a single consolidated YAML configuration.
+description: Flavor-aware fork of flutter_launcher_icons. Generates Android, iOS, macOS, Web, and Windows icons from one consolidated YAML config.
 version: 1.0.0
-maintainer: Ido Zahavy (@tmura-ido)
+# Maintained by Ido Zahavy (@tmura-ido)
 homepage: https://github.com/tmura-ido/flutter_launcher_icons_flavors
 repository: https://github.com/tmura-ido/flutter_launcher_icons_flavors
 issue_tracker: https://github.com/tmura-ido/flutter_launcher_icons_flavors/issues
@@ -11,14 +11,18 @@ topics:
   - flutter
   - launcher
   - flavors
-  - build
+  - cli
 
-# TODO(release): commit a real adaptive-icon screenshot at
-# doc/screenshots/adaptive.png and uncomment the block below before publishing
-# to pub.dev. See plan §1.4.
-# screenshots:
-#   - description: 'Adaptive launcher icons generated for Android'
-#     path: doc/screenshots/adaptive.png
+platforms:
+  linux:
+  macos:
+  windows:
+
+environment:
+  sdk: ^3.8.0
+
+executables:
+  flutter_launcher_icons_flavors:
 
 dependencies:
   args: ^2.5.0
@@ -28,9 +32,6 @@ dependencies:
   json_annotation: ^4.9.0
   path: ^1.9.0
   yaml: ^3.1.2
-
-environment:
-  sdk: ">=3.8.0 <4.0.0"
 
 dev_dependencies:
   # Needed by build_version

@@ -70,7 +70,7 @@ Future<void> createIconsFromConfig(
   // static default) up-front so a warning surfaces early on autodetect
   // failure. Currently the resolved value is logged for visibility; future
   // phases may consume it for adaptive-icon gating.
-  if (flutterConfigs.isNeedingNewAndroidIcon) {
+  if (flutterConfigs.hasAndroidConfig) {
     final resolvedMinSdk = await android_launcher_icons.resolveMinSdkAndroid(
       prefixPath: prefixPath,
       logger: logger,
@@ -82,11 +82,12 @@ Future<void> createIconsFromConfig(
   }
 
   final concurrentIconCreation = <Future<void>>[];
-  if (flutterConfigs.isNeedingNewAndroidIcon) {
+  if (flutterConfigs.hasAndroidConfig) {
     concurrentIconCreation.add(
       android_launcher_icons.createDefaultIcons(
         flutterConfigs,
         flavor,
+        logger: logger,
         prefixPath: prefixPath,
       ),
     );
@@ -96,6 +97,7 @@ Future<void> createIconsFromConfig(
       android_launcher_icons.createAdaptiveIcons(
         flutterConfigs,
         flavor,
+        logger: logger,
         prefixPath: prefixPath,
       ),
     );
@@ -105,30 +107,34 @@ Future<void> createIconsFromConfig(
       android_launcher_icons.createAdaptiveMonochromeIcons(
         flutterConfigs,
         flavor,
+        logger: logger,
         prefixPath: prefixPath,
       ),
     );
   }
   await Future.wait(concurrentIconCreation);
-  if (flutterConfigs.isNeedingNewAndroidIcon &&
+  if (flutterConfigs.hasAndroidConfig &&
       flutterConfigs.copyMipmapXxxhdpiToDrawable) {
     await android_launcher_icons.copyXxxhdpiMipmapToDrawable(
       flutterConfigs,
       flavor,
+      logger: logger,
       prefixPath: prefixPath,
     );
   }
-  if (flutterConfigs.isNeedingNewAndroidIcon) {
+  if (flutterConfigs.hasAndroidConfig) {
     await android_launcher_icons.createMipmapXmlFile(
       flutterConfigs,
       flavor,
+      logger: logger,
       prefixPath: prefixPath,
     );
   }
-  if (flutterConfigs.isNeedingNewIOSIcon) {
+  if (flutterConfigs.hasIOSConfig) {
     await ios_launcher_icons.createIcons(
       flutterConfigs,
       flavor,
+      logger: logger,
       prefixPath: prefixPath,
     );
   }

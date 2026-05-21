@@ -58,7 +58,8 @@ class MacOSIconGenerator extends IconGenerator {
       return false;
     }
 
-    if (macOSConfig.imagePath == null && context.config.imagePath == null) {
+    final resolvedImagePath = macOSConfig.imagePath ?? context.config.imagePath;
+    if (resolvedImagePath == null) {
       context.logger
         ..verbose({
           'flutter_launcher_icons.macos.image_path': macOSConfig.imagePath,
@@ -68,6 +69,12 @@ class MacOSIconGenerator extends IconGenerator {
           'Missing image_path. Either provide "flutter_launcher_icons.macos.image_path" or "flutter_launcher_icons.image_path"',
         );
 
+      return false;
+    }
+
+    final imageFullPath = path.join(context.prefixPath, resolvedImagePath);
+    if (!File(imageFullPath).existsSync()) {
+      context.logger.error('image_path "$imageFullPath" does not exist.');
       return false;
     }
 

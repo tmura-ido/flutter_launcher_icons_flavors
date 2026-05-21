@@ -293,7 +293,7 @@ class Config {
   @JsonKey(name: 'adaptive_icon_background')
   final String? adaptiveIconBackground;
 
-  /// android adaptive_icon_background image
+  /// android adaptive_icon_monochrome image
   @JsonKey(name: 'adaptive_icon_monochrome')
   final String? adaptiveIconMonochrome;
 
@@ -352,13 +352,13 @@ class Config {
 
   /// whether or not there is configuration for adaptive icons for android
   bool get hasAndroidAdaptiveConfig =>
-      isNeedingNewAndroidIcon &&
+      hasAndroidConfig &&
       adaptiveIconForeground != null &&
       adaptiveIconBackground != null;
 
   /// whether or not there is configuration for monochrome icons for android
   bool get hasAndroidAdaptiveMonochromeConfig {
-    return isNeedingNewAndroidIcon && adaptiveIconMonochrome != null;
+    return hasAndroidConfig && adaptiveIconMonochrome != null;
   }
 
   /// Checks if contains any platform config
@@ -400,18 +400,16 @@ class Config {
   bool get isCustomIOSFile => ios.isCustom;
 
   /// if we are needing a new Android icon
-  bool get isNeedingNewAndroidIcon => android.isEnabled;
+  bool get hasAndroidConfig => android.isEnabled;
 
   /// if we are needing a new iOS icon
-  bool get isNeedingNewIOSIcon => ios.isEnabled;
+  bool get hasIOSConfig => ios.isEnabled;
 
   /// Method for the retrieval of the Android icon path
   /// If image_path_android is found, this will be prioritised over the image_path
   /// value.
   String? getImagePathAndroid() => imagePathAndroid ?? imagePath;
 
-  // TODO(RatakondalaArun): refactor after Android & iOS configs will be refactored to the new schema
-  // https://github.com/fluttercommunity/flutter_launcher_icons/issues/394
   /// get the image path for IOS
   String? getImagePathIOS() => imagePathIOS ?? imagePath;
 

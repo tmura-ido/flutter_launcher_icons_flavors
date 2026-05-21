@@ -31,7 +31,7 @@ class WindowsIconGenerator extends IconGenerator {
     context.logger.verbose('Validating windows config...');
     final windowsConfig = context.windowsConfig;
     if (windowsConfig == null || !windowsConfig.generate) {
-      context.logger.error(
+      context.logger.verbose(
         'Windows config is not provided or windows.generate is false. Skipped...',
       );
       return false;

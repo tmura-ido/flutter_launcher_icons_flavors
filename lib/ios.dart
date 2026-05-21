@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter_launcher_icons_flavors/config/config.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart';
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
+import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/utils.dart';
 import 'package:image/image.dart' hide decodeImageFile;
 import 'package:path/path.dart' as path;
@@ -70,6 +71,7 @@ List<IosIconTemplate> iosIcons = <IosIconTemplate>[
 Future<void> createIcons(
   Config config,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
   final String? relativeFilePath = config.getImagePathIOS();
@@ -101,15 +103,16 @@ Future<void> createIcons(
   if (tintedFilePath != null) {
     tintedImage = await decodeImageFile(tintedFilePath);
     if (config.desaturateTintedToGrayscaleIOS) {
-      printStatus('Desaturating iOS tinted image to grayscale');
+      logger.info('Desaturating iOS tinted image to grayscale');
       tintedImage = grayscale(tintedImage);
     } else {
       // Check if the image is already grayscale
       final pixel = tintedImage.getPixel(0, 0);
       do {
         if (pixel.r != pixel.g || pixel.g != pixel.b) {
-          stdout.writeln(
-            '\nWARNING: Tinted iOS image is not grayscale.\nSet "desaturate_tinted_to_grayscale_ios: true" to desaturate it.\n',
+          logger.warn(
+            'Tinted iOS image is not grayscale. '
+            'Set "desaturate_tinted_to_grayscale_ios: true" to desaturate it.',
           );
           break;
         }
@@ -127,8 +130,9 @@ Future<void> createIcons(
     image = image.convert(numChannels: 3);
   }
   if (image.hasAlpha) {
-    stdout.writeln(
-      '\nWARNING: Icons with alpha channel are not allowed in the Apple App Store.\nSet "remove_alpha_ios: true" to remove it.\n',
+    logger.warn(
+      'Icons with alpha channel are not allowed in the Apple App Store. '
+      'Set "remove_alpha_ios: true" to remove it.',
     );
   }
   String iconName;
@@ -140,7 +144,7 @@ Future<void> createIcons(
   if (flavor != null) {
     final String catalogName = 'AppIcon-$flavor';
 
-    printStatus('Building iOS launcher icon for $flavor');
+    logger.info('Building iOS launcher icon for $flavor');
     for (IosIconTemplate template in generateIosIcons) {
       concurrentIconUpdates.add(
         saveNewIcons(
@@ -156,7 +160,7 @@ Future<void> createIcons(
 
     if (darkImage != null) {
       darkIconName = 'AppIcon-$flavor-Dark';
-      printStatus('Building iOS dark launcher icon for $flavor');
+      logger.info('Building iOS dark launcher icon for $flavor');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
           saveNewIcons(
@@ -171,7 +175,7 @@ Future<void> createIcons(
     }
     if (tintedImage != null) {
       tintedIconName = 'AppIcon-$flavor-Tinted';
-      printStatus('Building iOS tinted launcher icon for $flavor');
+      logger.info('Building iOS tinted launcher icon for $flavor');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
           saveNewIcons(
@@ -196,7 +200,7 @@ Future<void> createIcons(
     // If the IOS configuration is a string then the user has specified a new icon to be created
     // and for the old icon file to be kept
     final String newIconName = config.iosIconName;
-    printStatus('Adding new iOS launcher icon');
+    logger.info('Adding new iOS launcher icon');
     for (IosIconTemplate template in generateIosIcons) {
       concurrentIconUpdates.add(
         saveNewIcons(
@@ -210,7 +214,7 @@ Future<void> createIcons(
     }
     if (darkImage != null) {
       darkIconName = '$newIconName-Dark';
-      printStatus('Adding new iOS dark launcher icon');
+      logger.info('Adding new iOS dark launcher icon');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
           saveNewIcons(
@@ -225,7 +229,7 @@ Future<void> createIcons(
     }
     if (tintedImage != null) {
       tintedIconName = '$newIconName-Tinted';
-      printStatus('Adding new iOS tinted launcher icon');
+      logger.info('Adding new iOS tinted launcher icon');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
           saveNewIcons(
@@ -250,14 +254,14 @@ Future<void> createIcons(
   // Otherwise the user wants the new icon to use the default icons name and
   // update config file to use it
   else {
-    printStatus('Overwriting default iOS launcher icon with new icon');
+    logger.info('Overwriting default iOS launcher icon with new icon');
     for (IosIconTemplate template in generateIosIcons) {
       concurrentIconUpdates.add(
         overwriteDefaultIcons(template, image, '', prefixPath),
       );
     }
     if (darkImage != null) {
-      printStatus('Overwriting default iOS dark launcher icon with new icon');
+      logger.info('Overwriting default iOS dark launcher icon with new icon');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
           overwriteDefaultIcons(template, darkImage, '-Dark', prefixPath),
@@ -266,7 +270,7 @@ Future<void> createIcons(
       darkIconName = '$iosDefaultIconName-Dark';
     }
     if (tintedImage != null) {
-      printStatus('Overwriting default iOS tinted launcher icon with new icon');
+      logger.info('Overwriting default iOS tinted launcher icon with new icon');
       for (IosIconTemplate template in generateIosIcons) {
         concurrentIconUpdates.add(
           overwriteDefaultIcons(template, tintedImage, '-Tinted', prefixPath),
@@ -763,8 +767,10 @@ ColorUint8 _getBackgroundColor(Config config) {
   final backgroundColorHex = config.backgroundColorIOS.startsWith('#')
       ? config.backgroundColorIOS.substring(1)
       : config.backgroundColorIOS;
-  if (backgroundColorHex.length != 6) {
-    throw Exception('background_color_ios hex should be 6 characters long');
+  if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(backgroundColorHex)) {
+    throw InvalidConfigException(
+      'background_color_ios must be 6 hex digits (e.g. "FFFFFF"), got "${config.backgroundColorIOS}"',
+    );
   }
 
   final backgroundByte = int.parse(backgroundColorHex, radix: 16);

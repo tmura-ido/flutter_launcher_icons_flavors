@@ -58,10 +58,7 @@ class NoDecoderForImageFormatException implements Exception {
 
 /// Exception thrown when both new (`flutter_launcher_icons_flavors.yaml`)
 /// and legacy (`flutter_launcher_icons-<flavor>.yaml`) config sources
-/// coexist and the user has opted into strict mode.
-///
-/// **Phase 3 status:** defined but never thrown — Phase 4 wires it up via
-/// the `--strict` flag. Today coexistence emits a warning only.
+/// coexist and the user has opted into strict mode (`--strict`).
 class MixedConfigSourcesException implements Exception {
   /// Creates a new [MixedConfigSourcesException].
   const MixedConfigSourcesException(this.ignoredLegacy);
@@ -142,19 +139,5 @@ class InvalidFlavorsFileException implements Exception {
       buf.write(' [at: $keyPath]');
     }
     return generateError(this, buf.toString());
-  }
-}
-
-/// A exception to throw when given [fileName] is not found
-class FileNotFoundException implements Exception {
-  /// Creates a instance of [FileNotFoundException].
-  const FileNotFoundException(this.fileName);
-
-  /// Name of the file
-  final String fileName;
-
-  @override
-  String toString() {
-    return generateError(this, '$fileName file not found');
   }
 }

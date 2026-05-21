@@ -39,9 +39,10 @@ const List<AndroidIconTemplate> androidIcons = <AndroidIconTemplate>[
 Future<void> createDefaultIcons(
   Config config,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
-  utils.printStatus('Creating default icons Android');
+  logger.info('Creating default icons Android');
   final String? relativeImagePath = config.getImagePathAndroid();
   if (relativeImagePath == null) {
     throw const InvalidConfigException(constants.errorMissingImagePath);
@@ -53,7 +54,7 @@ Future<void> createDefaultIcons(
   );
   final concurrentIconUpdates = <Future<void>>[];
   if (config.isCustomAndroidFile) {
-    utils.printStatus('Adding a new Android launcher icon');
+    logger.info('Adding a new Android launcher icon');
     final String iconName = config.androidIconName;
     isAndroidIconNameCorrectFormat(iconName);
     final String iconPath = '$iconName.png';
@@ -67,7 +68,7 @@ Future<void> createDefaultIcons(
       androidManifestFile,
     );
   } else {
-    utils.printStatus(
+    logger.info(
       'Overwriting the default Android launcher icon with a new icon',
     );
     for (AndroidIconTemplate template in androidIcons) {
@@ -103,9 +104,10 @@ bool isAndroidIconNameCorrectFormat(String iconName) {
 Future<void> createAdaptiveIcons(
   Config config,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
-  utils.printStatus('Creating adaptive icons Android');
+  logger.info('Creating adaptive icons Android');
 
   // Retrieve the necessary Flutter Launcher Icons configuration from the pubspec.yaml file
   final String? backgroundConfig = config.adaptiveIconBackground;
@@ -142,7 +144,12 @@ Future<void> createAdaptiveIcons(
       ),
     );
   } else {
-    await updateColorsXmlFile(backgroundConfig, flavor, prefixPath: prefixPath);
+    await updateColorsXmlFile(
+      backgroundConfig,
+      flavor,
+      logger: logger,
+      prefixPath: prefixPath,
+    );
   }
   await Future.wait(concurrentImageUpdates);
 }
@@ -150,9 +157,10 @@ Future<void> createAdaptiveIcons(
 Future<void> createAdaptiveMonochromeIcons(
   Config config,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
-  utils.printStatus('Creating adaptive monochrome icons Android');
+  logger.info('Creating adaptive monochrome icons Android');
 
   // Retrieve the necessary Flutter Launcher Icons configuration from the pubspec.yaml file
   final String? monochromeImagePath = config.adaptiveIconMonochrome;
@@ -182,6 +190,7 @@ Future<void> createAdaptiveMonochromeIcons(
 Future<void> createMipmapXmlFile(
   Config config,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
   // Note: Adaptive Icons will only be used when both
@@ -193,7 +202,7 @@ Future<void> createMipmapXmlFile(
     return;
   }
 
-  utils.printStatus('Creating mipmap xml file Android');
+  logger.info('Creating mipmap xml file Android');
 
   String xmlContent = '';
 
@@ -254,6 +263,7 @@ Future<void> createMipmapXmlFile(
 Future<void> updateColorsXmlFile(
   String backgroundConfig,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
   final File colorsXml = File(
@@ -263,13 +273,13 @@ Future<void> updateColorsXmlFile(
   // whether to update or create the file. Async I/O is reserved for the
   // image read/encode/write hot paths.
   if (colorsXml.existsSync()) {
-    utils.printStatus(
+    logger.info(
       'Updating colors.xml with color for adaptive icon background',
     );
     await updateColorsFile(colorsXml, backgroundConfig);
   } else {
-    utils.printStatus('No colors.xml file found in your Android project');
-    utils.printStatus(
+    logger.info('No colors.xml file found in your Android project');
+    logger.info(
       'Creating colors.xml file and adding it to your Android project',
     );
     await createNewColorsFile(backgroundConfig, flavor, prefixPath: prefixPath);
@@ -400,6 +410,7 @@ Future<void> _saveNewImages(
 Future<void> copyXxxhdpiMipmapToDrawable(
   Config config,
   String? flavor, {
+  required FLILogger logger,
   String prefixPath = '.',
 }) async {
   final String iconBaseName = config.isCustomAndroidFile
@@ -412,7 +423,7 @@ Future<void> copyXxxhdpiMipmapToDrawable(
     path.join(prefixPath, resFolder, 'mipmap-xxxhdpi', fileName),
   );
   if (!source.existsSync()) {
-    utils.printStatus(
+    logger.info(
       'Skipping copy_mipmap_xxxhdpi_to_drawable: source $fileName not found '
       'in mipmap-xxxhdpi (was Android icon generation enabled?)',
     );
@@ -428,7 +439,7 @@ Future<void> copyXxxhdpiMipmapToDrawable(
   final File dest = File(destPath);
   await dest.parent.create(recursive: true);
   await source.copy(destPath);
-  utils.printStatus('Copied mipmap-xxxhdpi/$fileName -> drawable/$fileName');
+  logger.info('Copied mipmap-xxxhdpi/$fileName -> drawable/$fileName');
 }
 
 /// Updates the line which specifies the launcher icon within the AndroidManifest.xml

@@ -219,11 +219,13 @@ flavors:
       expect(code, 0);
     });
 
-    test('multi-flavor consolidated, neither flag → builds all (new default)', () async {
-      final dir = await _makeWebSandbox('multi');
-      await File(
-        p.join(dir, 'flutter_launcher_icons_flavors.yaml'),
-      ).writeAsString('''
+    test(
+      'multi-flavor consolidated, neither flag → builds all (new default)',
+      () async {
+        final dir = await _makeWebSandbox('multi');
+        await File(
+          p.join(dir, 'flutter_launcher_icons_flavors.yaml'),
+        ).writeAsString('''
 version: 1
 defaults:
   web:
@@ -235,13 +237,14 @@ flavors:
   dev: {}
   prod: {}
 ''');
-      final code = await buildCommandRunner().run([
-        'generate',
-        '--prefix',
-        dir,
-      ]);
-      expect(code, 0);
-    });
+        final code = await buildCommandRunner().run([
+          'generate',
+          '--prefix',
+          dir,
+        ]);
+        expect(code, 0);
+      },
+    );
 
     test(
       'single-flavor consolidated, neither flag → builds it (ergonomic)',

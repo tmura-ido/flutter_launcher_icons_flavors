@@ -232,9 +232,13 @@ class GenerateCommand extends Command<int> {
 
     // --strict: escalate the coexistence warning to a hard error.
     if (strict && resolved.ignoredLegacy.isNotEmpty) {
-      logger.error('Could not generate launcher icons');
-      logger.error('${MixedConfigSourcesException(resolved.ignoredLegacy)}');
-      return 65;
+      try {
+        throw MixedConfigSourcesException(resolved.ignoredLegacy);
+      } on MixedConfigSourcesException catch (e) {
+        logger.error('Could not generate launcher icons');
+        logger.error('$e');
+        return 65;
+      }
     }
 
     // Compute the selected flavor set.
@@ -552,9 +556,7 @@ class _FlavorGapDetector {
     final gaps = <_FlavorPlatformGap>[];
 
     if (config.android.isEnabled) {
-      final folder = Directory(
-        p.join(prefix, 'android', 'app', 'src', flavor),
-      );
+      final folder = Directory(p.join(prefix, 'android', 'app', 'src', flavor));
       if (!folder.existsSync()) {
         gaps.add(
           _FlavorPlatformGap(
@@ -693,8 +695,6 @@ void _emitGapWarnings(List<_FlavorPlatformGap> gaps, FLILogger logger) {
     return;
   }
   for (final gap in gaps) {
-    logger.warn(
-      'Flavor "${gap.flavor}" (${gap.platform}): ${gap.detail}.',
-    );
+    logger.warn('Flavor "${gap.flavor}" (${gap.platform}): ${gap.detail}.');
   }
 }

@@ -82,6 +82,14 @@ class MockConfig extends _i1.Mock implements _i5.Config {
           as int);
 
   @override
+  bool get copyMipmapXxxhdpiToDrawable =>
+      (super.noSuchMethod(
+            Invocation.getter(#copyMipmapXxxhdpiToDrawable),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
   bool get removeAlphaIOS =>
       (super.noSuchMethod(
             Invocation.getter(#removeAlphaIOS),
@@ -192,19 +200,16 @@ class MockConfig extends _i1.Mock implements _i5.Config {
           as bool);
 
   @override
-  bool get isNeedingNewAndroidIcon =>
+  bool get hasAndroidConfig =>
       (super.noSuchMethod(
-            Invocation.getter(#isNeedingNewAndroidIcon),
+            Invocation.getter(#hasAndroidConfig),
             returnValue: false,
           )
           as bool);
 
   @override
-  bool get isNeedingNewIOSIcon =>
-      (super.noSuchMethod(
-            Invocation.getter(#isNeedingNewIOSIcon),
-            returnValue: false,
-          )
+  bool get hasIOSConfig =>
+      (super.noSuchMethod(Invocation.getter(#hasIOSConfig), returnValue: false)
           as bool);
 
   @override

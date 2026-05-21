@@ -37,6 +37,6 @@ Map<String, dynamic> _$ConfigToJson(Config instance) => <String, dynamic>{
   'androidIconName': instance.androidIconName,
   'iosIconName': instance.iosIconName,
   'isCustomIOSFile': instance.isCustomIOSFile,
-  'isNeedingNewAndroidIcon': instance.isNeedingNewAndroidIcon,
-  'isNeedingNewIOSIcon': instance.isNeedingNewIOSIcon,
+  'hasAndroidConfig': instance.hasAndroidConfig,
+  'hasIOSConfig': instance.hasIOSConfig,
 };

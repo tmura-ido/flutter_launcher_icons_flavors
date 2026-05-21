@@ -208,7 +208,7 @@ flutter_launcher_icons:
       'ios': true,
     };
     final config = Config.fromJson(flutterIconsConfig);
-    expect(config.isNeedingNewAndroidIcon, isFalse);
+    expect(config.hasAndroidConfig, isFalse);
   });
 
   test('No new Android icon needed - no Android config', () {
@@ -217,7 +217,7 @@ flutter_launcher_icons:
       'ios': true,
     };
     final config = Config.fromJson(flutterIconsConfig);
-    expect(config.isNeedingNewAndroidIcon, isFalse);
+    expect(config.hasAndroidConfig, isFalse);
   });
 
   test('No new iOS icon needed - ios: false', () {
@@ -227,7 +227,7 @@ flutter_launcher_icons:
       'ios': false,
     };
     final config = Config.fromJson(flutterIconsConfig);
-    expect(config.isNeedingNewIOSIcon, isFalse);
+    expect(config.hasIOSConfig, isFalse);
   });
 
   test('No new iOS icon needed - no iOS config', () {
@@ -236,6 +236,6 @@ flutter_launcher_icons:
       'android': true,
     };
     final config = Config.fromJson(flutterIconsConfig);
-    expect(config.isNeedingNewIOSIcon, isFalse);
+    expect(config.hasIOSConfig, isFalse);
   });
 }

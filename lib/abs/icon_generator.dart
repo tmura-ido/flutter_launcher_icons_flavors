@@ -84,7 +84,6 @@ Future<void> generateIconsFor({
       ),
     );
     if (platformList.isEmpty) {
-      // ? maybe we can print help
       logger.info('No platform provided');
     }
 
@@ -115,11 +114,9 @@ Future<void> generateIconsFor({
       }
     }
   } catch (e, st) {
-    // TODO(RatakondalaArun): better error handling
-    // stacktrace should only print when verbose is turned on
-    // else a normal help line
     logger
       ..error(e.toString())
+      ..error('Run with -v for the full stack trace.')
       ..verbose(st);
     exit(1);
   }

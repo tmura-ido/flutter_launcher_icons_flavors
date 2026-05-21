@@ -155,7 +155,21 @@ class DoctorCommand extends Command<int> {
     // 7. Android Gradle detection.
     await _reportGradle(prefix);
 
-    // 8. Deprecated key usage.
+    // 8. Image-path existence per resolved flavor (read-only check).
+    if (resolved != null) {
+      _reportImagePaths(resolved: resolved, prefix: prefix, logger: logger);
+    }
+
+    // 9. Web index.html FLI marker check.
+    if (resolved != null) {
+      _reportWebIndexMarkers(
+        resolved: resolved,
+        prefix: prefix,
+        logger: logger,
+      );
+    }
+
+    // 10. Deprecated key usage.
     if (pubspecHas == _PubspecInline.flutterIcons) {
       deprecationDetected = true;
       stdout.writeln('Deprecated keys:');
@@ -291,8 +305,9 @@ class DoctorCommand extends Command<int> {
         }
         break;
       case ConfigSourceKind.legacyFlavors:
-        final names = findLegacyFlavorFiles(prefix).map((e) => e.flavor).toList()
-          ..sort();
+        final names = findLegacyFlavorFiles(
+          prefix,
+        ).map((e) => e.flavor).toList()..sort();
         for (final n in names) {
           stdout.writeln('  - $n');
         }
@@ -355,6 +370,153 @@ class DoctorCommand extends Command<int> {
       }
     }
     stdout.writeln('');
+  }
+
+  /// Reports missing image_path / image_path_android / image_path_ios /
+  /// web.image_path / windows.image_path / macos.image_path for each
+  /// resolved flavor. Pure read; warnings only.
+  void _reportImagePaths({
+    required ResolvedSource resolved,
+    required String prefix,
+    required FLILogger logger,
+  }) {
+    stdout.writeln('Image paths:');
+    final pairs = <List<String>>[];
+    try {
+      switch (resolved.kind) {
+        case ConfigSourceKind.consolidatedFlavors:
+        case ConfigSourceKind.explicitFile:
+          if (resolved.path == null) {
+            stdout.writeln('  (no config path)');
+            stdout.writeln('');
+            return;
+          }
+          final cfg = FlavorsConfig.load(resolved.path!, logger: logger);
+          if (cfg == null) {
+            stdout.writeln('  (file disappeared)');
+            stdout.writeln('');
+            return;
+          }
+          for (final name in cfg.flavorNames) {
+            final c = cfg.resolve(name);
+            _collectImagePathsFromConfig(name, c, pairs);
+          }
+          break;
+        case ConfigSourceKind.legacyFlavors:
+        case ConfigSourceKind.singleFile:
+        case ConfigSourceKind.pubspecInline:
+          stdout.writeln(
+            '  (image-path checks limited to consolidated config sources)',
+          );
+          stdout.writeln('');
+          return;
+      }
+    } on Exception catch (e) {
+      stdout.writeln('  ✕ failed to enumerate image paths: $e');
+      stdout.writeln('');
+      return;
+    }
+
+    if (pairs.isEmpty) {
+      stdout.writeln('  (no image paths configured)');
+      stdout.writeln('');
+      return;
+    }
+
+    for (final pair in pairs) {
+      final label = pair[0];
+      final rel = pair[1];
+      final full = p.join(prefix, rel);
+      if (File(full).existsSync()) {
+        stdout.writeln('  ✓ $label: $rel');
+      } else {
+        stdout.writeln('  ⚠ $label: $rel — file not found at $full');
+      }
+    }
+    stdout.writeln('');
+  }
+
+  void _collectImagePathsFromConfig(
+    String flavor,
+    dynamic c,
+    List<List<String>> out,
+  ) {
+    void add(String key, String? value) {
+      if (value != null && value.isNotEmpty) {
+        out.add(['$flavor.$key', value]);
+      }
+    }
+
+    add('image_path', c.imagePath as String?);
+    add('image_path_android', c.imagePathAndroid as String?);
+    add('image_path_ios', c.imagePathIOS as String?);
+    add('adaptive_icon_foreground', c.adaptiveIconForeground as String?);
+    add('adaptive_icon_background', c.adaptiveIconBackground as String?);
+    add('adaptive_icon_monochrome', c.adaptiveIconMonochrome as String?);
+    add('web.image_path', c.webConfig?.imagePath as String?);
+    add('windows.image_path', c.windowsConfig?.imagePath as String?);
+    add('macos.image_path', c.macOSConfig?.imagePath as String?);
+  }
+
+  /// Warns when a Web config is declared but `web/index.html` lacks the
+  /// `<!--FLI-->` marker block that `generate` populates.
+  void _reportWebIndexMarkers({
+    required ResolvedSource resolved,
+    required String prefix,
+    required FLILogger logger,
+  }) {
+    bool anyWebConfig;
+    try {
+      anyWebConfig = _resolvedHasWebConfig(resolved, logger);
+    } on Exception {
+      return;
+    }
+    if (!anyWebConfig) {
+      return;
+    }
+    stdout.writeln('Web index.html:');
+    final indexPath = p.join(prefix, constants.webIndexFilePath);
+    final indexFile = File(indexPath);
+    if (!indexFile.existsSync()) {
+      stdout.writeln('  ⚠ $indexPath not found (web target enabled).');
+      stdout.writeln('');
+      return;
+    }
+    final contents = indexFile.readAsStringSync();
+    if (contents.contains('<!--FLI-->')) {
+      stdout.writeln('  ✓ FLI meta-tag markers present in $indexPath');
+    } else {
+      stdout.writeln(
+        '  ⚠ $indexPath has no <!--FLI--> markers. '
+        'Run `generate` to inject the PWA meta tags, '
+        'or add them manually.',
+      );
+    }
+    stdout.writeln('');
+  }
+
+  bool _resolvedHasWebConfig(ResolvedSource resolved, FLILogger logger) {
+    switch (resolved.kind) {
+      case ConfigSourceKind.consolidatedFlavors:
+      case ConfigSourceKind.explicitFile:
+        if (resolved.path == null) {
+          return false;
+        }
+        final cfg = FlavorsConfig.load(resolved.path!, logger: logger);
+        if (cfg == null) {
+          return false;
+        }
+        for (final name in cfg.flavorNames) {
+          if (cfg.resolve(name).hasWebConfig) {
+            return true;
+          }
+        }
+        return false;
+      case ConfigSourceKind.legacyFlavors:
+      case ConfigSourceKind.singleFile:
+      case ConfigSourceKind.pubspecInline:
+        return false;
+    }
   }
 }
 

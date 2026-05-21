@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dart analyze *)"
+      "Bash(dart analyze *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\GitHub\\\\flutter_launcher_icons_flavors\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(ConvertTo-Csv -NoTypeInformation)",
+      "Bash(Out-String)",
+      "Bash(grep -E \"\\(lib|bin|test\\)$\")",
+      "Bash(dart format *)",
+      "Bash(rtk read *)"
     ]
   }
 }

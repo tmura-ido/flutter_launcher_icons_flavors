@@ -32,26 +32,34 @@ class MinSdkPattern {
   final bool recurseToFlutter;
 }
 
+// Trailing-comment suffix accepted by every literal-int pattern below.
+// Allows an optional `//` line comment after the matched value so configs
+// like `minSdkVersion 26 // bumped for X` still resolve.
+const String _trailing = r'\s*(?://[^\n]*)?$';
+
 /// Patterns for Groovy `build.gradle` files.
 final List<MinSdkPattern> groovyMinSdkPatterns = <MinSdkPattern>[
   MinSdkPattern(
-    RegExp(r'^\s*minSdkVersion\s+(\d+)\s*$', multiLine: true),
+    RegExp('^\\s*minSdkVersion\\s+(\\d+)$_trailing', multiLine: true),
     'minSdkVersion N (Groovy)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdkVersion\s*=\s*(\d+)\s*$', multiLine: true),
+    RegExp('^\\s*minSdkVersion\\s*=\\s*(\\d+)$_trailing', multiLine: true),
     'minSdkVersion = N (Groovy)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdk\s+(\d+)\s*$', multiLine: true),
+    RegExp('^\\s*minSdk\\s+(\\d+)$_trailing', multiLine: true),
     'minSdk N (Groovy)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdk\s*=\s*(\d+)\s*$', multiLine: true),
+    RegExp('^\\s*minSdk\\s*=\\s*(\\d+)$_trailing', multiLine: true),
     'minSdk = N (Groovy)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdkVersion\s+flutter\.minSdkVersion\s*$', multiLine: true),
+    RegExp(
+      '^\\s*minSdkVersion\\s+flutter\\.minSdkVersion$_trailing',
+      multiLine: true,
+    ),
     'minSdkVersion flutter.minSdkVersion (Groovy, indirect)',
     recurseToFlutter: true,
   ),
@@ -60,19 +68,22 @@ final List<MinSdkPattern> groovyMinSdkPatterns = <MinSdkPattern>[
 /// Patterns for Kotlin DSL `build.gradle.kts` files.
 final List<MinSdkPattern> ktsMinSdkPatterns = <MinSdkPattern>[
   MinSdkPattern(
-    RegExp(r'^\s*minSdk\s*=\s*(\d+)\s*$', multiLine: true),
+    RegExp('^\\s*minSdk\\s*=\\s*(\\d+)$_trailing', multiLine: true),
     'minSdk = N (KTS)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdkVersion\s*=\s*(\d+)\s*$', multiLine: true),
+    RegExp('^\\s*minSdkVersion\\s*=\\s*(\\d+)$_trailing', multiLine: true),
     'minSdkVersion = N (KTS)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdk\(\s*(\d+)\s*\)\s*$', multiLine: true),
+    RegExp(r'^\s*minSdk\(\s*(\d+)\s*\)\s*(?://[^\n]*)?$', multiLine: true),
     'minSdk(N) (KTS DSL call)',
   ),
   MinSdkPattern(
-    RegExp(r'^\s*minSdk\s*=\s*flutter\.minSdkVersion\s*$', multiLine: true),
+    RegExp(
+      '^\\s*minSdk\\s*=\\s*flutter\\.minSdkVersion$_trailing',
+      multiLine: true,
+    ),
     'minSdk = flutter.minSdkVersion (KTS, indirect)',
     recurseToFlutter: true,
   ),

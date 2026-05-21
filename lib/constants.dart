@@ -80,7 +80,7 @@ const String webIconsDirPath = 'web/icons';
 
 /// Relative web manifest.json file path
 const String webManifestFilePath = 'web/manifest.json';
-// TODO(RatakondalaArun): support for other images formats
+
 /// Relative favicon.png path
 const String webFaviconFilePath = 'web/favicon.png';
 
