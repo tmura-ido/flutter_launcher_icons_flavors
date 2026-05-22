@@ -60,6 +60,40 @@ class MockConfig extends _i1.Mock implements _i6.Config {
   }
 
   @override
+  bool get iosLegacySizes =>
+      (super.noSuchMethod(
+            Invocation.getter(#iosLegacySizes),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get iosSingleSize =>
+      (super.noSuchMethod(Invocation.getter(#iosSingleSize), returnValue: false)
+          as bool);
+
+  @override
+  bool get optimizePng =>
+      (super.noSuchMethod(Invocation.getter(#optimizePng), returnValue: false)
+          as bool);
+
+  @override
+  bool get iosDisableLiquidGlass =>
+      (super.noSuchMethod(
+            Invocation.getter(#iosDisableLiquidGlass),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get nonSquareImageOk =>
+      (super.noSuchMethod(
+            Invocation.getter(#nonSquareImageOk),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
   _i2.PlatformToggle get android =>
       (super.noSuchMethod(
             Invocation.getter(#android),

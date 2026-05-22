@@ -39,6 +39,7 @@ class PartialConfig {
     this.copyMipmapXxxhdpiToDrawable,
     this.removeAlphaIOS,
     this.desaturateTintedToGrayscaleIOS,
+    this.backgroundColor,
     this.backgroundColorIOS,
     this.webConfig,
     this.windowsConfig,
@@ -163,7 +164,18 @@ class PartialConfig {
   @JsonKey(name: 'desaturate_tinted_to_grayscale_ios')
   final bool? desaturateTintedToGrayscaleIOS;
 
-  /// IOS background_color_ios
+  /// Top-level hex background color used as the default for every platform's
+  /// letter-box bars (upstream #214) and as the fallback for
+  /// [backgroundColorIOS] and `web.background_color` when those aren't set
+  /// explicitly. Accepted formats: `#RRGGBB` / `#RRGGBBAA`. Unset (null) →
+  /// platform-specific defaults are kept; the Android non-adaptive mipmap
+  /// path stays on legacy squish.
+  @JsonKey(name: 'background_color')
+  final String? backgroundColor;
+
+  /// IOS background_color_ios — when set, wins over [backgroundColor] for
+  /// the iOS pipeline. When unset, falls back to [backgroundColor], then
+  /// `#FFFFFF`.
   @JsonKey(name: 'background_color_ios')
   final String? backgroundColorIOS;
 

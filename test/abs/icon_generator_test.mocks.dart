@@ -55,6 +55,40 @@ class MockConfig extends _i1.Mock implements _i5.Config {
   }
 
   @override
+  bool get iosLegacySizes =>
+      (super.noSuchMethod(
+            Invocation.getter(#iosLegacySizes),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get iosSingleSize =>
+      (super.noSuchMethod(Invocation.getter(#iosSingleSize), returnValue: false)
+          as bool);
+
+  @override
+  bool get optimizePng =>
+      (super.noSuchMethod(Invocation.getter(#optimizePng), returnValue: false)
+          as bool);
+
+  @override
+  bool get iosDisableLiquidGlass =>
+      (super.noSuchMethod(
+            Invocation.getter(#iosDisableLiquidGlass),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get nonSquareImageOk =>
+      (super.noSuchMethod(
+            Invocation.getter(#nonSquareImageOk),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
   _i2.PlatformToggle get android =>
       (super.noSuchMethod(
             Invocation.getter(#android),
@@ -263,6 +297,11 @@ class MockIconGenerator extends _i1.Mock implements _i4.IconGenerator {
           as String);
 
   @override
+  bool get isOptedIn =>
+      (super.noSuchMethod(Invocation.getter(#isOptedIn), returnValue: false)
+          as bool);
+
+  @override
   _i7.Future<void> createIcons() =>
       (super.noSuchMethod(
             Invocation.method(#createIcons, []),
@@ -275,14 +314,6 @@ class MockIconGenerator extends _i1.Mock implements _i4.IconGenerator {
   bool validateRequirements() =>
       (super.noSuchMethod(
             Invocation.method(#validateRequirements, []),
-            returnValue: false,
-          )
-          as bool);
-
-  @override
-  bool get isOptedIn =>
-      (super.noSuchMethod(
-            Invocation.getter(#isOptedIn),
             returnValue: false,
           )
           as bool);

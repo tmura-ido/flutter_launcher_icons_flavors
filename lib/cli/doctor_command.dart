@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:flutter_launcher_icons_flavors/android.dart' as android;
+import 'package:flutter_launcher_icons_flavors/cli/command_runner.dart'
+    show rejectUnknownArgs;
 import 'package:flutter_launcher_icons_flavors/config/flavors_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/legacy_discovery.dart';
 import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
@@ -9,7 +11,6 @@ import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/src/version.dart';
-import 'package:flutter_launcher_icons_flavors/utils/schema_injector.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
@@ -42,13 +43,6 @@ class DoctorCommand extends Command<int> {
             'Treat deprecation warnings (e.g. legacy `flutter_icons:` '
             'pubspec key) as fatal (exit 65).',
         negatable: false,
-      )
-      ..addFlag(
-        'no-inject-schema',
-        help:
-            'Skip prepending the `# yaml-language-server: \$schema=...` '
-            'directive to discovered config files.',
-        negatable: false,
       );
   }
 
@@ -65,8 +59,13 @@ class DoctorCommand extends Command<int> {
     final prefix = results['prefix'] as String;
     final verbose = results['verbose'] as bool;
     final strict = results['strict'] as bool;
-    final noInjectSchema = results['no-inject-schema'] as bool;
     final logger = FLILogger(verbose);
+
+    // Reject stray positional args before doing anything else.
+    final rejectCode = rejectUnknownArgs(results, logger);
+    if (rejectCode != null) {
+      return rejectCode;
+    }
 
     var problemDetected = false;
     var deprecationDetected = false;
@@ -91,9 +90,6 @@ class DoctorCommand extends Command<int> {
     final pubspecPath = p.join(prefix, constants.pubspecFilePath);
     final legacyPaths = _findLegacyFiles(prefix);
 
-    stdout.writeln(
-      '  --file:                              [absent] (doctor takes no --file)',
-    );
     _writeFoundLine(consolidatedPath, 'flutter_launcher_icons_flavors.yaml');
     if (legacyPaths.isEmpty) {
       stdout.writeln('  flutter_launcher_icons-<flavor>.yaml: [absent]');
@@ -131,23 +127,6 @@ class DoctorCommand extends Command<int> {
     }
 
     if (resolved != null) {
-      // Inject the YAML-language-server schema directive into every
-      // config file the resolver found. Idempotent, pubspec-safe.
-      if (!noInjectSchema) {
-        final paths = <String>{
-          if (resolved.path != null) resolved.path!,
-          ...resolved.ignoredLegacy,
-          ...legacyPaths,
-        };
-        for (final path in paths) {
-          try {
-            await ensureSchemaDirective(path, logger: logger);
-          } on Exception catch (e) {
-            logger.verbose('Schema injection skipped for $path: $e');
-          }
-        }
-      }
-
       stdout.writeln('Precedence winner: ${_kindLabel(resolved.kind)}');
       if (resolved.path != null) {
         stdout.writeln('  path: ${resolved.path}');

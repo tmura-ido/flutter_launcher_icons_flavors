@@ -2,38 +2,37 @@ import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
 import 'package:image/image.dart';
 import 'package:test/test.dart';
 
-/// Behavior / bug-doc test for upstream issue #214.
-/// See: issues/issue-214-non-square-images-squished.md
+/// Behavior test for upstream issue #214.
 ///
-/// Today `createResizedImage` always produces an N×N image regardless of
-/// the source aspect ratio, which visibly squishes non-square sources.
-/// The desired behavior is either to (a) reject non-square inputs in
-/// `--strict` mode, or (b) letter-box the source to a square canvas
-/// before resizing. Either way the result should preserve the original
-/// aspect ratio of the visible content.
+/// `createResizedImage` letter-boxes non-square sources when given a
+/// background color, preserving aspect ratio instead of squishing. Without
+/// a background color the legacy squish behavior is kept for backwards
+/// compatibility.
 void main() {
   group('issue #214: non-square sources should not be squished', () {
     test(
-      'createResizedImage on a 710x599 source preserves aspect ratio',
+      'createResizedImage on a 710x599 source preserves aspect ratio '
+      'when a background color is supplied',
       () {
-        // A red 710x599 source. After resizing to 100x100, the resulting
-        // pixels should not be a uniform red square — they should be
-        // letter-boxed (transparent/background bars top+bottom or
-        // left+right) so that the original aspect ratio is preserved.
+        // A red 710x599 source. After resizing to 100x100 with a white
+        // background, the result should be letter-boxed: red pixels in the
+        // centered horizontal band and white bars on the short axis (top
+        // and bottom).
         final src = Image(width: 710, height: 599);
         for (final p in src) {
           p.setRgba(255, 0, 0, 255);
         }
 
-        final resized = utils.createResizedImage(100, src);
+        final resized = utils.createResizedImage(
+          100,
+          src,
+          backgroundColor: ColorUint8.rgba(255, 255, 255, 255),
+        );
         expect(resized.width, equals(100));
         expect(resized.height, equals(100));
 
-        // Letter-boxing implies the top or bottom rows contain pixels
-        // that are NOT the original red — they are transparent or the
-        // configured background color. A correctly letter-boxed image
-        // will therefore have at least one non-red pixel along the very
-        // top row.
+        // Letter-boxing means the top row should NOT be uniformly red —
+        // it should contain the background color (or be transparent).
         bool topRowAllRed = true;
         for (var x = 0; x < resized.width; x++) {
           final p = resized.getPixel(x, 0);
@@ -48,7 +47,28 @@ void main() {
           reason: 'a letter-boxed resize should leave bars on the short axis',
         );
       },
-      skip: 'bug — see issue-214, will fail until letter-boxing lands',
+    );
+
+    test(
+      'createResizedImage without backgroundColor keeps legacy squish behavior',
+      () {
+        // No background color → no letter-boxing → the entire 100×100
+        // output is red (the source color), preserving the existing
+        // default for callers that have not opted in.
+        final src = Image(width: 710, height: 599);
+        for (final p in src) {
+          p.setRgba(255, 0, 0, 255);
+        }
+
+        final resized = utils.createResizedImage(100, src);
+        expect(resized.width, equals(100));
+        expect(resized.height, equals(100));
+
+        final p = resized.getPixel(0, 0);
+        expect(p.r, 255);
+        expect(p.g, 0);
+        expect(p.b, 0);
+      },
     );
   });
 }

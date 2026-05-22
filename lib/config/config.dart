@@ -56,6 +56,7 @@ class Config {
     this.copyMipmapXxxhdpiToDrawable = defaultCopyMipmapXxxhdpiToDrawable,
     this.removeAlphaIOS = defaultRemoveAlphaIOS,
     this.desaturateTintedToGrayscaleIOS = defaultDesaturateTintedToGrayscaleIOS,
+    this.backgroundColor,
     this.backgroundColorIOS = defaultBackgroundColorIOS,
     this.webConfig,
     this.windowsConfig,
@@ -250,8 +251,11 @@ class Config {
       desaturateTintedToGrayscaleIOS:
           partial.desaturateTintedToGrayscaleIOS ??
           defaultDesaturateTintedToGrayscaleIOS,
+      backgroundColor: partial.backgroundColor,
       backgroundColorIOS:
-          partial.backgroundColorIOS ?? defaultBackgroundColorIOS,
+          partial.backgroundColorIOS ??
+          partial.backgroundColor ??
+          defaultBackgroundColorIOS,
       webConfig: partial.webConfig,
       windowsConfig: partial.windowsConfig,
       macOSConfig: partial.macOSConfig,
@@ -286,6 +290,7 @@ class Config {
       copyMipmapXxxhdpiToDrawable: copyMipmapXxxhdpiToDrawable,
       removeAlphaIOS: removeAlphaIOS,
       desaturateTintedToGrayscaleIOS: desaturateTintedToGrayscaleIOS,
+      backgroundColor: backgroundColor,
       backgroundColorIOS: backgroundColorIOS,
       webConfig: webConfig,
       windowsConfig: windowsConfig,
@@ -435,7 +440,18 @@ class Config {
   @JsonKey(name: 'desaturate_tinted_to_grayscale_ios')
   final bool desaturateTintedToGrayscaleIOS;
 
-  /// IOS background_color_ios
+  /// Generic hex background color used as the default for every platform's
+  /// letter-box bars (upstream #214). Falls through to [backgroundColorIOS]
+  /// and `web.background_color` when those aren't set explicitly; also
+  /// enables letter-boxing for the Android non-adaptive mipmap path
+  /// (which has no platform-specific background color of its own).
+  /// Accepts `#RRGGBB` / `#RRGGBBAA`. Null → keep legacy squish where no
+  /// platform-specific fallback exists.
+  @JsonKey(name: 'background_color')
+  final String? backgroundColor;
+
+  /// IOS background_color_ios. Explicit value wins over [backgroundColor];
+  /// when both are unset, defaults to [defaultBackgroundColorIOS] (#FFFFFF).
   @JsonKey(name: 'background_color_ios')
   final String backgroundColorIOS;
 

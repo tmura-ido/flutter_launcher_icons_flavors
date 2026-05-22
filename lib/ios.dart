@@ -8,6 +8,7 @@ import 'package:flutter_launcher_icons_flavors/constants.dart';
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/utils.dart';
+import 'package:flutter_launcher_icons_flavors/utils/color_utils.dart';
 import 'package:image/image.dart' hide decodeImageFile;
 import 'package:path/path.dart' as path;
 
@@ -120,8 +121,39 @@ Future<void> createIcons(
     }
   }
 
+  // Letter-box non-square sources once with the resolved iOS background
+  // color so every generated template size preserves the source's aspect
+  // ratio instead of being squished (upstream #214). No-op when the source
+  // is already square. Dark / tinted variants are intentionally letter-
+  // boxed too — iOS still expects the same canvas geometry per template
+  // slot — but they keep their transparency below (see comment on the
+  // remove-alpha block).
+  final iosBackgroundColor = _getBackgroundColor(config);
+  image = letterBoxToSquare(image, iosBackgroundColor);
+  if (darkImage != null) {
+    darkImage = letterBoxToSquare(darkImage, iosBackgroundColor);
+  }
+  if (tintedImage != null) {
+    tintedImage = letterBoxToSquare(tintedImage, iosBackgroundColor);
+  }
+
+  // remove_alpha_ios is applied AFTER letter-boxing so that any
+  // translucent or fully-transparent bars introduced by the letter-box
+  // step (e.g. when `background_color: "#00FFFFFF"`) are also alpha-
+  // blended and stripped. Doing it the other way around (the previous
+  // order) left those bars transparent in the final PNG and got the
+  // App Store marketing icon rejected. Dark / tinted variants are
+  // intentionally left transparent — iOS composites them over the
+  // system background.
   if (config.removeAlphaIOS && image.hasAlpha) {
-    final backgroundColor = _getBackgroundColor(config);
+    var backgroundColor = _getBackgroundColor(config);
+    // if the background color has an alpha value less than 255, we need to blend it with white before removing the alpha channel
+    if (backgroundColor.a != 255) {
+      backgroundColor = ColorUtils.makeOpaque(
+        backgroundColor,
+        background: _hexToColor(Config.defaultBackgroundColorIOS),
+      );
+    }
     final pixel = image.getPixel(0, 0);
     do {
       pixel.set(_alphaBlend(pixel, backgroundColor));
@@ -146,9 +178,8 @@ Future<void> createIcons(
   // * Otherwise: legacy when no dark/tinted; modern when dark/tinted set.
   final List<IosIconTemplate> generateIosIcons;
   if (config.iosSingleSize) {
-    generateIosIcons = const [
-      // Marketing slot only.
-    ]..add(IosIconTemplate(name: '-1024x1024@1x', size: 1024));
+    // Marketing slot only.
+    generateIosIcons = [IosIconTemplate(name: '-1024x1024@1x', size: 1024)];
   } else if (config.iosLegacySizes) {
     final seen = <String>{};
     final union = <IosIconTemplate>[];
@@ -157,8 +188,9 @@ Future<void> createIcons(
     }
     generateIosIcons = union;
   } else {
-    generateIosIcons =
-        (darkImage == null && tintedImage == null) ? legacyIosIcons : iosIcons;
+    generateIosIcons = (darkImage == null && tintedImage == null)
+        ? legacyIosIcons
+        : iosIcons;
   }
   final concurrentIconUpdates = <Future<void>>[];
   if (flavor != null) {
@@ -408,10 +440,7 @@ Image createResizedImage(IosIconTemplate template, Image image) {
 ///
 /// Throws an [InvalidConfigException] when multiple `*.xcodeproj` dirs
 /// exist and no explicit override was given.
-String resolveIosPbxprojPath({
-  required String prefixPath,
-  String? explicit,
-}) {
+String resolveIosPbxprojPath({required String prefixPath, String? explicit}) {
   if (explicit != null && explicit.isNotEmpty) {
     // Accept either a directory (`ios/MyApp.xcodeproj`) or a full file
     // path; if directory, append `project.pbxproj`.
@@ -455,8 +484,10 @@ Future<void> changeIosLauncherIcon(
   String? xcodeprojPath,
   FLILogger? logger,
 }) async {
-  final resolved =
-      resolveIosPbxprojPath(prefixPath: prefixPath, explicit: xcodeprojPath);
+  final resolved = resolveIosPbxprojPath(
+    prefixPath: prefixPath,
+    explicit: xcodeprojPath,
+  );
   final File iOSConfigFile = File(path.join(prefixPath, resolved));
   final List<String> lines;
   try {
@@ -467,9 +498,10 @@ Future<void> changeIosLauncherIcon(
     // ("user-mapped section open"). On *nix the EBUSY / EACCES cases land
     // here too. The pbxproj update is non-critical to icon emission —
     // warn and skip rather than fail the whole run.
-    final isLocked = e.osError?.errorCode == 1224 ||
+    final isLocked =
+        e.osError?.errorCode == 1224 ||
         e.osError?.errorCode == 16 || // EBUSY
-        e.osError?.errorCode == 13;   // EACCES
+        e.osError?.errorCode == 13; // EACCES
     if (isLocked) {
       (logger ?? FLILogger(false)).warn(
         'iOS pbxproj is locked by another process (likely Xcode): '
@@ -512,7 +544,8 @@ Future<void> changeIosLauncherIcon(
         if (end == cc.length) return true;
         final next = cc.codeUnitAt(end);
         // Word characters [0-9A-Za-z_] are NOT acceptable boundaries.
-        final isWord = (next >= 0x30 && next <= 0x39) || // 0-9
+        final isWord =
+            (next >= 0x30 && next <= 0x39) || // 0-9
             (next >= 0x41 && next <= 0x5A) || // A-Z
             (next >= 0x61 && next <= 0x7A) || // a-z
             next == 0x5F; // _
@@ -531,9 +564,10 @@ Future<void> changeIosLauncherIcon(
   try {
     await iOSConfigFile.writeAsString(entireFile);
   } on FileSystemException catch (e) {
-    final isLocked = e.osError?.errorCode == 1224 ||
+    final isLocked =
+        e.osError?.errorCode == 1224 ||
         e.osError?.errorCode == 16 || // EBUSY
-        e.osError?.errorCode == 13;   // EACCES
+        e.osError?.errorCode == 13; // EACCES
     if (isLocked) {
       (logger ?? FLILogger(false)).warn(
         'iOS pbxproj is locked by another process (likely Xcode): '
@@ -958,30 +992,7 @@ ColorUint8 _getBackgroundColor(Config config) {
 bool _isHexColorLiteral(String value) =>
     RegExp(r'^#?[0-9A-Fa-f]{3,8}$').hasMatch(value);
 
-ColorUint8 _hexToColor(String value) {
-  final hex = value.startsWith('#') ? value.substring(1) : value;
-  if (hex.length != 6 && hex.length != 8) {
-    throw InvalidConfigException(
-      'background color hex must be 6 or 8 digits (e.g. "FFFFFF"), got '
-      '"$value"',
-    );
-  }
-  final byte = int.parse(hex, radix: 16);
-  if (hex.length == 8) {
-    return ColorUint8.rgba(
-      (byte >> 16) & 0xff,
-      (byte >> 8) & 0xff,
-      byte & 0xff,
-      (byte >> 24) & 0xff,
-    );
-  }
-  return ColorUint8.rgba(
-    (byte >> 16) & 0xff,
-    (byte >> 8) & 0xff,
-    byte & 0xff,
-    0xff,
-  );
-}
+ColorUint8 _hexToColor(String value) => parseHexColor(value);
 
 Color _alphaBlend(Color fg, ColorUint8 bg) {
   if (fg.format != Format.uint8) {

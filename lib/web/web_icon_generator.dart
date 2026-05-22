@@ -94,7 +94,7 @@ class WebIconGenerator extends IconGenerator {
     context.logger.verbose(
       'Decoding and loading image file at $imgFilePath...',
     );
-    final imgFile = await utils.decodeImageFile(imgFilePath);
+    var imgFile = await utils.decodeImageFile(imgFilePath);
 
     // Resolve the favicon source — `web.favicon_path` (per #515/#635) wins
     // over `web.image_path` and the top-level. Lets users supply a tight
@@ -106,6 +106,19 @@ class WebIconGenerator extends IconGenerator {
       faviconSource = await utils.decodeImageFile(
         path.join(context.prefixPath, webConfig.faviconPath!),
       );
+    }
+
+    // Letter-box non-square sources so every generated icon size preserves
+    // aspect ratio (upstream #214). Color resolution: `web.background_color`
+    // (explicit per-platform) → top-level `background_color` (generic
+    // default). No-op when both are unset — legacy squish behavior is kept
+    // for backward compatibility.
+    final webBgHex =
+        webConfig.backgroundColor ?? context.config.backgroundColor;
+    if (webBgHex != null) {
+      final bg = utils.parseHexColor(webBgHex);
+      imgFile = utils.letterBoxToSquare(imgFile, bg);
+      faviconSource = utils.letterBoxToSquare(faviconSource, bg);
     }
 
     // generate favicon.png (always, when web is enabled)
@@ -226,9 +239,12 @@ class WebIconGenerator extends IconGenerator {
     final manifestConfig =
         jsonDecode(await manifestFile.readAsString()) as Map<String, dynamic>;
 
-    // update background_color
-    if (context.webConfig?.backgroundColor != null) {
-      manifestConfig['background_color'] = context.webConfig?.backgroundColor;
+    // update background_color — fall back to the top-level
+    // `background_color` when `web.background_color` is unset.
+    final manifestBg =
+        context.webConfig?.backgroundColor ?? context.config.backgroundColor;
+    if (manifestBg != null) {
+      manifestConfig['background_color'] = manifestBg;
     }
 
     // update theme_color

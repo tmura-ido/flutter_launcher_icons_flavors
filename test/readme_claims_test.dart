@@ -92,6 +92,48 @@ void main() {
   });
 
   // ---------------------------------------------------------------------
+  // Install section — version pin must match the current published version
+  // ---------------------------------------------------------------------
+  group('README §Install', () {
+    test(
+      'README pins the dev-dependency to the current pubspec version '
+      '(flutter_launcher_icons_flavors: ^X.Y.Z)',
+      () {
+        final pubspec = File(
+          p.join(_projectRoot, 'pubspec.yaml'),
+        ).readAsStringSync();
+        final version = (loadYaml(pubspec) as YamlMap)['version'] as String;
+        final readme = File(
+          p.join(_projectRoot, 'README.md'),
+        ).readAsStringSync();
+        final expected = 'flutter_launcher_icons_flavors: ^$version';
+        expect(
+          readme,
+          contains(expected),
+          reason:
+              'README install snippet must advertise the current package '
+              'version "$expected". Bump the README whenever pubspec.yaml '
+              'version changes.',
+        );
+      },
+    );
+
+    test('packageVersion constant matches pubspec.yaml version', () {
+      final pubspec = File(
+        p.join(_projectRoot, 'pubspec.yaml'),
+      ).readAsStringSync();
+      final version = (loadYaml(pubspec) as YamlMap)['version'] as String;
+      expect(
+        packageVersion,
+        version,
+        reason:
+            'lib/src/version.dart is generated from pubspec.yaml — run '
+            '`dart run build_runner build` after bumping the version.',
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------
   // CLI reference — subcommands
   // ---------------------------------------------------------------------
   group('README §CLI reference', () {
@@ -133,7 +175,8 @@ void main() {
   // ---------------------------------------------------------------------
   group('README §generate flags', () {
     test('-f/--file, -p/--prefix, --flavor, --all-flavors, --list-flavors, '
-        '--continue-on-error, --strict, -v/--verbose are all registered', () {
+        '--continue-on-error, --strict, -y/--yes, -v/--verbose are all '
+        'registered', () {
       final cmd = buildCommandRunner().commands['generate']!;
       final parser = cmd.argParser;
       expect(
@@ -146,12 +189,19 @@ void main() {
           'list-flavors',
           'continue-on-error',
           'strict',
+          'yes',
           'verbose',
         ]),
       );
       expect(parser.options['file']!.abbr, 'f');
       expect(parser.options['prefix']!.abbr, 'p');
+      expect(parser.options['yes']!.abbr, 'y');
       expect(parser.options['verbose']!.abbr, 'v');
+    });
+
+    test('--yes is a non-negatable flag', () {
+      final cmd = buildCommandRunner().commands['generate']!;
+      expect(cmd.argParser.options['yes']!.negatable, isFalse);
     });
 
     test('--prefix defaults to "."', () {

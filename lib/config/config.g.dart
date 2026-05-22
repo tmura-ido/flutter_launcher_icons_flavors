@@ -7,6 +7,16 @@ part of 'config.dart';
 // **************************************************************************
 
 Map<String, dynamic> _$ConfigToJson(Config instance) => <String, dynamic>{
+  'flavor': instance.flavor,
+  'xcodeproj_path': instance.xcodeprojPath,
+  'ios_legacy_sizes': instance.iosLegacySizes,
+  'ios_single_size': instance.iosSingleSize,
+  'optimize_png': instance.optimizePng,
+  'ios_disable_liquid_glass': instance.iosDisableLiquidGlass,
+  'non_square_image_ok': instance.nonSquareImageOk,
+  'linux': instance.linuxConfig,
+  'ios_alternate_icons': instance.iosAlternateIcons,
+  'badge': instance.badge,
   'image_path': instance.imagePath,
   'android': const PlatformToggleConverter().toJson(instance.android),
   'ios': const PlatformToggleConverter().toJson(instance.ios),
@@ -22,6 +32,7 @@ Map<String, dynamic> _$ConfigToJson(Config instance) => <String, dynamic>{
   'copy_mipmap_xxxhdpi_to_drawable': instance.copyMipmapXxxhdpiToDrawable,
   'remove_alpha_ios': instance.removeAlphaIOS,
   'desaturate_tinted_to_grayscale_ios': instance.desaturateTintedToGrayscaleIOS,
+  'background_color': instance.backgroundColor,
   'background_color_ios': instance.backgroundColorIOS,
   'web': instance.webConfig,
   'windows': instance.windowsConfig,

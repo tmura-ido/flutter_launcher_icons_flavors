@@ -19,7 +19,6 @@ A command-line tool that generates Flutter launcher icons for **Android, iOS, ma
 - [Install](#install)
 - [Quick start (single-flavor)](#quick-start-single-flavor)
 - [Multi-flavor (consolidated)](#multi-flavor-consolidated)
-- [Editor autocomplete (JSON Schema)](#editor-autocomplete-json-schema)
 - [Config finding order](#config-finding-order)
 - [Legacy multi-flavor layout](#legacy-multi-flavor-layout)
 - [CLI reference](#cli-reference)
@@ -59,7 +58,7 @@ Add as a dev-dependency:
 
 ```yaml
 dev_dependencies:
-  flutter_launcher_icons_flavors: ^0.15.0
+  flutter_launcher_icons_flavors: ^1.0.0
 ```
 
 Then:
@@ -129,8 +128,11 @@ Expected output:
 • Overwriting the default Android launcher icon with a new icon
 • Overwriting default iOS launcher icon with new icon
 Creating Icons for Web...
+...
 Creating Icons for Windows...
+...
 Creating Icons for macOS...
+...
 
 ✓ Successfully generated launcher icons
 ```
@@ -225,29 +227,6 @@ Prints the flavors declared in the consolidated file (or discovered as legacy pe
 
 ---
 
-## Editor autocomplete (JSON Schema)
-
-Every config file the tool touches gets a `# yaml-language-server: $schema=...` directive auto-injected at the top on the next `generate`, `migrate`, or `doctor` run. This wires up:
-
-- **JetBrains IDEs** (Android Studio, IntelliJ, RustRover, PyCharm) — native YAML + JSON Schema support, no plugin needed.
-- **VS Code** — install the [Red Hat YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) (the de facto YAML extension; most Flutter devs already have it).
-
-What you get: autocomplete on every key, hover docs sourced from each option's description, inline validation (unknown keys, wrong types, malformed `#RRGGBB` colors, out-of-range integers), and "did you mean…" suggestions.
-
-The directive looks like:
-
-```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/tmura-ido/flutter_launcher_icons_flavors/master/flutter_launcher_icons_flavors.schema.json
-```
-
-Pinned to `master` (the repo's default branch) — the schema only ever adds optional fields, so older YAMLs always validate.
-
-**Opt out** with `--no-inject-schema` on any command. The injection is idempotent and skips files that already carry a `# yaml-language-server:` line (so a custom URL or pinned-tag override stays intact). `pubspec.yaml` is never touched.
-
-The schema lives at [`flutter_launcher_icons_flavors.schema.json`](flutter_launcher_icons_flavors.schema.json) in the repo and is regenerated via `dart run tool/generate_schema.dart`; a CI drift test catches any `@JsonKey` added to the config classes without a schema update.
-
----
-
 ## Config finding order
 
 When you run `generate` (without `--file`), the resolver searches for a config in this order and stops at the first hit:
@@ -323,6 +302,7 @@ dart run flutter_launcher_icons_flavors generate [flags]
 | `--list-flavors` | flag | `false` | Print the available flavor names and exit. |
 | `--continue-on-error` | flag | `false` | Don't stop at the first failing flavor; report a summary at the end. Exit code is the maximum severity seen. |
 | `--strict` | flag | `false` | Promote the "consolidated + legacy coexisting" warning to an exit-65 error. Recommended in CI. |
+| `-y`, `--yes` | flag | `false` | Assume "yes" to the non-square-source squish confirmation prompt. Equivalent to setting `non_square_image_ok: true` in config. Non-interactive shells (CI, scripts) auto-approve regardless. |
 | `-v`, `--verbose` | flag | `false` | Extra diagnostics. |
 
 ### `migrate`
@@ -361,7 +341,6 @@ Read-only diagnostic. Prints:
 <!-- TODO what about ios files? -->
 5. Any **deprecated keys** still in use (e.g. `flutter_icons:` in `pubspec.yaml`).
 
-Exits **0** unless the project is actually broken (no config at all, or an unparseable consolidated file), in which case it exits **65** so CI gates can surface the problem.
 
 ---
 
@@ -380,6 +359,7 @@ All examples below show the **single-flavor** `flutter_launcher_icons.yaml` form
 | `ios` | `bool` \| `String` | `false` | `true` uses the default Asset Catalog name `AppIcon`; a string sets the catalog basename (**not a file path**); `false` skips iOS. For the source image path see `image_path` / `image_path_ios`. |
 | `min_sdk_android` | `int` | `24` | Android minSdk floor. Below 26, only legacy icons are emitted; at 26+, adaptive icons too. **Default changed from 21 → 24 in 0.15.0.** |
 | `copy_mipmap_xxxhdpi_to_drawable` | `bool` | `false` | If `true`, copies the generated `mipmap-xxxhdpi/<icon>.png` into the same flavor's `drawable/` folder under the same filename. Useful when other code (notifications, widgets) needs the icon as a `drawable` resource. |
+| `background_color` | `String` (`#RRGGBB` / `#RRGGBBAA`) | — | Generic letter-box bar color for non-square sources. Acts as the **default** for `background_color_ios` and `web.background_color` when those are not set explicitly, and is the **only** way to opt the Android non-adaptive mipmap path into letter-boxing. When unset, the legacy "squish to a square" resize is kept for backward compatibility. |
 
 ### Android adaptive icons
 
@@ -433,7 +413,7 @@ If your launcher icon has color, the system will still strip it and you'll see a
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `remove_alpha_ios` | `bool` | `false` | Strip the alpha channel before writing the icon. The App Store **rejects icons with alpha**; set this to `true` for the production build. |
-| `background_color_ios` | `String` (`#RRGGBB`) | `#FFFFFF` | Color used as the opaque background when `remove_alpha_ios` is `true`. |
+| `background_color_ios` | `String` (`#RRGGBB`) | top-level `background_color` if set, else `#FFFFFF` | Color used as the opaque background when `remove_alpha_ios` is `true`, and as the letter-box bar color for non-square sources. |
 | `image_path_ios_dark_transparent` | `String` | — | iOS 18+ dark-mode variant. Transparent PNG; iOS composites it over the system background. |
 | `image_path_ios_tinted_grayscale` | `String` | — | iOS 18+ tinted variant. Already-grayscale PNG; iOS applies the user-chosen tint. |
 | `desaturate_tinted_to_grayscale_ios` | `bool` | `false` | If `true`, the tool desaturates `image_path_ios_tinted_grayscale` for you so you can ship a single colored source. |
@@ -452,7 +432,7 @@ web:
 | --- | --- | --- | --- |
 | `generate` | `bool` | `false` | Master switch. Without it, the rest of the `web:` block is ignored. |
 | `image_path` | `String` | top-level `image_path` | Source PNG. |
-| `background_color` | `String` (`#RRGGBB`) | — | Written into `web/manifest.json` under `background_color`. |
+| `background_color` | `String` (`#RRGGBB`) | top-level `background_color` if set | Written into `web/manifest.json` under `background_color`, and used as the letter-box bar color for non-square sources. |
 | `theme_color` | `String` (`#RRGGBB`) | — | Written into `web/manifest.json` under `theme_color`. |
 
 Outputs: `web/favicon.png`, `web/icons/Icon-192.png`, `web/icons/Icon-512.png`, `web/icons/Icon-maskable-192.png`, `web/icons/Icon-maskable-512.png`, and the updated `web/manifest.json` with `<link>` references rewritten.
@@ -550,8 +530,8 @@ Exit-code convention follows `sysexits.h`: **64 = the user did something wrong**
 ## Migrating from `flutter_launcher_icons`
 
 1. **Rename the dependency.** Replace `flutter_launcher_icons:` with `flutter_launcher_icons_flavors:` in `dev_dependencies`, run `flutter pub get`.
-2. **Update CLI invocations.** `dart run flutter_launcher_icons` → `dart run flutter_launcher_icons_flavors generate` (or just `dart run flutter_launcher_icons_flavors` — `generate` is the default subcommand).
-3. **Move `pubspec.yaml` blocks.** The `flutter_icons:` block in `pubspec.yaml` still works but prints a deprecation warning. It will be **removed in 0.17**. Move it to a top-level `flutter_launcher_icons.yaml` file.
+2. **Update CLI invocations.** `dart run flutter_launcher_icons` → `dart run flutter_launcher_icons_flavors`.
+3. **Move `pubspec.yaml` blocks.** The `flutter_icons:` block in `pubspec.yaml` still works but prints a deprecation warning. Move it to a top-level `flutter_launcher_icons.yaml` file.
 4. **Audit `min_sdk_android`.** The default rose **21 → 24**. If you must keep `21`, set `min_sdk_android: 21` explicitly. Run `doctor` to see what is currently in effect.
 5. **(Optional) Consolidate flavors.** If you used the legacy `flutter_launcher_icons-<flavor>.yaml` layout, run `dart run flutter_launcher_icons_flavors migrate` to convert it. Originals are kept (`.bak`) and not deleted unless you pass `--in-place`.
 6. **(Optional) Gate CI with `--strict`.** Add `dart run flutter_launcher_icons_flavors generate --strict` to your CI to catch a half-migrated state where both the consolidated file and legacy files exist.

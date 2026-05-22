@@ -16,11 +16,12 @@ WebConfig _$WebConfigFromJson(Map json) => $checkedCreate(
       backgroundColor: $checkedConvert('background_color', (v) => v as String?),
       themeColor: $checkedConvert('theme_color', (v) => v as String?),
       outputPath: $checkedConvert('output_path', (v) => v as String?),
-      generateFavicon:
-          $checkedConvert('generate_favicon', (v) => v as bool? ?? true),
+      generateFavicon: $checkedConvert(
+        'generate_favicon',
+        (v) => v as bool? ?? true,
+      ),
       faviconPath: $checkedConvert('favicon_path', (v) => v as String?),
-      faviconSize:
-          $checkedConvert('favicon_size', (v) => (v as num?)?.toInt()),
+      faviconSize: $checkedConvert('favicon_size', (v) => (v as num?)?.toInt()),
     );
     return val;
   },

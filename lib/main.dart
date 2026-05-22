@@ -68,8 +68,7 @@ const Set<String> _skipScanSegments = {
 /// implementation did. On success we return normally so test harnesses
 /// can continue to make assertions afterwards.
 Future<void> createIconsFromArguments(List<String> arguments) async {
-  final runner = buildCommandRunner();
-  final code = await runner.run(effectiveArgs(arguments)) ?? 0;
+  final code = await runCli(arguments);
   if (code != 0) {
     exit(code);
   }

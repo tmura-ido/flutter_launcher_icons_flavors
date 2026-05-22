@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:flutter_launcher_icons_flavors/cli/command_runner.dart'
+    show rejectUnknownArgs;
+import 'package:flutter_launcher_icons_flavors/cli/squish_prompt.dart';
 import 'package:flutter_launcher_icons_flavors/config/config.dart';
 import 'package:flutter_launcher_icons_flavors/config/flavors_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/source_resolver.dart';
@@ -8,7 +11,6 @@ import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
 import 'package:flutter_launcher_icons_flavors/main.dart' as fli_main;
-import 'package:flutter_launcher_icons_flavors/utils/schema_injector.dart';
 import 'package:path/path.dart' as p;
 
 /// `generate` subcommand — the default action of the CLI.
@@ -72,10 +74,12 @@ class GenerateCommand extends Command<int> {
         negatable: false,
       )
       ..addFlag(
-        'no-inject-schema',
+        'yes',
+        abbr: 'y',
         help:
-            'Skip prepending the `# yaml-language-server: \$schema=...` '
-            'directive to discovered config files.',
+            'Assume "yes" to the non-square-source squish confirmation '
+            'prompt. Equivalent to setting `non_square_image_ok: true` '
+            'in config.',
         negatable: false,
       )
       ..addFlag(
@@ -107,7 +111,14 @@ class GenerateCommand extends Command<int> {
     final listFlavors = results['list-flavors'] as bool;
     final continueOnError = results['continue-on-error'] as bool;
     final strict = results['strict'] as bool;
-    final noInjectSchema = results['no-inject-schema'] as bool;
+    final autoYes = results['yes'] as bool;
+
+    // Reject stray positional args before doing anything else: e.g.
+    // `generate foobar` would otherwise silently ignore `foobar`.
+    final rejectCode = rejectUnknownArgs(results, logger);
+    if (rejectCode != null) {
+      return rejectCode;
+    }
 
     // README contract: --flavor and --all-flavors are mutually exclusive.
     // Conflicting flags → usage error (64).
@@ -133,15 +144,6 @@ class GenerateCommand extends Command<int> {
       return 65;
     }
 
-    // 1b. Inject the YAML-language-server schema directive into every
-    // config file we found. Idempotent; skips pubspec.yaml.
-    await _injectSchemaIntoSources(
-      resolved: resolved,
-      prefix: prefix,
-      logger: logger,
-      skip: noInjectSchema,
-    );
-
     // 2. Dispatch by source kind.
     switch (resolved.kind) {
       case ConfigSourceKind.consolidatedFlavors:
@@ -154,6 +156,7 @@ class GenerateCommand extends Command<int> {
           listFlavors: listFlavors,
           continueOnError: continueOnError,
           strict: strict,
+          autoYes: autoYes,
         );
 
       case ConfigSourceKind.explicitFile:
@@ -167,6 +170,7 @@ class GenerateCommand extends Command<int> {
             listFlavors: listFlavors,
             continueOnError: continueOnError,
             strict: strict,
+            autoYes: autoYes,
           );
         }
         return _runSingleConfig(
@@ -177,6 +181,7 @@ class GenerateCommand extends Command<int> {
           allFlavors: allFlavors,
           listFlavors: listFlavors,
           strict: strict,
+          autoYes: autoYes,
         );
 
       case ConfigSourceKind.legacyFlavors:
@@ -188,6 +193,7 @@ class GenerateCommand extends Command<int> {
           listFlavors: listFlavors,
           continueOnError: continueOnError,
           strict: strict,
+          autoYes: autoYes,
         );
 
       case ConfigSourceKind.singleFile:
@@ -199,6 +205,7 @@ class GenerateCommand extends Command<int> {
           allFlavors: allFlavors,
           listFlavors: listFlavors,
           strict: strict,
+          autoYes: autoYes,
         );
 
       case ConfigSourceKind.pubspecInline:
@@ -210,6 +217,7 @@ class GenerateCommand extends Command<int> {
           allFlavors: allFlavors,
           listFlavors: listFlavors,
           strict: strict,
+          autoYes: autoYes,
         );
     }
   }
@@ -226,6 +234,7 @@ class GenerateCommand extends Command<int> {
     required bool listFlavors,
     required bool continueOnError,
     required bool strict,
+    required bool autoYes,
   }) async {
     final FlavorsConfig? flavorsConfig;
     try {
@@ -315,6 +324,31 @@ class GenerateCommand extends Command<int> {
       gaps.addAll(detector.extrasNotInConfig(available.toSet()));
     }
 
+    // Pre-flight: aggregate every (flavor, platform, source) about to be
+    // squished and ask once. Declined → abort. See `squish_prompt.dart`.
+    final squishCandidates = <SquishCandidate>[];
+    for (final name in selected) {
+      squishCandidates.addAll(
+        await findSquishCandidates(
+          config: resolvedConfigs[name]!,
+          prefixPath: prefix,
+          flavor: name,
+        ),
+      );
+    }
+    final approval = await promptSquishApproval(
+      squishCandidates,
+      autoYes: autoYes,
+    );
+    if (approval == SquishApproval.declined) {
+      logger.error('Could not generate launcher icons');
+      logger.error(
+        'Squish declined by user. Set `background_color` (or '
+        '`non_square_image_ok: true`) and re-run.',
+      );
+      return 65;
+    }
+
     // Generate sequentially. Track per-flavor outcomes for the summary.
     final failures = <String, Object>{};
     for (final name in selected) {
@@ -381,6 +415,7 @@ class GenerateCommand extends Command<int> {
     required bool listFlavors,
     required bool continueOnError,
     required bool strict,
+    required bool autoYes,
   }) async {
     final discovered = await fli_main.getFlavors(prefix);
     discovered.sort();
@@ -417,13 +452,43 @@ class GenerateCommand extends Command<int> {
       selected = discovered;
     }
 
+    // Pre-flight: load each flavor's config, collect squish candidates,
+    // ask once. Aborts here on user decline so we don't half-generate.
+    final preloaded = <String, Config>{};
+    final squishCandidates = <SquishCandidate>[];
+    for (final flavor in selected) {
+      final cfg = Config.loadConfigFromFlavor(flavor, prefix);
+      if (cfg == null) continue; // Surface later in the generation loop.
+      preloaded[flavor] = cfg;
+      squishCandidates.addAll(
+        await findSquishCandidates(
+          config: cfg,
+          prefixPath: prefix,
+          flavor: flavor,
+        ),
+      );
+    }
+    final approval = await promptSquishApproval(
+      squishCandidates,
+      autoYes: autoYes,
+    );
+    if (approval == SquishApproval.declined) {
+      logger.error('Could not generate launcher icons');
+      logger.error(
+        'Squish declined by user. Set `background_color` (or '
+        '`non_square_image_ok: true`) and re-run.',
+      );
+      return 65;
+    }
+
     final detector = _FlavorGapDetector(prefix: prefix);
     final gaps = <_FlavorPlatformGap>[];
     final failures = <String, Object>{};
     for (final flavor in selected) {
       stdout.writeln('\nFlavor: $flavor');
       try {
-        final cfg = Config.loadConfigFromFlavor(flavor, prefix);
+        final cfg =
+            preloaded[flavor] ?? Config.loadConfigFromFlavor(flavor, prefix);
         if (cfg == null) {
           throw NoConfigFoundException(
             'No configuration found for $flavor flavor.',
@@ -482,6 +547,7 @@ class GenerateCommand extends Command<int> {
     required bool allFlavors,
     required bool listFlavors,
     required bool strict,
+    required bool autoYes,
   }) async {
     if (listFlavors) {
       stdout.writeln('No flavors; this project uses a single-config source.');
@@ -516,14 +582,26 @@ class GenerateCommand extends Command<int> {
       );
       return 65;
     }
-    try {
-      await fli_main.createIconsFromConfig(
-        cfg,
-        logger,
-        prefix,
-        null,
-        strict,
+    // Pre-flight squish confirmation.
+    final squishCandidates = await findSquishCandidates(
+      config: cfg,
+      prefixPath: prefix,
+    );
+    final approval = await promptSquishApproval(
+      squishCandidates,
+      autoYes: autoYes,
+    );
+    if (approval == SquishApproval.declined) {
+      logger.error('Could not generate launcher icons');
+      logger.error(
+        'Squish declined by user. Set `background_color` (or '
+        '`non_square_image_ok: true`) and re-run.',
       );
+      return 65;
+    }
+
+    try {
+      await fli_main.createIconsFromConfig(cfg, logger, prefix, null, strict);
       stdout.writeln('\n✓ Successfully generated launcher icons');
       return 0;
     } on InvalidConfigException catch (e) {
@@ -534,39 +612,6 @@ class GenerateCommand extends Command<int> {
       logger.error('Could not generate launcher icons');
       logger.error('$e');
       return 1;
-    }
-  }
-
-  /// Prepends the `# yaml-language-server: $schema=...` directive to
-  /// every config file the resolver found (the winner plus any
-  /// shadowed legacy siblings). Idempotent, pubspec-safe.
-  Future<void> _injectSchemaIntoSources({
-    required ResolvedSource resolved,
-    required String prefix,
-    required FLILogger logger,
-    required bool skip,
-  }) async {
-    if (skip) {
-      return;
-    }
-    final paths = <String>{
-      if (resolved.path != null) resolved.path!,
-      ...resolved.ignoredLegacy,
-    };
-    if (resolved.kind == ConfigSourceKind.legacyFlavors) {
-      // legacyFlavors resolves without a single winner path; inject
-      // into every discovered per-flavor file.
-      final discovered = await fli_main.getFlavors(prefix);
-      for (final f in discovered) {
-        paths.add(p.join(prefix, 'flutter_launcher_icons-$f.yaml'));
-      }
-    }
-    for (final path in paths) {
-      try {
-        await ensureSchemaDirective(path, logger: logger);
-      } on Exception catch (e) {
-        logger.verbose('Schema injection skipped for $path: $e');
-      }
     }
   }
 }
@@ -764,6 +809,7 @@ void _emitGapWarnings(List<_FlavorPlatformGap> gaps, FLILogger logger) {
   if (gaps.isEmpty) {
     return;
   }
+  logger.info('');
   for (final gap in gaps) {
     logger.warn('Flavor "${gap.flavor}" (${gap.platform}): ${gap.detail}.');
   }

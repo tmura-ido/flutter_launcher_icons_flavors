@@ -13,8 +13,10 @@ LinuxConfig _$LinuxConfigFromJson(Map json) => $checkedCreate(
     final val = LinuxConfig(
       generate: $checkedConvert('generate', (v) => v as bool? ?? false),
       imagePath: $checkedConvert('image_path', (v) => v as String?),
-      iconSize:
-          $checkedConvert('icon_size', (v) => (v as num?)?.toInt() ?? 256),
+      iconSize: $checkedConvert(
+        'icon_size',
+        (v) => (v as num?)?.toInt() ?? 256,
+      ),
       outputPath: $checkedConvert('output_path', (v) => v as String?),
       trayIcon: $checkedConvert(
         'tray_icon',
@@ -37,5 +39,5 @@ Map<String, dynamic> _$LinuxConfigToJson(LinuxConfig instance) =>
       'image_path': instance.imagePath,
       'icon_size': instance.iconSize,
       'output_path': instance.outputPath,
-      'tray_icon': instance.trayIcon?.toJson(),
+      'tray_icon': instance.trayIcon,
     };

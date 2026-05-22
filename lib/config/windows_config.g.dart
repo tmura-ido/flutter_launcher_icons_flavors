@@ -33,5 +33,5 @@ Map<String, dynamic> _$WindowsConfigToJson(WindowsConfig instance) =>
       'generate': instance.generate,
       'image_path': instance.imagePath,
       'icon_size': instance.iconSize,
-      'tray_icon': instance.trayIcon?.toJson(),
+      'tray_icon': instance.trayIcon,
     };

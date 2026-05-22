@@ -1,6 +1,5 @@
 import 'package:flutter_launcher_icons_flavors/abs/icon_generator.dart';
 import 'package:flutter_launcher_icons_flavors/utils.dart' as utils;
-import 'package:image/image.dart';
 import 'package:path/path.dart' as path;
 
 /// Minimal Linux launcher icon writer (upstream #666 / #186 / #604 /
@@ -8,7 +7,8 @@ import 'package:path/path.dart' as path;
 /// writes to a known path under `linux/`. Out of scope for v1: hicolor
 /// multi-size set, `.desktop` rewriting, Flatpak/Snap.
 class LinuxIconGenerator extends IconGenerator {
-  static const String _defaultOutputPath = 'linux/runner/resources/app_icon.png';
+  static const String _defaultOutputPath =
+      'linux/runner/resources/app_icon.png';
 
   /// Creates a [LinuxIconGenerator].
   LinuxIconGenerator(IconGeneratorContext context) : super(context, 'Linux');

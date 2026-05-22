@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/tmura-ido/flutter_launcher_icons_flavors/master/flutter_launcher_icons_flavors.schema.json
-
 # Reference example: every supported `flutter_launcher_icons_flavors`
 # option, shown in one consolidated multi-flavor file.
 #
@@ -54,6 +52,11 @@ defaults:
   # --- Cross-cutting -------------------------------------------------
   optimize_png: true
   non_square_image_ok: false
+  # Generic letter-box bar color for non-square sources. Acts as the
+  # fallback for `background_color_ios` and `web.background_color`, and
+  # is the only way to opt the Android non-adaptive mipmap path into
+  # letter-boxing (it has no platform-specific bg color of its own).
+  background_color: "#FFFFFF"
 
   # --- Web ----------------------------------------------------------
   web:

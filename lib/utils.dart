@@ -8,22 +8,88 @@ import 'package:path/path.dart' as path;
 
 import 'custom_exceptions.dart';
 
-Image createResizedImage(int iconSize, Image image) {
-  if (image.width >= iconSize) {
+Image createResizedImage(int iconSize, Image image, {Color? backgroundColor}) {
+  // Letter-box non-square sources when a background color is supplied so the
+  // source's aspect ratio is preserved instead of squished onto an N×N grid
+  // (upstream #214). Without a background color we keep the legacy squish
+  // behavior to stay compatible with existing user output.
+  final src = backgroundColor != null
+      ? letterBoxToSquare(image, backgroundColor)
+      : image;
+  if (src.width >= iconSize) {
     return copyResize(
-      image,
+      src,
       width: iconSize,
       height: iconSize,
       interpolation: Interpolation.average,
     );
   } else {
     return copyResize(
-      image,
+      src,
       width: iconSize,
       height: iconSize,
       interpolation: Interpolation.linear,
     );
   }
+}
+
+/// Pads a non-square [image] onto a square canvas of side `max(w, h)` filled
+/// with [backgroundColor] and centers the source on it. Returns [image]
+/// unchanged when it is already square (idempotent — safe to call multiple
+/// times, e.g. by both a platform writer that pre-pads and a downstream
+/// `createResizedImage` call that also has a background color).
+///
+/// Used by platform writers that have a configured background color so a
+/// non-square source's aspect ratio is preserved across every generated
+/// icon size (upstream #214). Letter-box the source ONCE per platform, then
+/// hand the square result to the resize loop.
+Image letterBoxToSquare(Image image, Color backgroundColor) {
+  if (image.width == image.height) {
+    return image;
+  }
+  final size = image.width > image.height ? image.width : image.height;
+  final canvas = Image(width: size, height: size, numChannels: 4);
+  for (final px in canvas) {
+    px.setRgba(
+      backgroundColor.r.toInt(),
+      backgroundColor.g.toInt(),
+      backgroundColor.b.toInt(),
+      backgroundColor.a.toInt(),
+    );
+  }
+  final offsetX = (size - image.width) ~/ 2;
+  final offsetY = (size - image.height) ~/ 2;
+  return compositeImage(canvas, image, dstX: offsetX, dstY: offsetY);
+}
+
+/// Parses a `#RRGGBB` or `#RRGGBBAA` (or unprefixed) hex string into a
+/// `ColorUint8`. Throws [InvalidConfigException] for malformed input.
+///
+/// Single source of truth for hex → color conversion across platform
+/// writers (iOS background, web background, Android adaptive background).
+ColorUint8 parseHexColor(String value) {
+  final hex = value.startsWith('#') ? value.substring(1) : value;
+  if (hex.length != 6 && hex.length != 8) {
+    throw InvalidConfigException(
+      'background color hex must be 6 or 8 digits (e.g. "FFFFFF"), got '
+      '"$value"',
+    );
+  }
+  final byte = int.parse(hex, radix: 16);
+  if (hex.length == 8) {
+    return ColorUint8.rgba(
+      (byte >> 16) & 0xff,
+      (byte >> 8) & 0xff,
+      byte & 0xff,
+      (byte >> 24) & 0xff,
+    );
+  }
+  return ColorUint8.rgba(
+    (byte >> 16) & 0xff,
+    (byte >> 8) & 0xff,
+    byte & 0xff,
+    0xff,
+  );
 }
 
 String generateError(Exception e, String? error) {

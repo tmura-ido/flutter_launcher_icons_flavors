@@ -10,7 +10,9 @@ import 'cli/doctor_command_test.dart' as doctor_command_test;
 import 'cli/exit_codes_test.dart' as exit_codes_test;
 import 'cli/generate_command_test.dart' as generate_command_test;
 import 'cli/migrate_command_test.dart' as migrate_command_test;
+import 'cli/squish_prompt_test.dart' as squish_prompt_test;
 import 'cli/strict_test.dart' as strict_test;
+import 'cli/unknown_args_test.dart' as unknown_args_test;
 import 'config/flavors_config_test.dart' as flavors_config_test;
 import 'config/flavors_file_test.dart' as flavors_file_test;
 import 'config/merge_test.dart' as merge_test;
@@ -29,25 +31,26 @@ import 'issues/issue_132_adaptive_background_invalid_color_test.dart'
 import 'issues/issue_139_optimize_png_test.dart' as issue_139_test;
 import 'issues/issue_153_ios_unassigned_children_test.dart' as issue_153_test;
 import 'issues/issue_161_ios_missing_appiconset_test.dart' as issue_161_test;
-import 'issues/issue_166_unquoted_hex_background_test.dart'
-    as issue_166_test;
-import 'issues/issue_175_hex_literal_as_foreground_test.dart'
-    as issue_175_test;
+import 'issues/issue_166_unquoted_hex_background_test.dart' as issue_166_test;
+import 'issues/issue_172_ios_alpha_detected_test.dart' as issue_172_test;
+import 'issues/issue_175_hex_literal_as_foreground_test.dart' as issue_175_test;
 import 'issues/issue_196_undecodable_source_format_test.dart' as issue_196_test;
 import 'issues/issue_198_base_yaml_with_flavor_test.dart' as issue_198_test;
-import 'issues/issue_172_ios_alpha_detected_test.dart' as issue_172_test;
 import 'issues/issue_201_only_flavor_yaml_test.dart' as issue_201_test;
+import 'issues/issue_214_background_color_default_test.dart'
+    as issue_214_bg_default_test;
+import 'issues/issue_214_ios_remove_alpha_after_letterbox_test.dart'
+    as issue_214_ios_alpha_order_test;
+import 'issues/issue_214_letter_box_integration_test.dart'
+    as issue_214_letter_box_test;
 import 'issues/issue_214_non_square_doctor_strict_test.dart'
     as issue_214_doctor_test;
 import 'issues/issue_214_non_square_images_squished_test.dart'
     as issue_214_test;
-import 'issues/issue_279_flavor_siblings_listed_test.dart'
-    as issue_279_test;
-import 'issues/issue_312_config_files_in_subfolder_test.dart'
-    as issue_312_test;
+import 'issues/issue_279_flavor_siblings_listed_test.dart' as issue_279_test;
+import 'issues/issue_312_config_files_in_subfolder_test.dart' as issue_312_test;
 import 'issues/issue_337_pbxproj_hyphen_flavor_test.dart' as issue_337_test;
-import 'issues/issue_378_fli_exception_hierarchy_test.dart'
-    as issue_378_test;
+import 'issues/issue_378_fli_exception_hierarchy_test.dart' as issue_378_test;
 import 'issues/issue_385_android_flavor_res_path_test.dart' as issue_385_test;
 import 'issues/issue_414_manifest_merger_custom_name_test.dart'
     as issue_414_test;
@@ -59,9 +62,6 @@ import 'issues/issue_443_android_output_path_test.dart' as issue_443_test;
 import 'issues/issue_462_remove_alpha_ios_test.dart' as issue_462_test;
 import 'issues/issue_476_skip_unconfigured_platform_header_test.dart'
     as issue_476_test;
-import 'issues/issue_540_favicon_ico_emitted_test.dart' as issue_540_test;
-import 'issues/issue_543_renamed_xcodeproj_test.dart' as issue_543_test;
-import 'issues/issue_552_noop_logger_test.dart' as issue_552_test;
 import 'issues/issue_490_flavor_config_non_root_test.dart' as issue_490_test;
 import 'issues/issue_491_ios_per_flavor_preserved_test.dart' as issue_491_test;
 import 'issues/issue_506_pbxproj_no_extra_chars_test.dart' as issue_506_test;
@@ -72,7 +72,10 @@ import 'issues/issue_516_android_mipmap_stride_test.dart' as issue_516_test;
 import 'issues/issue_530_archive_safe_version_test.dart' as issue_530_test;
 import 'issues/issue_535_transparent_adaptive_background_test.dart'
     as issue_535_test;
+import 'issues/issue_540_favicon_ico_emitted_test.dart' as issue_540_test;
+import 'issues/issue_543_renamed_xcodeproj_test.dart' as issue_543_test;
 import 'issues/issue_550_futures_awaited_test.dart' as issue_550_test;
+import 'issues/issue_552_noop_logger_test.dart' as issue_552_test;
 import 'issues/issue_553_android14_colors_xml_written_test.dart'
     as issue_553_test;
 import 'issues/issue_565_pbxproj_flavor_idempotency_test.dart'
@@ -96,12 +99,10 @@ import 'issues/issue_634_pbxproj_only_appicon_name_test.dart' as issue_634_test;
 import 'issues/issue_637_xcodeproj_path_ignored_test.dart' as issue_637_test;
 import 'issues/issue_638_macos_flavor_aware_path_test.dart' as issue_638_test;
 import 'issues/issue_648_flavor_path_recursive_test.dart' as issue_648_test;
-import 'issues/issue_658_flavor_race_regression_test.dart' as issue_658_test;
-import 'issues/issue_657_ios_liquid_glass_opt_out_test.dart'
-    as issue_657_test;
 import 'issues/issue_655_macos_padding_test.dart' as issue_655_test;
-import 'issues/issue_660_macos_themed_backgrounds_test.dart'
-    as issue_660_test;
+import 'issues/issue_657_ios_liquid_glass_opt_out_test.dart' as issue_657_test;
+import 'issues/issue_658_flavor_race_regression_test.dart' as issue_658_test;
+import 'issues/issue_660_macos_themed_backgrounds_test.dart' as issue_660_test;
 import 'issues/issue_661_ios_legacy_1x_sizes_test.dart' as issue_661_test;
 import 'issues/issue_662_ios_dark_appearances_test.dart' as issue_662_test;
 import 'issues/issue_665_adaptive_bg_non_png_test.dart' as issue_665_test;
@@ -152,6 +153,8 @@ void main() {
     strict_test.main();
     all_flavors_test.main();
     continue_on_error_test.main();
+    squish_prompt_test.main();
+    unknown_args_test.main();
     // utils (Phase 1)
     path_join_test.main();
     decode_image_file_test.main();
@@ -182,6 +185,9 @@ void main() {
     issue_201_test.main();
     issue_214_test.main();
     issue_214_doctor_test.main();
+    issue_214_letter_box_test.main();
+    issue_214_bg_default_test.main();
+    issue_214_ios_alpha_order_test.main();
     issue_279_test.main();
     issue_312_test.main();
     issue_337_test.main();

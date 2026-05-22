@@ -48,7 +48,18 @@ Future<void> createDefaultIcons(
     throw const InvalidConfigException(constants.errorMissingImagePath);
   }
   final String filePath = path.join(prefixPath, relativeImagePath);
-  final Image image = await utils.decodeImageFile(filePath);
+  var image = await utils.decodeImageFile(filePath);
+
+  // Letter-box a non-square source once with the top-level
+  // `background_color` so every mipmap density preserves aspect ratio
+  // (upstream #214). Non-adaptive Android mipmaps have no platform-specific
+  // background color of their own, so this is the only way to opt in.
+  if (config.backgroundColor != null) {
+    image = utils.letterBoxToSquare(
+      image,
+      utils.parseHexColor(config.backgroundColor!),
+    );
+  }
   final File androidManifestFile = File(
     path.join(prefixPath, constants.androidManifestFile),
   );
@@ -144,9 +155,26 @@ Future<void> createAdaptiveIcons(
     field: 'adaptive_icon_foreground',
     value: foregroundImagePath,
   );
-  final Image foregroundImage = await utils.decodeImageFile(
+  var foregroundImage = await utils.decodeImageFile(
     path.join(prefixPath, foregroundImagePath),
   );
+
+  // Letter-box a non-square foreground so every mipmap size keeps the
+  // source's aspect ratio (upstream #214). Color resolution: adaptive
+  // background if it's a hex literal, else the top-level `background_color`
+  // fallback. When neither is a color (e.g. PNG-only adaptive background
+  // and no top-level default) we keep the legacy squish behavior.
+  final adaptiveLetterBoxColor = !isAdaptiveIconConfigPngFile(backgroundConfig)
+      ? utils.parseHexColor(backgroundConfig)
+      : (config.backgroundColor != null
+            ? utils.parseHexColor(config.backgroundColor!)
+            : null);
+  if (adaptiveLetterBoxColor != null) {
+    foregroundImage = utils.letterBoxToSquare(
+      foregroundImage,
+      adaptiveLetterBoxColor,
+    );
+  }
 
   final concurrentImageUpdates = <Future<void>>[];
   // Create adaptive icon foreground images
@@ -200,9 +228,28 @@ Future<void> createAdaptiveMonochromeIcons(
     field: 'adaptive_icon_monochrome',
     value: monochromeImagePath,
   );
-  final Image monochromeImage = await utils.decodeImageFile(
+  var monochromeImage = await utils.decodeImageFile(
     path.join(prefixPath, monochromeImagePath),
   );
+
+  // Same fallback chain as the foreground: adaptive background (if hex)
+  // → top-level `background_color`. Monochrome bars get the same system
+  // tint Android applies to the rest of the icon, so the color choice is
+  // cosmetic at runtime — what matters is preserving aspect ratio.
+  final adaptiveBackgroundConfig = config.adaptiveIconBackground;
+  final monochromeLetterBoxColor =
+      adaptiveBackgroundConfig != null &&
+          !isAdaptiveIconConfigPngFile(adaptiveBackgroundConfig)
+      ? utils.parseHexColor(adaptiveBackgroundConfig)
+      : (config.backgroundColor != null
+            ? utils.parseHexColor(config.backgroundColor!)
+            : null);
+  if (monochromeLetterBoxColor != null) {
+    monochromeImage = utils.letterBoxToSquare(
+      monochromeImage,
+      monochromeLetterBoxColor,
+    );
+  }
 
   final concurrentIconUpdates = <Future<void>>[];
   // Create adaptive icon monochrome images
