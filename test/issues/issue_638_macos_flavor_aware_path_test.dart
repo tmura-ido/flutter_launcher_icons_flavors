@@ -27,19 +27,18 @@ void main() {
     });
 
     test('macOSIconsDirPathFor(null) returns the default AppIcon path', () {
-      expect(
-        constants.macOSIconsDirPathFor(null),
-        constants.macOSIconsDirPath,
-      );
+      expect(constants.macOSIconsDirPathFor(null), constants.macOSIconsDirPath);
     });
 
-    test('macOSIconsDirPathFor("dev") returns the per-flavor asset-set path',
-        () {
-      expect(
-        constants.macOSIconsDirPathFor('dev'),
-        'macos/Runner/Assets.xcassets/AppIcon-dev.appiconset',
-      );
-    });
+    test(
+      'macOSIconsDirPathFor("dev") returns the per-flavor asset-set path',
+      () {
+        expect(
+          constants.macOSIconsDirPathFor('dev'),
+          'macos/Runner/Assets.xcassets/AppIcon-dev.appiconset',
+        );
+      },
+    );
 
     test('macOSContentsFilePathFor mirrors the icons-dir path', () {
       expect(

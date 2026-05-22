@@ -93,18 +93,12 @@ class MacOSIconGenerator extends IconGenerator {
     );
     for (final template in _iconSizeTemplates) {
       final resized = utils.createResizedImage(template.scaledSize, image);
-      final fileName = template.iconFile.replaceFirst(
-        '.png',
-        '$suffix.png',
-      );
+      final fileName = template.iconFile.replaceFirst('.png', '$suffix.png');
       final iconFile = await utils.createFileIfNotExist(
         path.join(iconsDir.path, fileName),
       );
       await iconFile.writeAsBytes(
-        utils.encodePngOptimized(
-          resized,
-          optimize: context.config.optimizePng,
-        ),
+        utils.encodePngOptimized(resized, optimize: context.config.optimizePng),
       );
     }
   }
@@ -123,12 +117,7 @@ class MacOSIconGenerator extends IconGenerator {
     for (final px in canvas) {
       px.setRgba(0, 0, 0, 0);
     }
-    return compositeImage(
-      canvas,
-      resized,
-      dstX: 100,
-      dstY: 100,
-    );
+    return compositeImage(canvas, resized, dstX: 100, dstY: 100);
   }
 
   @override

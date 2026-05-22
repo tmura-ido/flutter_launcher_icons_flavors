@@ -19,13 +19,15 @@ void main() {
       expect(cfg.outputPath, 'web_prod');
     });
 
-    test('WebConfig outputPath defaults to null (writer applies convention)',
-        () {
-      final cfg = WebConfig.fromJson(<String, dynamic>{
-        'generate': true,
-        'image_path': 'app_icon.png',
-      });
-      expect(cfg.outputPath, isNull);
-    });
+    test(
+      'WebConfig outputPath defaults to null (writer applies convention)',
+      () {
+        final cfg = WebConfig.fromJson(<String, dynamic>{
+          'generate': true,
+          'image_path': 'app_icon.png',
+        });
+        expect(cfg.outputPath, isNull);
+      },
+    );
   });
 }

@@ -15,9 +15,7 @@ void main() {
     test('legacy image list has 1024x1024 @1x ios-marketing entry', () {
       const prefix = 'Icon-App';
       final imageList = ios.createLegacyImageList(prefix);
-      final marketing = imageList.where(
-        (e) => e['idiom'] == 'ios-marketing',
-      );
+      final marketing = imageList.where((e) => e['idiom'] == 'ios-marketing');
       expect(marketing, hasLength(1));
       final entry = marketing.single;
       expect(entry['size'], equals('1024x1024'));
@@ -28,9 +26,7 @@ void main() {
     test('modern image list has 1024x1024 @1x ios-marketing entry', () {
       const prefix = 'Icon-App';
       final imageList = ios.createImageList(prefix, null, null);
-      final marketing = imageList.where(
-        (e) => e['idiom'] == 'ios-marketing',
-      );
+      final marketing = imageList.where((e) => e['idiom'] == 'ios-marketing');
       expect(marketing, hasLength(1));
       final entry = marketing.single;
       expect(entry['size'], equals('1024x1024'));
@@ -44,9 +40,7 @@ void main() {
         final raw = ios.generateContentsFileAsString('Icon-App', null, null);
         final decoded = jsonDecode(raw) as Map<String, dynamic>;
         final images = (decoded['images'] as List).cast<Map<String, dynamic>>();
-        final marketing = images.where(
-          (e) => e['idiom'] == 'ios-marketing',
-        );
+        final marketing = images.where((e) => e['idiom'] == 'ios-marketing');
         expect(marketing, hasLength(1));
         expect(marketing.single['size'], equals('1024x1024'));
         expect(marketing.single['scale'], equals('1x'));

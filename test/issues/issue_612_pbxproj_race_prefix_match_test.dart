@@ -17,10 +17,8 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 /// `-style1-Debug.xcconfig`), NOT `-style10.xcconfig`.
 void main() {
   group('issue #612: flavor prefix collision in pbxproj matcher', () {
-    test(
-      'updating "style1" must not also overwrite "style10" line',
-      () async {
-        const pbxproj = '''
+    test('updating "style1" must not also overwrite "style10" line', () async {
+      const pbxproj = '''
 // !\$*UTF8*\$!
 {
 /* Begin XCBuildConfiguration section */
@@ -43,38 +41,42 @@ void main() {
 /* End XCBuildConfiguration section */
 }
 ''';
-        await d.dir('proj_612', [
-          d.dir('ios', [
-            d.dir('Runner.xcodeproj', [
-              d.file('project.pbxproj', pbxproj),
-            ]),
-          ]),
-        ]).create();
-        final dir = p.join(d.sandbox, 'proj_612');
+      await d.dir('proj_612', [
+        d.dir('ios', [
+          d.dir('Runner.xcodeproj', [d.file('project.pbxproj', pbxproj)]),
+        ]),
+      ]).create();
+      final dir = p.join(d.sandbox, 'proj_612');
 
-        await ios.changeIosLauncherIcon(
-          '"AppIcon-style1"',
-          'style1',
-          prefixPath: dir,
-        );
+      await ios.changeIosLauncherIcon(
+        '"AppIcon-style1"',
+        'style1',
+        prefixPath: dir,
+      );
 
-        final contents = await File(
-          p.join(dir, 'ios', 'Runner.xcodeproj', 'project.pbxproj'),
-        ).readAsString();
+      final contents = await File(
+        p.join(dir, 'ios', 'Runner.xcodeproj', 'project.pbxproj'),
+      ).readAsString();
 
-        // style1 block must be updated.
-        final style1Block = RegExp(
-          r'Debug-style1\.xcconfig \*/;\s*\n\s*buildSettings = \{\s*\n\s*ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-style1";',
-        );
-        expect(style1Block.hasMatch(contents), isTrue,
-            reason: 'style1 block must receive the AppIcon-style1 name');
+      // style1 block must be updated.
+      final style1Block = RegExp(
+        r'Debug-style1\.xcconfig \*/;\s*\n\s*buildSettings = \{\s*\n\s*ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-style1";',
+      );
+      expect(
+        style1Block.hasMatch(contents),
+        isTrue,
+        reason: 'style1 block must receive the AppIcon-style1 name',
+      );
 
-        // style10 block must remain on the original (untouched) value.
-        final style10Untouched = RegExp(
-          r'Debug-style10\.xcconfig \*/;\s*\n\s*buildSettings = \{\s*\n\s*ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;',
-        );
-        expect(style10Untouched.hasMatch(contents), isTrue,
-            reason: 'style10 block must NOT be matched by style1 update');
+      // style10 block must remain on the original (untouched) value.
+      final style10Untouched = RegExp(
+        r'Debug-style10\.xcconfig \*/;\s*\n\s*buildSettings = \{\s*\n\s*ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;',
+      );
+      expect(
+        style10Untouched.hasMatch(contents),
+        isTrue,
+        reason: 'style10 block must NOT be matched by style1 update',
+      );
     });
   });
 }

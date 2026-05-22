@@ -95,28 +95,23 @@ void main() {
   // Install section — version pin must match the current published version
   // ---------------------------------------------------------------------
   group('README §Install', () {
-    test(
-      'README pins the dev-dependency to the current pubspec version '
-      '(flutter_launcher_icons_flavors: ^X.Y.Z)',
-      () {
-        final pubspec = File(
-          p.join(_projectRoot, 'pubspec.yaml'),
-        ).readAsStringSync();
-        final version = (loadYaml(pubspec) as YamlMap)['version'] as String;
-        final readme = File(
-          p.join(_projectRoot, 'README.md'),
-        ).readAsStringSync();
-        final expected = 'flutter_launcher_icons_flavors: ^$version';
-        expect(
-          readme,
-          contains(expected),
-          reason:
-              'README install snippet must advertise the current package '
-              'version "$expected". Bump the README whenever pubspec.yaml '
-              'version changes.',
-        );
-      },
-    );
+    test('README pins the dev-dependency to the current pubspec version '
+        '(flutter_launcher_icons_flavors: ^X.Y.Z)', () {
+      final pubspec = File(
+        p.join(_projectRoot, 'pubspec.yaml'),
+      ).readAsStringSync();
+      final version = (loadYaml(pubspec) as YamlMap)['version'] as String;
+      final readme = File(p.join(_projectRoot, 'README.md')).readAsStringSync();
+      final expected = 'flutter_launcher_icons_flavors: ^$version';
+      expect(
+        readme,
+        contains(expected),
+        reason:
+            'README install snippet must advertise the current package '
+            'version "$expected". Bump the README whenever pubspec.yaml '
+            'version changes.',
+      );
+    });
 
     test('packageVersion constant matches pubspec.yaml version', () {
       final pubspec = File(

@@ -59,9 +59,7 @@ Future<String> _scaffold(String name, List<int> pngBytes) async {
       d.dir('Runner', [
         d.dir('Assets.xcassets', [d.dir('AppIcon.appiconset')]),
       ]),
-      d.dir('Runner.xcodeproj', [
-        d.file('project.pbxproj', _minimalPbxproj),
-      ]),
+      d.dir('Runner.xcodeproj', [d.file('project.pbxproj', _minimalPbxproj)]),
     ]),
   ]).create();
   return p.join(d.sandbox, name);
@@ -84,158 +82,151 @@ Future<Image> _readMarketingIcon(String prefix) async {
 
 void main() {
   group('issue #214: iOS remove_alpha runs AFTER letter-box', () {
-    test(
-      'transparent letter-box color + remove_alpha_ios still produces a '
-      'fully opaque marketing icon (App Store compliant)',
-      () async {
-        final prefix = await _scaffold('ios_alpha_after_lb', _redPngRgba(200, 100));
-        final cfg = Config.fromJson({
-          'ios': true,
-          'image_path': 'src.png',
-          'background_color': '#00FFFFFF', // transparent white
-          'remove_alpha_ios': true,
-        });
+    test('transparent letter-box color + remove_alpha_ios still produces a '
+        'fully opaque marketing icon (App Store compliant)', () async {
+      final prefix = await _scaffold(
+        'ios_alpha_after_lb',
+        _redPngRgba(200, 100),
+      );
+      final cfg = Config.fromJson({
+        'ios': true,
+        'image_path': 'src.png',
+        'background_color': '#00FFFFFF', // transparent white
+        'remove_alpha_ios': true,
+      });
 
-        await ios.createIcons(
-          cfg,
-          null,
-          logger: FLILogger(false),
-          prefixPath: prefix,
-        );
+      await ios.createIcons(
+        cfg,
+        null,
+        logger: FLILogger(false),
+        prefixPath: prefix,
+      );
 
-        final out = await _readMarketingIcon(prefix);
-        // The alpha channel must be stripped entirely (numChannels: 3),
-        // matching the contract that App Store-bound icons carry no
-        // alpha metadata.
+      final out = await _readMarketingIcon(prefix);
+      // The alpha channel must be stripped entirely (numChannels: 3),
+      // matching the contract that App Store-bound icons carry no
+      // alpha metadata.
+      expect(
+        out.numChannels,
+        3,
+        reason: 'remove_alpha_ios must strip the alpha channel',
+      );
+      // And no pixel may be transparent. Sample the top-left corner —
+      // the very place where the bug used to leave bars at alpha=0.
+      // The opaque-image check is also exhaustive: scan the whole
+      // first row + first column.
+      for (var x = 0; x < out.width; x++) {
+        final px = out.getPixel(x, 0);
         expect(
-          out.numChannels,
-          3,
-          reason: 'remove_alpha_ios must strip the alpha channel',
+          px.a,
+          255,
+          reason: 'top row pixel ($x, 0) must be opaque (a=255)',
         );
-        // And no pixel may be transparent. Sample the top-left corner —
-        // the very place where the bug used to leave bars at alpha=0.
-        // The opaque-image check is also exhaustive: scan the whole
-        // first row + first column.
-        for (var x = 0; x < out.width; x++) {
-          final px = out.getPixel(x, 0);
-          expect(
-            px.a,
-            255,
-            reason: 'top row pixel ($x, 0) must be opaque (a=255)',
-          );
-        }
-        for (var y = 0; y < out.height; y++) {
-          final px = out.getPixel(0, y);
-          expect(
-            px.a,
-            255,
-            reason: 'left column pixel (0, $y) must be opaque (a=255)',
-          );
-        }
-      },
-    );
-
-    test(
-      'opaque background_color_ios + remove_alpha_ios fills bars with '
-      'that color (non-square source)',
-      () async {
-        final prefix = await _scaffold('ios_opaque_lb', _redPngRgba(200, 100));
-        final cfg = Config.fromJson({
-          'ios': true,
-          'image_path': 'src.png',
-          'background_color_ios': '#0175C2', // Flutter blue, opaque
-          'remove_alpha_ios': true,
-        });
-
-        await ios.createIcons(
-          cfg,
-          null,
-          logger: FLILogger(false),
-          prefixPath: prefix,
-        );
-
-        final out = await _readMarketingIcon(prefix);
-        expect(out.numChannels, 3);
-        // Top-left sits deep inside the letter-box bar.
-        final corner = out.getPixel(0, 0);
-        expect(corner.r, 0x01);
-        expect(corner.g, 0x75);
-        expect(corner.b, 0xc2);
-      },
-    );
-
-    test(
-      'transparent background_color + transparent background_color_ios + '
-      'source containing alpha pixels still yields a fully opaque iOS '
-      'marketing icon (remove_alpha_ios contract)',
-      () async {
-        // 200×100 source — top half red opaque, bottom half fully
-        // transparent. Exercises BOTH branches of `_alphaBlend`:
-        //   - opaque pixels (fg.a > 0) → blended → forced to a=0xff
-        //   - transparent pixels (fg.a == 0) → returns bg (also a=0)
-        // and the letter-box step adds extra fully-transparent bars
-        // because the bg color is alpha=0.
-        //
-        // The contract under test: `remove_alpha_ios: true` MUST drop
-        // the alpha channel via `convert(numChannels: 3)`, so even when
-        // every color in the resolution chain is alpha=0 the final
-        // PNG is encoded as opaque RGB.
-        final src = Image(width: 200, height: 100, numChannels: 4);
-        for (var y = 0; y < src.height; y++) {
-          for (var x = 0; x < src.width; x++) {
-            final alpha = y < src.height ~/ 2 ? 0xff : 0;
-            src.setPixelRgba(x, y, 255, 0, 0, alpha);
-          }
-        }
-
-        final prefix = await _scaffold(
-          'ios_all_transparent_bg',
-          encodePng(src),
-        );
-        final cfg = Config.fromJson({
-          'ios': true,
-          'image_path': 'src.png',
-          'background_color': '#00FFFFFF',
-          'background_color_ios': '#00FFFFFF',
-          'remove_alpha_ios': true,
-        });
-
-        await ios.createIcons(
-          cfg,
-          null,
-          logger: FLILogger(false),
-          prefixPath: prefix,
-        );
-
-        final out = await _readMarketingIcon(prefix);
-        // Primary contract: the alpha channel is stripped entirely.
+      }
+      for (var y = 0; y < out.height; y++) {
+        final px = out.getPixel(0, y);
         expect(
-          out.numChannels,
-          3,
-          reason: 'remove_alpha_ios must strip the alpha channel even when '
-              'every bg in the resolution chain is alpha=0',
+          px.a,
+          255,
+          reason: 'left column pixel (0, $y) must be opaque (a=255)',
         );
-        // Belt-and-braces: sample the corners (in the letter-box bars),
-        // the center (in the originally-opaque half), and one point in
-        // the originally-transparent half — none may read as transparent.
-        final samples = <Map<String, int>>[
-          {'x': 0, 'y': 0},
-          {'x': out.width - 1, 'y': 0},
-          {'x': 0, 'y': out.height - 1},
-          {'x': out.width - 1, 'y': out.height - 1},
-          {'x': out.width ~/ 2, 'y': out.height ~/ 2},
-          {'x': out.width ~/ 2, 'y': (out.height * 3) ~/ 4},
-        ];
-        for (final s in samples) {
-          final px = out.getPixel(s['x']!, s['y']!);
-          expect(
-            px.a,
-            255,
-            reason: 'pixel (${s['x']}, ${s['y']}) must be opaque after '
-                'remove_alpha_ios',
-          );
+      }
+    });
+
+    test('opaque background_color_ios + remove_alpha_ios fills bars with '
+        'that color (non-square source)', () async {
+      final prefix = await _scaffold('ios_opaque_lb', _redPngRgba(200, 100));
+      final cfg = Config.fromJson({
+        'ios': true,
+        'image_path': 'src.png',
+        'background_color_ios': '#0175C2', // Flutter blue, opaque
+        'remove_alpha_ios': true,
+      });
+
+      await ios.createIcons(
+        cfg,
+        null,
+        logger: FLILogger(false),
+        prefixPath: prefix,
+      );
+
+      final out = await _readMarketingIcon(prefix);
+      expect(out.numChannels, 3);
+      // Top-left sits deep inside the letter-box bar.
+      final corner = out.getPixel(0, 0);
+      expect(corner.r, 0x01);
+      expect(corner.g, 0x75);
+      expect(corner.b, 0xc2);
+    });
+
+    test('transparent background_color + transparent background_color_ios + '
+        'source containing alpha pixels still yields a fully opaque iOS '
+        'marketing icon (remove_alpha_ios contract)', () async {
+      // 200×100 source — top half red opaque, bottom half fully
+      // transparent. Exercises BOTH branches of `_alphaBlend`:
+      //   - opaque pixels (fg.a > 0) → blended → forced to a=0xff
+      //   - transparent pixels (fg.a == 0) → returns bg (also a=0)
+      // and the letter-box step adds extra fully-transparent bars
+      // because the bg color is alpha=0.
+      //
+      // The contract under test: `remove_alpha_ios: true` MUST drop
+      // the alpha channel via `convert(numChannels: 3)`, so even when
+      // every color in the resolution chain is alpha=0 the final
+      // PNG is encoded as opaque RGB.
+      final src = Image(width: 200, height: 100, numChannels: 4);
+      for (var y = 0; y < src.height; y++) {
+        for (var x = 0; x < src.width; x++) {
+          final alpha = y < src.height ~/ 2 ? 0xff : 0;
+          src.setPixelRgba(x, y, 255, 0, 0, alpha);
         }
-      },
-    );
+      }
+
+      final prefix = await _scaffold('ios_all_transparent_bg', encodePng(src));
+      final cfg = Config.fromJson({
+        'ios': true,
+        'image_path': 'src.png',
+        'background_color': '#00FFFFFF',
+        'background_color_ios': '#00FFFFFF',
+        'remove_alpha_ios': true,
+      });
+
+      await ios.createIcons(
+        cfg,
+        null,
+        logger: FLILogger(false),
+        prefixPath: prefix,
+      );
+
+      final out = await _readMarketingIcon(prefix);
+      // Primary contract: the alpha channel is stripped entirely.
+      expect(
+        out.numChannels,
+        3,
+        reason:
+            'remove_alpha_ios must strip the alpha channel even when '
+            'every bg in the resolution chain is alpha=0',
+      );
+      // Belt-and-braces: sample the corners (in the letter-box bars),
+      // the center (in the originally-opaque half), and one point in
+      // the originally-transparent half — none may read as transparent.
+      final samples = <Map<String, int>>[
+        {'x': 0, 'y': 0},
+        {'x': out.width - 1, 'y': 0},
+        {'x': 0, 'y': out.height - 1},
+        {'x': out.width - 1, 'y': out.height - 1},
+        {'x': out.width ~/ 2, 'y': out.height ~/ 2},
+        {'x': out.width ~/ 2, 'y': (out.height * 3) ~/ 4},
+      ];
+      for (final s in samples) {
+        final px = out.getPixel(s['x']!, s['y']!);
+        expect(
+          px.a,
+          255,
+          reason:
+              'pixel (${s['x']}, ${s['y']}) must be opaque after '
+              'remove_alpha_ios',
+        );
+      }
+    });
   });
 }

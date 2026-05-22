@@ -17,10 +17,9 @@ void main() {
     test(
       'decoding a non-image file throws NoDecoderForImageFormatException',
       () async {
-        await d.file(
-          'fake.ico',
-          'not actually a valid .ico — just garbage bytes',
-        ).create();
+        await d
+            .file('fake.ico', 'not actually a valid .ico — just garbage bytes')
+            .create();
         final p = path.join(d.sandbox, 'fake.ico');
         expect(
           utils.decodeImageFile(p),

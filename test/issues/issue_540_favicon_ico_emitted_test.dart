@@ -19,10 +19,7 @@ void main() {
       final dir = await _makeSandbox('fav540');
       final cfg = Config.fromJson(<String, dynamic>{
         'image_path': 'app_icon.png',
-        'web': {
-          'generate': true,
-          'image_path': 'app_icon.png',
-        },
+        'web': {'generate': true, 'image_path': 'app_icon.png'},
       });
       final ctx = IconGeneratorContext(
         config: cfg,

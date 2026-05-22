@@ -29,20 +29,22 @@ void main() {
       },
     );
 
-    test('hex literal for adaptive_icon_monochrome -> InvalidConfigException',
-        () {
-      final input = <String, dynamic>{
-        'android': true,
-        'image_path': 'assets/icon.png',
-        'adaptive_icon_background': '#ffffff',
-        'adaptive_icon_foreground': 'assets/fg.png',
-        'adaptive_icon_monochrome': '#abc',
-      };
-      expect(
-        () => Config.fromJson(input),
-        throwsA(isA<InvalidConfigException>()),
-      );
-    });
+    test(
+      'hex literal for adaptive_icon_monochrome -> InvalidConfigException',
+      () {
+        final input = <String, dynamic>{
+          'android': true,
+          'image_path': 'assets/icon.png',
+          'adaptive_icon_background': '#ffffff',
+          'adaptive_icon_foreground': 'assets/fg.png',
+          'adaptive_icon_monochrome': '#abc',
+        };
+        expect(
+          () => Config.fromJson(input),
+          throwsA(isA<InvalidConfigException>()),
+        );
+      },
+    );
 
     test('PNG path for adaptive_icon_foreground is accepted', () {
       final input = <String, dynamic>{

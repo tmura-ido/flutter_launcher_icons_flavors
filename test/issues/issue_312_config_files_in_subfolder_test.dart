@@ -35,26 +35,28 @@ flutter_launcher_icons:
       expect(flavors, containsAll(['dev', 'prod']));
     });
 
-    test('getFlavors skips noise directories (.dart_tool, build, .git)',
-        () async {
-      await d.dir('proj_312_noise', [
-        d.dir('.dart_tool', [
-          d.file('flutter_launcher_icons-noise.yaml', 'irrelevant'),
-        ]),
-        d.dir('build', [
-          d.file('flutter_launcher_icons-noise2.yaml', 'irrelevant'),
-        ]),
-        d.file('flutter_launcher_icons-real.yaml', '''
+    test(
+      'getFlavors skips noise directories (.dart_tool, build, .git)',
+      () async {
+        await d.dir('proj_312_noise', [
+          d.dir('.dart_tool', [
+            d.file('flutter_launcher_icons-noise.yaml', 'irrelevant'),
+          ]),
+          d.dir('build', [
+            d.file('flutter_launcher_icons-noise2.yaml', 'irrelevant'),
+          ]),
+          d.file('flutter_launcher_icons-real.yaml', '''
 flutter_launcher_icons:
   android: true
   image_path: app_icon.png
 '''),
-      ]).create();
-      final dir = p.join(d.sandbox, 'proj_312_noise');
+        ]).create();
+        final dir = p.join(d.sandbox, 'proj_312_noise');
 
-      final flavors = await fli_main.getFlavors(dir);
-      expect(flavors, ['real']);
-    });
+        final flavors = await fli_main.getFlavors(dir);
+        expect(flavors, ['real']);
+      },
+    );
 
     test('getFlavors does find configs at the prefix root', () async {
       await d.dir('proj_312_root', [

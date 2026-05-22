@@ -33,65 +33,63 @@ void main() {
       expect(cfg.macOSConfig?.padding, isTrue);
     });
 
-    test('1024 slot is transparent at the corners when padding: true',
-        () async {
-      // Solid red 1024×1024 source.
-      final src = Image(width: 1024, height: 1024, numChannels: 4);
-      for (final px in src) {
-        px.setRgba(255, 0, 0, 255);
-      }
+    test(
+      '1024 slot is transparent at the corners when padding: true',
+      () async {
+        // Solid red 1024×1024 source.
+        final src = Image(width: 1024, height: 1024, numChannels: 4);
+        for (final px in src) {
+          px.setRgba(255, 0, 0, 255);
+        }
 
-      await p_d.dir('proj655', [
-        p_d.dir('macos', [
-          p_d.dir('Runner', [
-            p_d.dir('Assets.xcassets', [
-              p_d.dir('AppIcon.appiconset', [
-                p_d.file('Contents.json', '{"images":[],"info":{}}'),
+        await p_d.dir('proj655', [
+          p_d.dir('macos', [
+            p_d.dir('Runner', [
+              p_d.dir('Assets.xcassets', [
+                p_d.dir('AppIcon.appiconset', [
+                  p_d.file('Contents.json', '{"images":[],"info":{}}'),
+                ]),
               ]),
             ]),
           ]),
-        ]),
-        p_d.file('src.png', encodePng(src)),
-        p_d.file('pubspec.yaml', 'name: demo\n'),
-      ]).create();
+          p_d.file('src.png', encodePng(src)),
+          p_d.file('pubspec.yaml', 'name: demo\n'),
+        ]).create();
 
-      final prefix = p.join(p_d.sandbox, 'proj655');
-      final cfg = Config.fromJson(<String, dynamic>{
-        'image_path': 'src.png',
-        'macos': {
-          'generate': true,
+        final prefix = p.join(p_d.sandbox, 'proj655');
+        final cfg = Config.fromJson(<String, dynamic>{
           'image_path': 'src.png',
-          'padding': true,
-        },
-      });
-      final ctx = IconGeneratorContext(
-        config: cfg,
-        prefixPath: prefix,
-        logger: FLILogger(false),
-      );
-      final gen = MacOSIconGenerator(ctx);
-      await gen.createIcons();
+          'macos': {'generate': true, 'image_path': 'src.png', 'padding': true},
+        });
+        final ctx = IconGeneratorContext(
+          config: cfg,
+          prefixPath: prefix,
+          logger: FLILogger(false),
+        );
+        final gen = MacOSIconGenerator(ctx);
+        await gen.createIcons();
 
-      // The 1024 slot is `app_icon_1024.png` per the macOS template.
-      final out = File(
-        p.join(
-          prefix,
-          'macos',
-          'Runner',
-          'Assets.xcassets',
-          'AppIcon.appiconset',
-          'app_icon_1024.png',
-        ),
-      );
-      expect(out.existsSync(), isTrue);
-      final decoded = decodePng(out.readAsBytesSync())!;
-      // Corner pixels should be transparent.
-      expect(decoded.getPixel(0, 0).a, 0);
-      expect(decoded.getPixel(1023, 0).a, 0);
-      expect(decoded.getPixel(0, 1023).a, 0);
-      expect(decoded.getPixel(1023, 1023).a, 0);
-      // Center pixels should be the source red.
-      expect(decoded.getPixel(512, 512).r, 255);
-    });
+        // The 1024 slot is `app_icon_1024.png` per the macOS template.
+        final out = File(
+          p.join(
+            prefix,
+            'macos',
+            'Runner',
+            'Assets.xcassets',
+            'AppIcon.appiconset',
+            'app_icon_1024.png',
+          ),
+        );
+        expect(out.existsSync(), isTrue);
+        final decoded = decodePng(out.readAsBytesSync())!;
+        // Corner pixels should be transparent.
+        expect(decoded.getPixel(0, 0).a, 0);
+        expect(decoded.getPixel(1023, 0).a, 0);
+        expect(decoded.getPixel(0, 1023).a, 0);
+        expect(decoded.getPixel(1023, 1023).a, 0);
+        // Center pixels should be the source red.
+        expect(decoded.getPixel(512, 512).r, 255);
+      },
+    );
   });
 }

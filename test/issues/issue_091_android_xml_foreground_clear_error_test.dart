@@ -11,26 +11,28 @@ import 'package:test/test.dart';
 /// field and the path.
 void main() {
   group('issue #91: .xml adaptive foreground -> clear FLIException', () {
-    test('rejectVectorDrawableSource throws InvalidConfigException for .xml',
-        () {
-      expect(
-        () => rejectVectorDrawableSource(
-          field: 'adaptive_icon_foreground',
-          value: 'assets/foo.xml',
-        ),
-        throwsA(
-          isA<InvalidConfigException>().having(
-            (e) => e.message,
-            'message',
-            allOf(
-              contains('adaptive_icon_foreground'),
-              contains('assets/foo.xml'),
-              contains('vector drawable'),
+    test(
+      'rejectVectorDrawableSource throws InvalidConfigException for .xml',
+      () {
+        expect(
+          () => rejectVectorDrawableSource(
+            field: 'adaptive_icon_foreground',
+            value: 'assets/foo.xml',
+          ),
+          throwsA(
+            isA<InvalidConfigException>().having(
+              (e) => e.message,
+              'message',
+              allOf(
+                contains('adaptive_icon_foreground'),
+                contains('assets/foo.xml'),
+                contains('vector drawable'),
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
     test('case-insensitive: .XML is also rejected', () {
       expect(

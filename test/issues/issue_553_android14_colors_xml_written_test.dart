@@ -17,46 +17,52 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 ///   - `<res>/mipmap-anydpi-v26/ic_launcher.xml` referencing
 ///     `@color/ic_launcher_background`.
 void main() {
-  group('issue #553: adaptive bg color is wired through colors.xml + adaptive xml',
-      () {
-    test('updateColorsXmlFile creates colors.xml with the configured hex',
+  group(
+    'issue #553: adaptive bg color is wired through colors.xml + adaptive xml',
+    () {
+      test(
+        'updateColorsXmlFile creates colors.xml with the configured hex',
         () async {
-      await d.dir('proj', [
-        d.dir('android', [
-          d.dir('app', [
-            d.dir('src', [
-              d.dir('main', [d.dir('res')]),
+          await d.dir('proj', [
+            d.dir('android', [
+              d.dir('app', [
+                d.dir('src', [
+                  d.dir('main', [d.dir('res')]),
+                ]),
+              ]),
             ]),
-          ]),
-        ]),
-      ]).create();
+          ]).create();
 
-      final prefix = p.join(d.sandbox, 'proj');
-      await android.updateColorsXmlFile(
-        '#1f1d1e',
-        null,
-        logger: FLILogger(false),
-        prefixPath: prefix,
+          final prefix = p.join(d.sandbox, 'proj');
+          await android.updateColorsXmlFile(
+            '#1f1d1e',
+            null,
+            logger: FLILogger(false),
+            prefixPath: prefix,
+          );
+
+          final colorsXml = File(
+            p.join(prefix, constants.androidColorsFile(null)),
+          );
+          expect(
+            colorsXml.existsSync(),
+            isTrue,
+            reason: 'colors.xml should be created when not yet present',
+          );
+          final body = await colorsXml.readAsString();
+          expect(body, contains('ic_launcher_background'));
+          expect(body, contains('#1f1d1e'));
+        },
       );
 
-      final colorsXml = File(p.join(prefix, constants.androidColorsFile(null)));
-      expect(colorsXml.existsSync(), isTrue,
-          reason: 'colors.xml should be created when not yet present');
-      final body = await colorsXml.readAsString();
-      expect(body, contains('ic_launcher_background'));
-      expect(body, contains('#1f1d1e'));
-    });
-
-    test(
-      'when adaptive bg is a color (not a PNG), adaptive xml references '
-      '@color/ic_launcher_background',
-      () {
+      test('when adaptive bg is a color (not a PNG), adaptive xml references '
+          '@color/ic_launcher_background', () {
         // The mipmap XML branch lives in createMipmapXmlFile; we can simply
         // assert on the helper that decides PNG-vs-color since the XML body
         // is template-string formatted around that branch.
         expect(android.isAdaptiveIconConfigPngFile('#1f1d1e'), isFalse);
         expect(android.isAdaptiveIconConfigPngFile('bg.png'), isTrue);
-      },
-    );
-  });
+      });
+    },
+  );
 }

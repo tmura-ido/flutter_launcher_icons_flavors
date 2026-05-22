@@ -31,10 +31,7 @@ void main() {
           isA<InvalidConfigException>().having(
             (e) => e.toString(),
             'toString',
-            allOf(
-              contains('AppIcon.appiconset'),
-              contains('flutter create'),
-            ),
+            allOf(contains('AppIcon.appiconset'), contains('flutter create')),
           ),
         ),
       );

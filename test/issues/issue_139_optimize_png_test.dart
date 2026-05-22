@@ -44,10 +44,7 @@ void main() {
       expect(tightDecoded.width, 64);
       // Pixel comparison: at least the corner pixels match.
       expect(fastDecoded.getPixel(0, 0).r, tightDecoded.getPixel(0, 0).r);
-      expect(
-        fastDecoded.getPixel(63, 63).r,
-        tightDecoded.getPixel(63, 63).r,
-      );
+      expect(fastDecoded.getPixel(63, 63).r, tightDecoded.getPixel(63, 63).r);
     });
 
     test('encodePngOptimized produces output <= the fast encoder', () {

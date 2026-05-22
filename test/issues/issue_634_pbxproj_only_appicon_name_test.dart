@@ -17,11 +17,10 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 /// The expected correct behavior: only the line matching the exact key
 /// `ASSETCATALOG_COMPILER_APPICON_NAME` is rewritten.
 void main() {
-  group('issue #634: pbxproj must only mutate ASSETCATALOG_COMPILER_APPICON_NAME',
-      () {
-    test(
-      'unrelated ASSETCATALOG_* settings are preserved',
-      () async {
+  group(
+    'issue #634: pbxproj must only mutate ASSETCATALOG_COMPILER_APPICON_NAME',
+    () {
+      test('unrelated ASSETCATALOG_* settings are preserved', () async {
         const pbxproj = '''
 // !\$*UTF8*\$!
 {
@@ -40,9 +39,7 @@ void main() {
 ''';
         await d.dir('proj_634', [
           d.dir('ios', [
-            d.dir('Runner.xcodeproj', [
-              d.file('project.pbxproj', pbxproj),
-            ]),
+            d.dir('Runner.xcodeproj', [d.file('project.pbxproj', pbxproj)]),
           ]),
         ]).create();
         final dir = p.join(d.sandbox, 'proj_634');
@@ -69,6 +66,7 @@ void main() {
             'ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;',
           ),
         );
-    });
-  });
+      });
+    },
+  );
 }

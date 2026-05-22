@@ -53,9 +53,9 @@ class TrayIconConfig {
 
   /// Serializes to a JSON map.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'image_path': imagePath,
-        'template_image_path': templateImagePath,
-        'sizes': sizes,
-        'output': output,
-      };
+    'image_path': imagePath,
+    'template_image_path': templateImagePath,
+    'sizes': sizes,
+    'output': output,
+  };
 }

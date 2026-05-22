@@ -82,35 +82,37 @@ void main() {
       expect(decoded.width, 128);
     });
 
-    test('falls back to top-level image_path when linux.image_path unset',
-        () async {
-      final src = Image(width: 64, height: 64);
-      for (final px in src) {
-        px.setRgba(0, 255, 0, 255);
-      }
-      await d.dir('proj666_fb', [
-        d.file('top.png', encodePng(src)),
-        d.file('pubspec.yaml', 'name: demo\n'),
-      ]).create();
-      final prefix = p.join(d.sandbox, 'proj666_fb');
+    test(
+      'falls back to top-level image_path when linux.image_path unset',
+      () async {
+        final src = Image(width: 64, height: 64);
+        for (final px in src) {
+          px.setRgba(0, 255, 0, 255);
+        }
+        await d.dir('proj666_fb', [
+          d.file('top.png', encodePng(src)),
+          d.file('pubspec.yaml', 'name: demo\n'),
+        ]).create();
+        final prefix = p.join(d.sandbox, 'proj666_fb');
 
-      final cfg = Config.fromJson(<String, dynamic>{
-        'image_path': 'top.png',
-        'linux': {'generate': true},
-      });
-      final ctx = IconGeneratorContext(
-        config: cfg,
-        prefixPath: prefix,
-        logger: FLILogger(false),
-      );
-      final gen = LinuxIconGenerator(ctx);
-      expect(gen.validateRequirements(), isTrue);
-      await gen.createIcons();
+        final cfg = Config.fromJson(<String, dynamic>{
+          'image_path': 'top.png',
+          'linux': {'generate': true},
+        });
+        final ctx = IconGeneratorContext(
+          config: cfg,
+          prefixPath: prefix,
+          logger: FLILogger(false),
+        );
+        final gen = LinuxIconGenerator(ctx);
+        expect(gen.validateRequirements(), isTrue);
+        await gen.createIcons();
 
-      final out = File(
-        p.join(prefix, 'linux', 'runner', 'resources', 'app_icon.png'),
-      );
-      expect(out.existsSync(), isTrue);
-    });
+        final out = File(
+          p.join(prefix, 'linux', 'runner', 'resources', 'app_icon.png'),
+        );
+        expect(out.existsSync(), isTrue);
+      },
+    );
   });
 }

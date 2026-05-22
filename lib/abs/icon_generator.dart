@@ -101,9 +101,7 @@ Future<void> generateIconsFor({
       // surfaces under `-v` so debuggers can see the full iteration
       // (upstream #476).
       if (!platform.isOptedIn) {
-        logger.verbose(
-          '${platform.platformName}: [skipped: not configured]',
-        );
+        logger.verbose('${platform.platformName}: [skipped: not configured]');
         continue;
       }
       final progress = logger.progress(

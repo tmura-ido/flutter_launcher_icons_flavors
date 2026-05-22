@@ -18,11 +18,7 @@ void main() {
           isA<InvalidConfigException>().having(
             (e) => e.toString(),
             'toString',
-            allOf(
-              contains('logo.svg'),
-              contains('SVG'),
-              contains('PNG'),
-            ),
+            allOf(contains('logo.svg'), contains('SVG'), contains('PNG')),
           ),
         ),
       );

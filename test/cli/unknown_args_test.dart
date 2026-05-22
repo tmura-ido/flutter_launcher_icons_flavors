@@ -53,46 +53,36 @@ void main() {
       },
     );
 
-    test(
-      'multiple unknown positional args on `generate` → exit 64',
-      () async {
-        final code = await runCli(['generate', 'foo', 'bar', 'baz']);
-        expect(code, 64);
-      },
-    );
+    test('multiple unknown positional args on `generate` → exit 64', () async {
+      final code = await runCli(['generate', 'foo', 'bar', 'baz']);
+      expect(code, 64);
+    });
 
-    test(
-      'unknown positional arg on `migrate` → exit 64',
-      () async {
-        final code = await runCli(['migrate', 'foobar']);
-        expect(code, 64);
-      },
-    );
+    test('unknown positional arg on `migrate` → exit 64', () async {
+      final code = await runCli(['migrate', 'foobar']);
+      expect(code, 64);
+    });
 
-    test(
-      'unknown positional arg on `doctor` → exit 64',
-      () async {
-        final code = await runCli(['doctor', 'foobar']);
-        expect(code, 64);
-      },
-    );
+    test('unknown positional arg on `doctor` → exit 64', () async {
+      final code = await runCli(['doctor', 'foobar']);
+      expect(code, 64);
+    });
 
-    test(
-      'bare unknown subcommand → exit 64 (routed via effectiveArgs into '
-      'generate, then caught as a stray positional)',
-      () async {
-        // `flutter_launcher_icons_flavors foobar` becomes
-        // `generate foobar`, which is now a positional-arg error.
-        final code = await runCli(['foobar']);
-        expect(code, 64);
-      },
-    );
+    test('bare unknown subcommand → exit 64 (routed via effectiveArgs into '
+        'generate, then caught as a stray positional)', () async {
+      // `flutter_launcher_icons_flavors foobar` becomes
+      // `generate foobar`, which is now a positional-arg error.
+      final code = await runCli(['foobar']);
+      expect(code, 64);
+    });
 
     // ---- happy path still works ---------------------------------------
-    test('--help still exits 0 (smoke check that we did not break it)',
-        () async {
-      final code = await runCli(['--help']);
-      expect(code, anyOf(0, isNull));
-    });
+    test(
+      '--help still exits 0 (smoke check that we did not break it)',
+      () async {
+        final code = await runCli(['--help']);
+        expect(code, anyOf(0, isNull));
+      },
+    );
   });
 }

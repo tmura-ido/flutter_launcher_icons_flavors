@@ -13,10 +13,7 @@ class IosAlternateIconsConfig {
   final Map<String, IosAlternateIconEntry> icons;
 
   /// Creates an [IosAlternateIconsConfig].
-  const IosAlternateIconsConfig({
-    this.enabled = false,
-    this.icons = const {},
-  });
+  const IosAlternateIconsConfig({this.enabled = false, this.icons = const {}});
 
   /// Parses from a JSON/YAML map.
   factory IosAlternateIconsConfig.fromJson(Map json) {
@@ -35,9 +32,9 @@ class IosAlternateIconsConfig {
 
   /// Serializes to a JSON map.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'enabled': enabled,
-        'icons': icons.map((k, v) => MapEntry(k, v.toJson())),
-      };
+    'enabled': enabled,
+    'icons': icons.map((k, v) => MapEntry(k, v.toJson())),
+  };
 }
 
 /// One alternate icon entry.
@@ -60,17 +57,15 @@ class IosAlternateIconEntry {
 
   /// Parses from a JSON map.
   factory IosAlternateIconEntry.fromJson(Map json) => IosAlternateIconEntry(
-        imagePath: json['image_path'] as String?,
-        imagePathDarkTransparent:
-            json['image_path_dark_transparent'] as String?,
-        imagePathTintedGrayscale:
-            json['image_path_tinted_grayscale'] as String?,
-      );
+    imagePath: json['image_path'] as String?,
+    imagePathDarkTransparent: json['image_path_dark_transparent'] as String?,
+    imagePathTintedGrayscale: json['image_path_tinted_grayscale'] as String?,
+  );
 
   /// Serializes to a JSON map.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'image_path': imagePath,
-        'image_path_dark_transparent': imagePathDarkTransparent,
-        'image_path_tinted_grayscale': imagePathTintedGrayscale,
-      };
+    'image_path': imagePath,
+    'image_path_dark_transparent': imagePathDarkTransparent,
+    'image_path_tinted_grayscale': imagePathTintedGrayscale,
+  };
 }

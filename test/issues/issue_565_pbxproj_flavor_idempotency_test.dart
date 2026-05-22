@@ -41,14 +41,16 @@ void main() {
 ''';
       await d.dir('proj_565', [
         d.dir('ios', [
-          d.dir('Runner.xcodeproj', [
-            d.file('project.pbxproj', pbxproj),
-          ]),
+          d.dir('Runner.xcodeproj', [d.file('project.pbxproj', pbxproj)]),
         ]),
       ]).create();
       final dir = p.join(d.sandbox, 'proj_565');
-      final pbxprojPath =
-          p.join(dir, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+      final pbxprojPath = p.join(
+        dir,
+        'ios',
+        'Runner.xcodeproj',
+        'project.pbxproj',
+      );
 
       // First wave: production then staging.
       await ios.changeIosLauncherIcon(
@@ -76,8 +78,11 @@ void main() {
       );
       final afterSecondWave = await File(pbxprojPath).readAsString();
 
-      expect(afterSecondWave, equals(afterFirstWave),
-          reason: 'sequential flavor pbxproj edits must be idempotent');
+      expect(
+        afterSecondWave,
+        equals(afterFirstWave),
+        reason: 'sequential flavor pbxproj edits must be idempotent',
+      );
 
       // Each flavor must have ended with its own catalog name.
       expect(afterSecondWave, contains('"AppIcon-production";'));

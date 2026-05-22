@@ -22,51 +22,56 @@ import '../templates.dart' as templates;
 void main() {
   group('issue #614: favicon size', () {
     test('kFaviconSize constant is 16 (current behavior)', () {
-      expect(constants.kFaviconSize, 16,
-          reason:
-              'If you change the favicon size, update this test and the '
-              'README — see issue-614.');
+      expect(
+        constants.kFaviconSize,
+        16,
+        reason:
+            'If you change the favicon size, update this test and the '
+            'README — see issue-614.',
+      );
     });
 
-    test('generated web/favicon.png is exactly kFaviconSize x kFaviconSize',
-        () async {
-      final assetPath = p.join(
-        Directory.current.path,
-        'test',
-        'assets',
-        'app_icon.png',
-      );
-      final bytes = File(assetPath).readAsBytesSync();
+    test(
+      'generated web/favicon.png is exactly kFaviconSize x kFaviconSize',
+      () async {
+        final assetPath = p.join(
+          Directory.current.path,
+          'test',
+          'assets',
+          'app_icon.png',
+        );
+        final bytes = File(assetPath).readAsBytesSync();
 
-      await d.dir('proj', [
-        d.dir('web', [
-          d.dir('icons'),
-          d.file('index.html', templates.webIndexTemplate),
-          d.file('manifest.json', templates.webManifestTemplate),
-        ]),
-        d.file('app_icon.png', bytes),
-        d.file('pubspec.yaml', 'name: demo\n'),
-        d.file('flutter_launcher_icons.yaml', templates.fliWebConfig),
-      ]).create();
-      final prefix = p.join(d.sandbox, 'proj');
-      final cfg = Config.loadConfigFromPath(
-        'flutter_launcher_icons.yaml',
-        prefix,
-      )!;
-      final ctx = IconGeneratorContext(
-        config: cfg,
-        prefixPath: prefix,
-        logger: FLILogger(false),
-      );
-      final gen = WebIconGenerator(ctx);
-      expect(gen.validateRequirements(), isTrue);
-      await gen.createIcons();
+        await d.dir('proj', [
+          d.dir('web', [
+            d.dir('icons'),
+            d.file('index.html', templates.webIndexTemplate),
+            d.file('manifest.json', templates.webManifestTemplate),
+          ]),
+          d.file('app_icon.png', bytes),
+          d.file('pubspec.yaml', 'name: demo\n'),
+          d.file('flutter_launcher_icons.yaml', templates.fliWebConfig),
+        ]).create();
+        final prefix = p.join(d.sandbox, 'proj');
+        final cfg = Config.loadConfigFromPath(
+          'flutter_launcher_icons.yaml',
+          prefix,
+        )!;
+        final ctx = IconGeneratorContext(
+          config: cfg,
+          prefixPath: prefix,
+          logger: FLILogger(false),
+        );
+        final gen = WebIconGenerator(ctx);
+        expect(gen.validateRequirements(), isTrue);
+        await gen.createIcons();
 
-      final fav = File(p.join(prefix, 'web', 'favicon.png'));
-      expect(fav.existsSync(), isTrue);
-      final img = decodePng(await fav.readAsBytes())!;
-      expect(img.width, constants.kFaviconSize);
-      expect(img.height, constants.kFaviconSize);
-    });
+        final fav = File(p.join(prefix, 'web', 'favicon.png'));
+        expect(fav.existsSync(), isTrue);
+        final img = decodePng(await fav.readAsBytes())!;
+        expect(img.width, constants.kFaviconSize);
+        expect(img.height, constants.kFaviconSize);
+      },
+    );
   });
 }

@@ -31,82 +31,72 @@ void main() {
       expect(cfg.androidIconName, 'ic_launcher_custom');
     });
 
-    test(
-      'createDefaultIcons writes <name>.png into each mipmap-* directory '
-      'and updates AndroidManifest.xml to @mipmap/<name>',
-      () async {
-        // Build a tiny 1x1 source PNG.
-        final src = Image(width: 1, height: 1);
-        src.getPixel(0, 0).setRgba(255, 255, 255, 255);
+    test('createDefaultIcons writes <name>.png into each mipmap-* directory '
+        'and updates AndroidManifest.xml to @mipmap/<name>', () async {
+      // Build a tiny 1x1 source PNG.
+      final src = Image(width: 1, height: 1);
+      src.getPixel(0, 0).setRgba(255, 255, 255, 255);
 
-        const customName = 'ic_my_brand';
+      const customName = 'ic_my_brand';
 
-        await d.dir('proj', [
-          d.file('a.png', encodePng(src)),
-          d.dir('android', [
-            d.dir('app', [
-              d.dir('src', [
-                d.dir('main', [
-                  d.file(
-                    'AndroidManifest.xml',
-                    '<?xml version="1.0" encoding="utf-8"?>\n'
-                        '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n'
-                        '  <application android:icon="@mipmap/ic_launcher"/>\n'
-                        '</manifest>\n',
-                  ),
-                  d.dir('res'),
-                ]),
+      await d.dir('proj', [
+        d.file('a.png', encodePng(src)),
+        d.dir('android', [
+          d.dir('app', [
+            d.dir('src', [
+              d.dir('main', [
+                d.file(
+                  'AndroidManifest.xml',
+                  '<?xml version="1.0" encoding="utf-8"?>\n'
+                      '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n'
+                      '  <application android:icon="@mipmap/ic_launcher"/>\n'
+                      '</manifest>\n',
+                ),
+                d.dir('res'),
               ]),
             ]),
           ]),
-        ]).create();
+        ]),
+      ]).create();
 
-        final prefix = p.join(d.sandbox, 'proj');
-        final cfg = Config.fromJson({
-          'image_path': 'a.png',
-          'android': customName,
-        });
+      final prefix = p.join(d.sandbox, 'proj');
+      final cfg = Config.fromJson({
+        'image_path': 'a.png',
+        'android': customName,
+      });
 
-        await android.createDefaultIcons(
-          cfg,
-          null,
-          logger: FLILogger(false),
-          prefixPath: prefix,
-        );
+      await android.createDefaultIcons(
+        cfg,
+        null,
+        logger: FLILogger(false),
+        prefixPath: prefix,
+      );
 
-        // (1) Custom-named files should land in every mipmap-* dir.
-        for (final t in android.androidIcons) {
-          final f = File(
-            p.join(
-              prefix,
-              constants.androidResFolder(null),
-              t.directoryName,
-              '$customName.png',
-            ),
-          );
-          expect(
-            f.existsSync(),
-            isTrue,
-            reason:
-                'Expected $customName.png in ${t.directoryName} when '
-                'android: "$customName"',
-          );
-        }
-
-        // (2) AndroidManifest.xml must reference @mipmap/<customName>.
-        final manifest = File(
+      // (1) Custom-named files should land in every mipmap-* dir.
+      for (final t in android.androidIcons) {
+        final f = File(
           p.join(
             prefix,
-            'android',
-            'app',
-            'src',
-            'main',
-            'AndroidManifest.xml',
+            constants.androidResFolder(null),
+            t.directoryName,
+            '$customName.png',
           ),
-        ).readAsStringSync();
-        expect(manifest, contains('@mipmap/$customName'));
-        expect(manifest, isNot(contains('@mipmap/ic_launcher"')));
-      },
-    );
+        );
+        expect(
+          f.existsSync(),
+          isTrue,
+          reason:
+              'Expected $customName.png in ${t.directoryName} when '
+              'android: "$customName"',
+        );
+      }
+
+      // (2) AndroidManifest.xml must reference @mipmap/<customName>.
+      final manifest = File(
+        p.join(prefix, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'),
+      ).readAsStringSync();
+      expect(manifest, contains('@mipmap/$customName'));
+      expect(manifest, isNot(contains('@mipmap/ic_launcher"')));
+    });
   });
 }

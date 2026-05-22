@@ -72,15 +72,13 @@ class WebIconGenerator extends IconGenerator {
     return constants.webDirPath;
   }
 
-  String get _resolvedFaviconPath =>
-      path.join(_resolvedWebDir, 'favicon.png');
+  String get _resolvedFaviconPath => path.join(_resolvedWebDir, 'favicon.png');
   String get _resolvedFaviconIcoPath =>
       path.join(_resolvedWebDir, 'favicon.ico');
   String get _resolvedIconsDir => path.join(_resolvedWebDir, 'icons');
   String get _resolvedManifestPath =>
       path.join(_resolvedWebDir, 'manifest.json');
-  String get _resolvedIndexPath =>
-      path.join(_resolvedWebDir, 'index.html');
+  String get _resolvedIndexPath => path.join(_resolvedWebDir, 'index.html');
 
   @override
   Future<void> createIcons() async {
@@ -101,8 +99,7 @@ class WebIconGenerator extends IconGenerator {
     // low-padding source for the small favicon while PWA icons keep their
     // safe-zone padding.
     Image faviconSource = imgFile;
-    if (webConfig.faviconPath != null &&
-        webConfig.faviconPath!.isNotEmpty) {
+    if (webConfig.faviconPath != null && webConfig.faviconPath!.isNotEmpty) {
       faviconSource = await utils.decodeImageFile(
         path.join(context.prefixPath, webConfig.faviconPath!),
       );
@@ -209,9 +206,11 @@ class WebIconGenerator extends IconGenerator {
   /// `IcoEncoder().encodeImages([...])` API the Windows writer uses
   /// (upstream #540 / #152).
   Future<void> _generateFaviconIco(Image image) async {
-    final frames = [16, 32, 48]
-        .map((s) => utils.createResizedImage(s, image))
-        .toList();
+    final frames = [
+      16,
+      32,
+      48,
+    ].map((s) => utils.createResizedImage(s, image)).toList();
     final out = await utils.createFileIfNotExist(
       path.join(context.prefixPath, _resolvedFaviconIcoPath),
     );

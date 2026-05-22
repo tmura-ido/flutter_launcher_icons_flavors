@@ -16,8 +16,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 /// test exercises `createDefaultIcons` for two distinct flavors and
 /// asserts each lands under its own `src/<flavor>/res/...` tree.
 void main() {
-  group('issue #627: flavor android outputs go to flavor-specific folders',
-      () {
+  group('issue #627: flavor android outputs go to flavor-specific folders', () {
     test('createDefaultIcons writes to src/<flavor>/res per flavor', () async {
       // Use the bundled test asset (real PNG) — `decodeImageFile` rejects
       // ad-hoc bytes.
@@ -63,44 +62,59 @@ void main() {
         prefixPath: dir,
       );
 
-      final devIcon = File(p.join(
-        dir,
-        'android',
-        'app',
-        'src',
-        'dev',
-        'res',
-        'mipmap-xxxhdpi',
-        'ic_launcher.png',
-      ));
-      final prodIcon = File(p.join(
-        dir,
-        'android',
-        'app',
-        'src',
-        'prod',
-        'res',
-        'mipmap-xxxhdpi',
-        'ic_launcher.png',
-      ));
-      expect(devIcon.existsSync(), isTrue,
-          reason: 'dev flavor icon must land under src/dev/res');
-      expect(prodIcon.existsSync(), isTrue,
-          reason: 'prod flavor icon must land under src/prod/res');
+      final devIcon = File(
+        p.join(
+          dir,
+          'android',
+          'app',
+          'src',
+          'dev',
+          'res',
+          'mipmap-xxxhdpi',
+          'ic_launcher.png',
+        ),
+      );
+      final prodIcon = File(
+        p.join(
+          dir,
+          'android',
+          'app',
+          'src',
+          'prod',
+          'res',
+          'mipmap-xxxhdpi',
+          'ic_launcher.png',
+        ),
+      );
+      expect(
+        devIcon.existsSync(),
+        isTrue,
+        reason: 'dev flavor icon must land under src/dev/res',
+      );
+      expect(
+        prodIcon.existsSync(),
+        isTrue,
+        reason: 'prod flavor icon must land under src/prod/res',
+      );
 
       // The main/res tree should NOT have received either flavor's icon.
-      final mainIcon = File(p.join(
-        dir,
-        'android',
-        'app',
-        'src',
-        'main',
-        'res',
-        'mipmap-xxxhdpi',
-        'ic_launcher.png',
-      ));
-      expect(mainIcon.existsSync(), isFalse,
-          reason: 'main/res must not be touched when flavor is provided');
+      final mainIcon = File(
+        p.join(
+          dir,
+          'android',
+          'app',
+          'src',
+          'main',
+          'res',
+          'mipmap-xxxhdpi',
+          'ic_launcher.png',
+        ),
+      );
+      expect(
+        mainIcon.existsSync(),
+        isFalse,
+        reason: 'main/res must not be touched when flavor is provided',
+      );
     });
   });
 }

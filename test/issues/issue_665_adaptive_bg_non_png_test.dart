@@ -16,38 +16,39 @@ import 'package:test/test.dart';
 /// a color.
 void main() {
   group(
-      'issue #616/#617/#665: non-PNG adaptive_icon_background classification',
-      () {
-    test('PNG path is correctly classified as an image', () {
-      expect(android.isAdaptiveIconConfigPngFile('assets/bg.png'), isTrue);
-    });
+    'issue #616/#617/#665: non-PNG adaptive_icon_background classification',
+    () {
+      test('PNG path is correctly classified as an image', () {
+        expect(android.isAdaptiveIconConfigPngFile('assets/bg.png'), isTrue);
+      });
 
-    test('hex color is correctly classified as NOT an image', () {
-      expect(android.isAdaptiveIconConfigPngFile('#FFFFFF'), isFalse);
-    });
+      test('hex color is correctly classified as NOT an image', () {
+        expect(android.isAdaptiveIconConfigPngFile('#FFFFFF'), isFalse);
+      });
 
-    test('jpg path is treated as an image (not a hex color)', () {
-      expect(android.isAdaptiveIconConfigPngFile('assets/bg.jpg'), isTrue);
-    });
+      test('jpg path is treated as an image (not a hex color)', () {
+        expect(android.isAdaptiveIconConfigPngFile('assets/bg.jpg'), isTrue);
+      });
 
-    test('jpeg path is treated as an image (not a hex color)', () {
-      expect(android.isAdaptiveIconConfigPngFile('assets/bg.jpeg'), isTrue);
-    });
+      test('jpeg path is treated as an image (not a hex color)', () {
+        expect(android.isAdaptiveIconConfigPngFile('assets/bg.jpeg'), isTrue);
+      });
 
-    test('webp path is treated as an image (not a hex color)', () {
-      expect(android.isAdaptiveIconConfigPngFile('assets/bg.webp'), isTrue);
-    });
+      test('webp path is treated as an image (not a hex color)', () {
+        expect(android.isAdaptiveIconConfigPngFile('assets/bg.webp'), isTrue);
+      });
 
-    test('shorthand hex (#RGB) is correctly classified as NOT an image', () {
-      expect(android.isAdaptiveIconConfigPngFile('#fff'), isFalse);
-    });
+      test('shorthand hex (#RGB) is correctly classified as NOT an image', () {
+        expect(android.isAdaptiveIconConfigPngFile('#fff'), isFalse);
+      });
 
-    test('alpha hex (#AARRGGBB) is correctly classified as NOT an image', () {
-      expect(android.isAdaptiveIconConfigPngFile('#80FF00FF'), isFalse);
-    });
+      test('alpha hex (#AARRGGBB) is correctly classified as NOT an image', () {
+        expect(android.isAdaptiveIconConfigPngFile('#80FF00FF'), isFalse);
+      });
 
-    test('unhashed hex is also a color (not an image)', () {
-      expect(android.isAdaptiveIconConfigPngFile('FFFFFF'), isFalse);
-    });
-  });
+      test('unhashed hex is also a color (not an image)', () {
+        expect(android.isAdaptiveIconConfigPngFile('FFFFFF'), isFalse);
+      });
+    },
+  );
 }

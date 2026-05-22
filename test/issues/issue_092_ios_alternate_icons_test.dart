@@ -27,12 +27,18 @@ void main() {
       expect(cfg.iosAlternateIcons, isNotNull);
       expect(cfg.iosAlternateIcons!.enabled, isTrue);
       expect(cfg.iosAlternateIcons!.icons.keys.toSet(), {'red', 'blue'});
-      expect(cfg.iosAlternateIcons!.icons['red']!.imagePath,
-          'assets/icon-red.png');
-      expect(cfg.iosAlternateIcons!.icons['blue']!.imagePathDarkTransparent,
-          'assets/icon-blue-dark.png');
-      expect(cfg.iosAlternateIcons!.icons['blue']!.imagePathTintedGrayscale,
-          'assets/icon-blue-tinted.png');
+      expect(
+        cfg.iosAlternateIcons!.icons['red']!.imagePath,
+        'assets/icon-red.png',
+      );
+      expect(
+        cfg.iosAlternateIcons!.icons['blue']!.imagePathDarkTransparent,
+        'assets/icon-blue-dark.png',
+      );
+      expect(
+        cfg.iosAlternateIcons!.icons['blue']!.imagePathTintedGrayscale,
+        'assets/icon-blue-tinted.png',
+      );
     });
 
     test('schema is optional (omitted entirely is fine)', () {

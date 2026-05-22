@@ -27,10 +27,7 @@ flutter_launcher_icons:
       ]).create();
       final dir = p.join(d.sandbox, 'proj_201_a');
 
-      final resolved = resolveSource(
-        prefixPath: dir,
-        logger: FLILogger(false),
-      );
+      final resolved = resolveSource(prefixPath: dir, logger: FLILogger(false));
       expect(resolved.kind, ConfigSourceKind.legacyFlavors);
     });
 
@@ -53,19 +50,21 @@ flutter_launcher_icons:
       expect(File(resolved.path!).existsSync(), isTrue);
     });
 
-    test('missing -f path throws NoConfigFoundException with searched path',
-        () async {
-      await d.dir('proj_201_c', []).create();
-      final dir = p.join(d.sandbox, 'proj_201_c');
+    test(
+      'missing -f path throws NoConfigFoundException with searched path',
+      () async {
+        await d.dir('proj_201_c', []).create();
+        final dir = p.join(d.sandbox, 'proj_201_c');
 
-      expect(
-        () => resolveSource(
-          prefixPath: dir,
-          explicitFilePath: 'does-not-exist.yaml',
-          logger: FLILogger(false),
-        ),
-        throwsA(isA<NoConfigFoundException>()),
-      );
-    });
+        expect(
+          () => resolveSource(
+            prefixPath: dir,
+            explicitFilePath: 'does-not-exist.yaml',
+            logger: FLILogger(false),
+          ),
+          throwsA(isA<NoConfigFoundException>()),
+        );
+      },
+    );
   });
 }

@@ -24,10 +24,7 @@ void main() {
     });
 
     test('lowercase identifier names pass validation', () {
-      expect(
-        android.isAndroidIconNameCorrectFormat('ic_launcher_dev'),
-        isTrue,
-      );
+      expect(android.isAndroidIconNameCorrectFormat('ic_launcher_dev'), isTrue);
     });
   });
 }

@@ -26,14 +26,16 @@ void main() {
       );
     });
 
-    test('explicit xcodeproj_path as directory has project.pbxproj appended',
-        () {
-      final got = ios.resolveIosPbxprojPath(
-        prefixPath: '.',
-        explicit: 'ios/MyApp.xcodeproj',
-      );
-      expect(got, p.join('ios/MyApp.xcodeproj', 'project.pbxproj'));
-    });
+    test(
+      'explicit xcodeproj_path as directory has project.pbxproj appended',
+      () {
+        final got = ios.resolveIosPbxprojPath(
+          prefixPath: '.',
+          explicit: 'ios/MyApp.xcodeproj',
+        );
+        expect(got, p.join('ios/MyApp.xcodeproj', 'project.pbxproj'));
+      },
+    );
 
     test('single ios/*.xcodeproj is auto-detected', () async {
       await d.dir('proj543_single', [
@@ -47,8 +49,7 @@ void main() {
       expect(got, p.join('ios', 'MyApp.xcodeproj', 'project.pbxproj'));
     });
 
-    test('multiple ios/*.xcodeproj raises an InvalidConfigException',
-        () async {
+    test('multiple ios/*.xcodeproj raises an InvalidConfigException', () async {
       await d.dir('proj543_multi', [
         d.dir('ios', [
           d.dir('MyApp.xcodeproj', [d.file('project.pbxproj', '// ...')]),
@@ -69,13 +70,15 @@ void main() {
       );
     });
 
-    test('zero matches falls back to ios/Runner.xcodeproj/project.pbxproj',
-        () async {
-      await d.dir('proj543_none', [d.dir('ios')]).create();
-      final prefix = p.join(d.sandbox, 'proj543_none');
+    test(
+      'zero matches falls back to ios/Runner.xcodeproj/project.pbxproj',
+      () async {
+        await d.dir('proj543_none', [d.dir('ios')]).create();
+        final prefix = p.join(d.sandbox, 'proj543_none');
 
-      final got = ios.resolveIosPbxprojPath(prefixPath: prefix);
-      expect(got, 'ios/Runner.xcodeproj/project.pbxproj');
-    });
+        final got = ios.resolveIosPbxprojPath(prefixPath: prefix);
+        expect(got, 'ios/Runner.xcodeproj/project.pbxproj');
+      },
+    );
   });
 }

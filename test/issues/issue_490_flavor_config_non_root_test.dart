@@ -14,8 +14,7 @@ import 'package:test/test.dart';
 /// learns about `flavor`.
 void main() {
   group('issue #490: explicit `flavor:` key in legacy single-flavor file', () {
-    test('PartialConfig.fromJson accepts and round-trips a `flavor` key',
-        () {
+    test('PartialConfig.fromJson accepts and round-trips a `flavor` key', () {
       final p = PartialConfig.fromJson(<String, dynamic>{
         'image_path': 'assets/icon.png',
         'android': true,

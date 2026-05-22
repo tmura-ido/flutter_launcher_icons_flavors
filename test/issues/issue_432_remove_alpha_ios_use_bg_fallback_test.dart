@@ -51,28 +51,25 @@ void main() {
       },
     );
 
-    test(
-      'when both background_color_ios and adaptive_icon_background are set, '
-      'background_color_ios wins',
-      () {
-        final cfg = Config.fromJson({
-          'image_path': 'a.png',
-          'ios': true,
-          'android': true,
-          'remove_alpha_ios': true,
-          'background_color_ios': '#112233',
-          'adaptive_icon_background': '#445566',
-          'adaptive_icon_foreground': 'a.png',
-        });
-        // Explicit ios bg always wins. This is already true today (the field
-        // simply takes the explicit value); the regression here is to ensure
-        // that any future fallback work doesn't break the explicit-wins rule.
-        expect(cfg.backgroundColorIOS.toLowerCase(), '#112233');
-        expect(
-          ios.resolveIosAlphaFlattenHex(cfg).toLowerCase(),
-          equals('#112233'),
-        );
-      },
-    );
+    test('when both background_color_ios and adaptive_icon_background are set, '
+        'background_color_ios wins', () {
+      final cfg = Config.fromJson({
+        'image_path': 'a.png',
+        'ios': true,
+        'android': true,
+        'remove_alpha_ios': true,
+        'background_color_ios': '#112233',
+        'adaptive_icon_background': '#445566',
+        'adaptive_icon_foreground': 'a.png',
+      });
+      // Explicit ios bg always wins. This is already true today (the field
+      // simply takes the explicit value); the regression here is to ensure
+      // that any future fallback work doesn't break the explicit-wins rule.
+      expect(cfg.backgroundColorIOS.toLowerCase(), '#112233');
+      expect(
+        ios.resolveIosAlphaFlattenHex(cfg).toLowerCase(),
+        equals('#112233'),
+      );
+    });
   });
 }

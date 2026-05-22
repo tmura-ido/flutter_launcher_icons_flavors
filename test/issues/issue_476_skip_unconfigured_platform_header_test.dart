@@ -13,58 +13,65 @@ import 'package:test/test.dart';
 /// behavior is exercised end-to-end by the existing CLI integration tests.
 void main() {
   group('issue #476: unconfigured platforms are skipped silently', () {
-    test('non-opted-in platform is iterated but createIcons is not called',
-        () async {
-      var createIconsCalled = false;
-      var validateCalled = false;
+    test(
+      'non-opted-in platform is iterated but createIcons is not called',
+      () async {
+        var createIconsCalled = false;
+        var validateCalled = false;
 
-      final platform = _FakeGenerator(
-        platformName: 'Web',
-        isOptedIn: false,
-        onValidate: () => validateCalled = true,
-        onCreate: () => createIconsCalled = true,
-      );
+        final platform = _FakeGenerator(
+          platformName: 'Web',
+          isOptedIn: false,
+          onValidate: () => validateCalled = true,
+          onCreate: () => createIconsCalled = true,
+        );
 
-      await generateIconsFor(
-        config: Config.fromJson(<String, dynamic>{
-          'image_path': 'assets/x.png',
-          'android': true,
-        }),
-        flavor: null,
-        prefixPath: '.',
-        logger: FLILogger(false),
-        platforms: (_) => [platform],
-      );
+        await generateIconsFor(
+          config: Config.fromJson(<String, dynamic>{
+            'image_path': 'assets/x.png',
+            'android': true,
+          }),
+          flavor: null,
+          prefixPath: '.',
+          logger: FLILogger(false),
+          platforms: (_) => [platform],
+        );
 
-      expect(createIconsCalled, isFalse);
-      expect(validateCalled, isFalse,
-          reason: 'should short-circuit before validateRequirements');
-    });
+        expect(createIconsCalled, isFalse);
+        expect(
+          validateCalled,
+          isFalse,
+          reason: 'should short-circuit before validateRequirements',
+        );
+      },
+    );
 
-    test('opted-in platform with passing validation runs createIcons',
-        () async {
-      var createIconsCalled = false;
-      final platform = _FakeGenerator(
-        platformName: 'Web',
-        isOptedIn: true,
-        onValidate: () {},
-        onCreate: () => createIconsCalled = true,
-        validateResult: true,
-      );
+    test(
+      'opted-in platform with passing validation runs createIcons',
+      () async {
+        var createIconsCalled = false;
+        final platform = _FakeGenerator(
+          platformName: 'Web',
+          isOptedIn: true,
+          onValidate: () {},
+          onCreate: () => createIconsCalled = true,
+          validateResult: true,
+        );
 
-      await generateIconsFor(
-        config: Config.fromJson(<String, dynamic>{
-          'image_path': 'assets/x.png',
-          'android': true,
-        }),
-        flavor: null,
-        prefixPath: '.',
-        logger: FLILogger(false),
-        platforms: (_) => [platform],
-      );
+        await generateIconsFor(
+          config: Config.fromJson(<String, dynamic>{
+            'image_path': 'assets/x.png',
+            'android': true,
+          }),
+          flavor: null,
+          prefixPath: '.',
+          logger: FLILogger(false),
+          platforms: (_) => [platform],
+        );
 
-      expect(createIconsCalled, isTrue);
-    });
+        expect(createIconsCalled, isTrue);
+      },
+    );
   });
 }
 

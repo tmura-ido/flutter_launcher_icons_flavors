@@ -58,9 +58,7 @@ class _CapturingSink implements IOSink {
 void main() {
   group('findSquishCandidates', () {
     test('returns empty when nonSquareImageOk is true', () async {
-      await d.dir('sq_ok', [
-        d.file('icon.png', _redPng(200, 100)),
-      ]).create();
+      await d.dir('sq_ok', [d.file('icon.png', _redPng(200, 100))]).create();
       final cfg = Config.fromJson({
         'image_path': 'icon.png',
         'android': true,
@@ -77,10 +75,7 @@ void main() {
       await d.dir('sq_square', [
         d.file('icon.png', _redPng(128, 128)),
       ]).create();
-      final cfg = Config.fromJson({
-        'image_path': 'icon.png',
-        'android': true,
-      });
+      final cfg = Config.fromJson({'image_path': 'icon.png', 'android': true});
       final candidates = await findSquishCandidates(
         config: cfg,
         prefixPath: p.join(d.sandbox, 'sq_square'),
@@ -92,10 +87,7 @@ void main() {
       await d.dir('sq_android', [
         d.file('icon.png', _redPng(200, 100)),
       ]).create();
-      final cfg = Config.fromJson({
-        'image_path': 'icon.png',
-        'android': true,
-      });
+      final cfg = Config.fromJson({'image_path': 'icon.png', 'android': true});
       final candidates = await findSquishCandidates(
         config: cfg,
         prefixPath: p.join(d.sandbox, 'sq_android'),
@@ -107,9 +99,7 @@ void main() {
     });
 
     test('returns empty when top-level background_color is set', () async {
-      await d.dir('sq_topbg', [
-        d.file('icon.png', _redPng(200, 100)),
-      ]).create();
+      await d.dir('sq_topbg', [d.file('icon.png', _redPng(200, 100))]).create();
       final cfg = Config.fromJson({
         'image_path': 'icon.png',
         'android': true,
@@ -123,9 +113,7 @@ void main() {
     });
 
     test('flags Web when neither web nor top-level bg is set', () async {
-      await d.dir('sq_web', [
-        d.file('icon.png', _redPng(200, 100)),
-      ]).create();
+      await d.dir('sq_web', [d.file('icon.png', _redPng(200, 100))]).create();
       final cfg = Config.fromJson({
         'image_path': 'icon.png',
         'web': {'generate': true, 'image_path': 'icon.png'},

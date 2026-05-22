@@ -12,29 +12,29 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 /// skip the pbxproj rewrite rather than escalating to `ERROR`.
 void main() {
   group('pbxproj lock → warn-and-skip (was hard error)', () {
-    test('FileSystemException with errno 1224 is swallowed as a warning',
-        () async {
-      // Sandbox without a pbxproj. `changeIosLauncherIcon` will raise a
-      // FileSystemException with `osError.errorCode` typically 2 / 3 (not
-      // found), which is NOT the locked-file path — so it should rethrow.
-      // We exercise the rethrow branch with a missing file; the locked
-      // case is hard to simulate portably (would need OS-specific mmap),
-      // so we exercise the `osError.errorCode` switch via a captured
-      // sink instead.
-      await d.dir('proj_lock', [
-        d.dir('ios', [
-          d.dir('Runner.xcodeproj'),
-        ]),
-      ]).create();
-      final dir = p.join(d.sandbox, 'proj_lock');
+    test(
+      'FileSystemException with errno 1224 is swallowed as a warning',
+      () async {
+        // Sandbox without a pbxproj. `changeIosLauncherIcon` will raise a
+        // FileSystemException with `osError.errorCode` typically 2 / 3 (not
+        // found), which is NOT the locked-file path — so it should rethrow.
+        // We exercise the rethrow branch with a missing file; the locked
+        // case is hard to simulate portably (would need OS-specific mmap),
+        // so we exercise the `osError.errorCode` switch via a captured
+        // sink instead.
+        await d.dir('proj_lock', [
+          d.dir('ios', [d.dir('Runner.xcodeproj')]),
+        ]).create();
+        final dir = p.join(d.sandbox, 'proj_lock');
 
-      // No pbxproj file → FileSystemException with errorCode = 2 (ENOENT)
-      // — NOT in the locked-file allowlist, so should rethrow.
-      expect(
-        () => ios.changeIosLauncherIcon('AppIcon', null, prefixPath: dir),
-        throwsA(isA<FileSystemException>()),
-      );
-    });
+        // No pbxproj file → FileSystemException with errorCode = 2 (ENOENT)
+        // — NOT in the locked-file allowlist, so should rethrow.
+        expect(
+          () => ios.changeIosLauncherIcon('AppIcon', null, prefixPath: dir),
+          throwsA(isA<FileSystemException>()),
+        );
+      },
+    );
 
     test('locked-file detection: errno 1224 / 16 / 13 are recognized', () {
       // Sanity check the constants we filter on are the expected

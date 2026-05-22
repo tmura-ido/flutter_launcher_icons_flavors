@@ -42,23 +42,23 @@ class BadgeConfig {
 
   /// Parses from a JSON map.
   factory BadgeConfig.fromJson(Map json) => BadgeConfig(
-        text: json['text'] as String? ?? '',
-        color: json['color'] as String?,
-        backgroundColor: json['background_color'] as String?,
-        position: (json['position'] as String?) ?? 'tr',
-        fontSizePct: (json['font_size_pct'] as num?)?.toInt() ?? 18,
-        fontFamily: json['font_family'] as String?,
-        paddingPct: (json['padding_pct'] as num?)?.toInt() ?? 4,
-      );
+    text: json['text'] as String? ?? '',
+    color: json['color'] as String?,
+    backgroundColor: json['background_color'] as String?,
+    position: (json['position'] as String?) ?? 'tr',
+    fontSizePct: (json['font_size_pct'] as num?)?.toInt() ?? 18,
+    fontFamily: json['font_family'] as String?,
+    paddingPct: (json['padding_pct'] as num?)?.toInt() ?? 4,
+  );
 
   /// Serializes to a JSON map.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'text': text,
-        'color': color,
-        'background_color': backgroundColor,
-        'position': position,
-        'font_size_pct': fontSizePct,
-        'font_family': fontFamily,
-        'padding_pct': paddingPct,
-      };
+    'text': text,
+    'color': color,
+    'background_color': backgroundColor,
+    'position': position,
+    'font_size_pct': fontSizePct,
+    'font_family': fontFamily,
+    'padding_pct': paddingPct,
+  };
 }

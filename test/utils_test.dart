@@ -181,10 +181,7 @@ void main() {
   group('#letterBoxToSquare', () {
     test('returns the input unchanged when already square', () {
       final src = Image(width: 64, height: 64);
-      final out = utils.letterBoxToSquare(
-        src,
-        ColorUint8.rgba(0, 0, 0, 0xff),
-      );
+      final out = utils.letterBoxToSquare(src, ColorUint8.rgba(0, 0, 0, 0xff));
       expect(identical(out, src), isTrue);
     });
 
@@ -241,17 +238,21 @@ void main() {
       expect(center.g, 0);
     });
 
-    test('honors the alpha channel of the bg color (transparent letter-box)', () {
-      final src = Image(width: 100, height: 40);
-      for (final p in src) {
-        p.setRgba(255, 0, 0, 0xff);
-      }
-      final out = utils.letterBoxToSquare(
-        src,
-        ColorUint8.rgba(0, 0, 0, 0),
-      );
-      final top = out.getPixel(50, 0);
-      expect(top.a, 0, reason: 'transparent bg leaves bars fully transparent');
-    });
+    test(
+      'honors the alpha channel of the bg color (transparent letter-box)',
+      () {
+        final src = Image(width: 100, height: 40);
+        for (final p in src) {
+          p.setRgba(255, 0, 0, 0xff);
+        }
+        final out = utils.letterBoxToSquare(src, ColorUint8.rgba(0, 0, 0, 0));
+        final top = out.getPixel(50, 0);
+        expect(
+          top.a,
+          0,
+          reason: 'transparent bg leaves bars fully transparent',
+        );
+      },
+    );
   });
 }

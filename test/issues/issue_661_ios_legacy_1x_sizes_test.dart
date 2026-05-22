@@ -21,8 +21,11 @@ void main() {
       const wanted = ['-20x20@1x', '-29x29@1x', '-40x40@1x', '-76x76@1x'];
       final legacyNames = ios.legacyIosIcons.map((t) => t.name).toSet();
       for (final name in wanted) {
-        expect(legacyNames, contains(name),
-            reason: 'legacyIosIcons should contain $name');
+        expect(
+          legacyNames,
+          contains(name),
+          reason: 'legacyIosIcons should contain $name',
+        );
       }
     });
 

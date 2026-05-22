@@ -50,7 +50,12 @@ void main() {
           'background_color_ios': '#FF5722',
         });
 
-        await ios.createIcons(cfg, null, logger: FLILogger(false), prefixPath: prefix);
+        await ios.createIcons(
+          cfg,
+          null,
+          logger: FLILogger(false),
+          prefixPath: prefix,
+        );
 
         // The 1024x1024 marketing icon is one of the outputs and uses the
         // original source resolution, so any rounding-error edge effects
@@ -65,22 +70,37 @@ void main() {
             'Icon-App-1024x1024@1x.png',
           ),
         );
-        expect(outFile.existsSync(), isTrue,
-            reason: 'iOS pipeline must emit the 1024 marketing icon');
+        expect(
+          outFile.existsSync(),
+          isTrue,
+          reason: 'iOS pipeline must emit the 1024 marketing icon',
+        );
 
         final out = decodeImage(await outFile.readAsBytes())!;
         // Pull a corner pixel. The whole source is transparent, so the
         // compositor must have replaced every pixel with the configured bg.
         final px = out.getPixel(0, 0);
-        expect(px.r.toInt(), 0xFF,
-            reason: 'red channel should be 0xFF for #FF5722');
-        expect(px.g.toInt(), 0x57,
-            reason: 'green channel should be 0x57 for #FF5722');
-        expect(px.b.toInt(), 0x22,
-            reason: 'blue channel should be 0x22 for #FF5722');
+        expect(
+          px.r.toInt(),
+          0xFF,
+          reason: 'red channel should be 0xFF for #FF5722',
+        );
+        expect(
+          px.g.toInt(),
+          0x57,
+          reason: 'green channel should be 0x57 for #FF5722',
+        );
+        expect(
+          px.b.toInt(),
+          0x22,
+          reason: 'blue channel should be 0x22 for #FF5722',
+        );
         // The image should be opaque post alpha removal (numChannels: 3).
-        expect(out.numChannels, 3,
-            reason: 'remove_alpha_ios must strip the alpha channel');
+        expect(
+          out.numChannels,
+          3,
+          reason: 'remove_alpha_ios must strip the alpha channel',
+        );
       },
     );
   });

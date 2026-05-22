@@ -17,8 +17,7 @@ void main() {
       expect(constants.iosConfigFile, 'ios/Runner.xcodeproj/project.pbxproj');
     });
 
-    test('PartialConfig.fromJson accepts and round-trips `xcodeproj_path`',
-        () {
+    test('PartialConfig.fromJson accepts and round-trips `xcodeproj_path`', () {
       final p = PartialConfig.fromJson(<String, dynamic>{
         'image_path': 'assets/icon.png',
         'ios': true,

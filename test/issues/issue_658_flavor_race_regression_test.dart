@@ -26,6 +26,7 @@ void main() {
         }
         return img;
       }
+
       final stgBytes = encodePng(makeSrc(255, 0, 0));
       final prdBytes = encodePng(makeSrc(0, 255, 0));
 
@@ -58,19 +59,43 @@ void main() {
         'android': true,
       });
 
-      await android.createDefaultIcons(stgCfg, 'stg',
-          logger: FLILogger(false), prefixPath: dir);
-      await android.createDefaultIcons(prdCfg, 'prd',
-          logger: FLILogger(false), prefixPath: dir);
+      await android.createDefaultIcons(
+        stgCfg,
+        'stg',
+        logger: FLILogger(false),
+        prefixPath: dir,
+      );
+      await android.createDefaultIcons(
+        prdCfg,
+        'prd',
+        logger: FLILogger(false),
+        prefixPath: dir,
+      );
 
-      final stgOut = File(p.join(
-        dir, 'android', 'app', 'src', 'stg', 'res',
-        'mipmap-xxxhdpi', 'ic_launcher.png',
-      ));
-      final prdOut = File(p.join(
-        dir, 'android', 'app', 'src', 'prd', 'res',
-        'mipmap-xxxhdpi', 'ic_launcher.png',
-      ));
+      final stgOut = File(
+        p.join(
+          dir,
+          'android',
+          'app',
+          'src',
+          'stg',
+          'res',
+          'mipmap-xxxhdpi',
+          'ic_launcher.png',
+        ),
+      );
+      final prdOut = File(
+        p.join(
+          dir,
+          'android',
+          'app',
+          'src',
+          'prd',
+          'res',
+          'mipmap-xxxhdpi',
+          'ic_launcher.png',
+        ),
+      );
       expect(stgOut.existsSync(), isTrue);
       expect(prdOut.existsSync(), isTrue);
 

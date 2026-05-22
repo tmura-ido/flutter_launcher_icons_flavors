@@ -33,9 +33,7 @@ void main() {
       'overwriteAndroidManifestWithNewLauncherIcon rewrites @mipmap/ic_launcher → custom name',
       () async {
         await d.file('AndroidManifest.xml', baselineManifest).create();
-        final manifestFile = File(
-          path.join(d.sandbox, 'AndroidManifest.xml'),
-        );
+        final manifestFile = File(path.join(d.sandbox, 'AndroidManifest.xml'));
 
         await android.overwriteAndroidManifestWithNewLauncherIcon(
           'launcher_icon',
@@ -56,9 +54,7 @@ void main() {
       'second rewrite is idempotent (no duplicate attributes accumulate)',
       () async {
         await d.file('AndroidManifest2.xml', baselineManifest).create();
-        final manifestFile = File(
-          path.join(d.sandbox, 'AndroidManifest2.xml'),
-        );
+        final manifestFile = File(path.join(d.sandbox, 'AndroidManifest2.xml'));
 
         await android.overwriteAndroidManifestWithNewLauncherIcon(
           'launcher_icon',

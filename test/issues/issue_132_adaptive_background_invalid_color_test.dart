@@ -33,23 +33,25 @@ void main() {
       );
     });
 
-    test('updateColorsFile rejects an asset path masquerading as a color',
-        () async {
-      await d.file('colors.xml', '''
+    test(
+      'updateColorsFile rejects an asset path masquerading as a color',
+      () async {
+        await d.file('colors.xml', '''
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 </resources>
 ''').create();
-      final colorsFile = File(path.join(d.sandbox, 'colors.xml'));
+        final colorsFile = File(path.join(d.sandbox, 'colors.xml'));
 
-      expect(
-        () => android.updateColorsFile(
-          colorsFile,
-          'assets/icon/background-does-not-exist.jpg',
-        ),
-        throwsA(isA<Exception>()),
-      );
-    });
+        expect(
+          () => android.updateColorsFile(
+            colorsFile,
+            'assets/icon/background-does-not-exist.jpg',
+          ),
+          throwsA(isA<Exception>()),
+        );
+      },
+    );
 
     test('valid hex literal is accepted', () async {
       await d.file('colors.xml', '''

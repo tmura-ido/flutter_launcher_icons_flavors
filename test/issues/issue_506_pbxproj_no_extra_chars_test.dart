@@ -16,8 +16,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 /// `ASSETCATALOG_COMPILER_APPICON_NAME` value substitution — the
 /// trailing structure of the file must remain intact.
 void main() {
-  group('issue #506/#636: pbxproj must not gain stray trailing characters',
-      () {
+  group('issue #506/#636: pbxproj must not gain stray trailing characters', () {
     test('no-op invocation leaves trailing structure intact', () async {
       const original = '''
 // !\$*UTF8*\$!
@@ -37,9 +36,7 @@ void main() {
 ''';
       await d.dir('proj_506', [
         d.dir('ios', [
-          d.dir('Runner.xcodeproj', [
-            d.file('project.pbxproj', original),
-          ]),
+          d.dir('Runner.xcodeproj', [d.file('project.pbxproj', original)]),
         ]),
       ]).create();
       final dir = p.join(d.sandbox, 'proj_506');
@@ -59,8 +56,11 @@ void main() {
         equals(1),
         reason: 'rootObject reference must appear exactly once',
       );
-      expect(contents.trim().endsWith('}'), isTrue,
-          reason: 'pbxproj must still end with closing brace');
+      expect(
+        contents.trim().endsWith('}'),
+        isTrue,
+        reason: 'pbxproj must still end with closing brace',
+      );
       // Total opening braces must equal total closing braces — proxy
       // for "structure stayed intact".
       expect(
@@ -89,14 +89,16 @@ void main() {
 ''';
       await d.dir('proj_506_idem', [
         d.dir('ios', [
-          d.dir('Runner.xcodeproj', [
-            d.file('project.pbxproj', original),
-          ]),
+          d.dir('Runner.xcodeproj', [d.file('project.pbxproj', original)]),
         ]),
       ]).create();
       final dir = p.join(d.sandbox, 'proj_506_idem');
-      final pbxprojPath =
-          p.join(dir, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+      final pbxprojPath = p.join(
+        dir,
+        'ios',
+        'Runner.xcodeproj',
+        'project.pbxproj',
+      );
 
       await ios.changeIosLauncherIcon('AppIcon', null, prefixPath: dir);
       final firstPass = await File(pbxprojPath).readAsString();
