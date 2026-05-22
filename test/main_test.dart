@@ -12,6 +12,15 @@ import 'package:test/test.dart';
 
 // Unit tests for main.dart
 void main() {
+  // Captured before any test body runs (and, when aggregated via
+  // test/all_tests.dart, before any *other* test mutates cwd). Used as
+  // the absolute anchor for the cwd-mutating "config file from args"
+  // group below — otherwise a leftover-poisoned cwd from a crashed
+  // earlier test would cause `setCurrentDirectory` to nest test dirs
+  // and `tearDown` to restore to the wrong place, breaking unrelated
+  // downstream tests with PathNotFoundException on pubspec.yaml.
+  final String projectRoot = Directory.current.path;
+
   test('iOS icon list is correct size', () {
     expect(ios.iosIcons.length, 16);
   });
@@ -71,24 +80,21 @@ void main() {
       )
       ..addOption(main_dart.prefixOption, abbr: 'p', defaultsTo: '.');
     final String testDir = join(
+      projectRoot,
       '.dart_tool',
       'flutter_launcher_icons',
       'test',
       'config_file',
     );
 
-    late String currentDirectory;
     Future<void> setCurrentDirectory(String path) async {
       path = join(testDir, path);
       await Directory(path).create(recursive: true);
       Directory.current = path;
     }
 
-    setUp(() {
-      currentDirectory = Directory.current.path;
-    });
     tearDown(() {
-      Directory.current = currentDirectory;
+      Directory.current = projectRoot;
     });
 
     test('default', () async {

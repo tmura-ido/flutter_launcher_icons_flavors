@@ -108,8 +108,8 @@ void main() {
         contains(expected),
         reason:
             'README install snippet must advertise the current package '
-            'version "$expected". Bump the README whenever pubspec.yaml '
-            'version changes.',
+            'version "$expected". Run `dart run tool/sync_version.dart` '
+            'to sync the README + lib/src/version.dart to pubspec.yaml.',
       );
     });
 
@@ -122,8 +122,9 @@ void main() {
         packageVersion,
         version,
         reason:
-            'lib/src/version.dart is generated from pubspec.yaml — run '
-            '`dart run build_runner build` after bumping the version.',
+            'lib/src/version.dart is out of sync with pubspec.yaml — run '
+            '`dart run tool/sync_version.dart` (or `dart run build_runner '
+            'build`) after bumping the version.',
       );
     });
   });

@@ -58,7 +58,7 @@ Add as a dev-dependency:
 
 ```yaml
 dev_dependencies:
-  flutter_launcher_icons_flavors: ^1.0.0
+  flutter_launcher_icons_flavors: ^1.0.1
 ```
 
 Then:
