@@ -4,6 +4,7 @@ import 'abs/icon_generator_test.dart' as icon_generator_test;
 import 'android_gradle_test.dart' as android_gradle_test;
 import 'android_min_sdk_default_test.dart' as android_min_sdk_default_test;
 import 'android_test.dart' as android_test;
+import 'changelog_test.dart' as changelog_test;
 import 'cli/all_flavors_test.dart' as all_flavors_test;
 import 'cli/continue_on_error_test.dart' as continue_on_error_test;
 import 'cli/doctor_command_test.dart' as doctor_command_test;
@@ -130,6 +131,7 @@ void main() {
     fli_config.main();
     icon_generator_test.main();
     main_imports_test.main();
+    changelog_test.main();
 
     main_test.main();
     // android

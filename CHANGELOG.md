@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0 (2026-05-22)
+
+More CI fixes...
+
+## 1.0.2 (2026-05-22)
+
+More CI fixes...
+
+## 1.0.1 (2026-05-22)
+
+CI and tests fixes.
+resized images to letterbox procedures.
+
 ## 1.0.0 (2026-05-21)
 
 First stable release under the `flutter_launcher_icons_flavors` name. No API changes versus 0.15.0; this bump reflects API stability and the rename being finalized.
