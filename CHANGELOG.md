@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (2026-05-26)
+
+revert `image` dep to 4.6.0 because no one uses the new `image` deps
+
 ## 1.1.0 (2026-05-22)
 
 More CI fixes...

@@ -1,6 +1,6 @@
 name: flutter_launcher_icons_flavors
 description: Flavor-aware fork of flutter_launcher_icons. Generates Android, iOS, macOS, Web, and Windows icons from one consolidated YAML config.
-version: 1.1.0
+version: 1.1.1
 # Maintained by Ido Zahavy (@tmura-ido)
 homepage: https://github.com/tmura-ido/flutter_launcher_icons_flavors
 repository: https://github.com/tmura-ido/flutter_launcher_icons_flavors
@@ -28,7 +28,7 @@ dependencies:
   args: ^2.5.0
   checked_yaml: ^2.0.3
   cli_util: ^0.5.1
-  image: ^4.9.0
+  image: ^4.6.0
   json_annotation: ^4.9.0
   path: ^1.9.0
   yaml: ^3.1.2
