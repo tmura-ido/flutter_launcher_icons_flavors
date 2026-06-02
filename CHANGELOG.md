@@ -1,5 +1,9 @@
 # Changelog
 
+## x.x.x (2026-05-26)
+
+android adaptive icon color edit on run
+
 ## 1.1.1 (2026-05-26)
 
 revert `image` dep to 4.6.0 because no one uses the new `image` deps
