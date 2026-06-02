@@ -56,6 +56,10 @@ defaults:
   # fallback for `background_color_ios` and `web.background_color`, and
   # is the only way to opt the Android non-adaptive mipmap path into
   # letter-boxing (it has no platform-specific bg color of its own).
+  # Also seeds the Android adaptive-icon background color (when
+  # `adaptive_icon_background` isn't a hex) for any flavor that already
+  # ships a `mipmap-anydpi-v26/<icon>.xml` — its background is edited in
+  # place rather than overwritten.
   background_color: "#FFFFFF"
 
   # --- Web ----------------------------------------------------------

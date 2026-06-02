@@ -482,6 +482,27 @@ class Config {
       adaptiveIconForeground != null &&
       adaptiveIconBackground != null;
 
+  /// The first available Android background *color* for this flavor:
+  /// `adaptive_icon_background` when it's a hex literal, otherwise the general
+  /// `background_color` when it's a hex literal. `null` when neither is a hex
+  /// color (e.g. a PNG adaptive background and no general color).
+  ///
+  /// Used to edit an existing adaptive-icon XML's background color in place.
+  /// `includeToJson: false` keeps this derived getter out of the generated
+  /// `toJson` map so [config.g.dart] needs no regeneration.
+  @JsonKey(includeToJson: false)
+  String? get resolvedAdaptiveBackgroundColor {
+    final adaptive = adaptiveIconBackground;
+    if (adaptive != null && utils.isHexColorLiteral(adaptive)) {
+      return adaptive;
+    }
+    final general = backgroundColor;
+    if (general != null && utils.isHexColorLiteral(general)) {
+      return general;
+    }
+    return null;
+  }
+
   /// whether or not there is configuration for monochrome icons for android
   bool get hasAndroidAdaptiveMonochromeConfig {
     return hasAndroidConfig && adaptiveIconMonochrome != null;

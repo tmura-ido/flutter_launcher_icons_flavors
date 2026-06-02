@@ -273,6 +273,32 @@ Future<void> createMipmapXmlFile(
   required FLILogger logger,
   String prefixPath = '.',
 }) async {
+  final String iconBaseName = config.isCustomAndroidFile
+      ? config.androidIconName
+      : constants.androidDefaultIconName;
+  final File mipmapXmlFile = File(
+    path.join(
+      prefixPath,
+      constants.androidAdaptiveXmlFolder(flavor),
+      '$iconBaseName.xml',
+    ),
+  );
+
+  // If the flavor already ships an adaptive-icon XML, edit its background color
+  // in place rather than overwriting it from the template — that preserves any
+  // authored `<shape>`/`<foreground>`/`<monochrome>` the user hand-wrote.
+  // existsSync is intentional: a single bool probe before deciding edit-vs-create.
+  if (mipmapXmlFile.existsSync()) {
+    await _editExistingAdaptiveBackground(
+      config,
+      mipmapXmlFile,
+      flavor,
+      logger: logger,
+      prefixPath: prefixPath,
+    );
+    return;
+  }
+
   // Note: Adaptive Icons will only be used when both
   // `adaptive_icon_background` and `adaptive_icon_foreground` or
   // `adaptive_icon_monochrome` are specified (The `image_path` is not
@@ -316,21 +342,106 @@ Future<void> createMipmapXmlFile(
 ''';
   }
 
-  final String iconBaseName = config.isCustomAndroidFile
-      ? config.androidIconName
-      : constants.androidDefaultIconName;
-  final File mipmapXmlFile = File(
-    path.join(
-      prefixPath,
-      constants.androidAdaptiveXmlFolder(flavor),
-      '$iconBaseName.xml',
-    ),
-  );
-
   await mipmapXmlFile.create(recursive: true);
   await mipmapXmlFile.writeAsString(
     xml_template.mipmapXmlFile.replaceAll('{{CONTENT}}', xmlContent),
   );
+}
+
+/// Matches the adaptive-icon `<background>` element, in either its self-closing
+/// (`<background .../>`) or block (`<background>...</background>`) form.
+final RegExp _adaptiveBackgroundElement = RegExp(
+  r'<background\b[^>]*(?:/>|>[\s\S]*?</background>)',
+  caseSensitive: false,
+);
+
+/// Matches the first `android:color="..."` attribute value (used for the inline
+/// `<solid>` / `<background android:color>` literal forms).
+final RegExp _androidColorAttr = RegExp(r'android:color="[^"]*"');
+
+/// Edits the background color of an *existing* adaptive-icon XML in place,
+/// preserving every other byte of the file (authored `<shape>`, `<foreground>`,
+/// `<monochrome>`, formatting, etc).
+///
+/// The color applied is [Config.resolvedAdaptiveBackgroundColor] — the first
+/// Android background color found (`adaptive_icon_background` hex → general
+/// `background_color` hex). The `<background>` form decides where it lands:
+///   * `@drawable/...` (a PNG / vector drawable) → left untouched (PNG wins).
+///   * `@color/...` reference → written into `colors.xml`, XML left untouched.
+///   * inline literal (`<solid android:color>` / `<background android:color>`)
+///     → the first `android:color` value is rewritten in the XML itself.
+Future<void> _editExistingAdaptiveBackground(
+  Config config,
+  File mipmapXmlFile,
+  String? flavor, {
+  required FLILogger logger,
+  required String prefixPath,
+}) async {
+  final String? color = config.resolvedAdaptiveBackgroundColor;
+  if (color == null) {
+    logger.info(
+      'Existing adaptive-icon XML found but no background color resolved '
+      '(no hex adaptive_icon_background or background_color); leaving it as is.',
+    );
+    return;
+  }
+
+  final String content = await mipmapXmlFile.readAsString();
+  final RegExpMatch? match = _adaptiveBackgroundElement.firstMatch(content);
+  if (match == null) {
+    logger.warn(
+      'Existing adaptive-icon XML has no <background> element to update '
+      '(${mipmapXmlFile.path}); leaving it as is.',
+    );
+    return;
+  }
+
+  final String background = match.group(0)!;
+
+  // PNG / vector drawable background wins — never override an image with a color.
+  if (background.contains('@drawable/')) {
+    logger.info(
+      'Existing adaptive-icon background is a drawable; leaving it as is.',
+    );
+    return;
+  }
+
+  // A @color reference keeps the value in colors.xml — update there, not the XML.
+  if (background.contains('@color/')) {
+    logger.info(
+      'Updating colors.xml to match existing adaptive-icon @color background',
+    );
+    await updateColorsXmlFile(
+      color,
+      flavor,
+      logger: logger,
+      prefixPath: prefixPath,
+    );
+    return;
+  }
+
+  // Inline literal: rewrite the first android:color value in the <background>.
+  if (!_androidColorAttr.hasMatch(background)) {
+    logger.warn(
+      'Existing adaptive-icon <background> has no inline android:color to '
+      'update (${mipmapXmlFile.path}); leaving it as is.',
+    );
+    return;
+  }
+  final String newBackground = background.replaceFirst(
+    _androidColorAttr,
+    'android:color="$color"',
+  );
+  if (newBackground == background) {
+    return;
+  }
+  final String newContent = content.replaceRange(
+    match.start,
+    match.end,
+    newBackground,
+  );
+  logger.info('Updating existing adaptive-icon background color to $color');
+  await mipmapXmlFile.writeAsString(newContent);
 }
 
 /// Retrieves the colors.xml file for the project.
@@ -857,13 +968,10 @@ Future<int> resolveMinSdkAndroid({
   return constants.androidDefaultAndroidMinSDK;
 }
 
-/// Hex color literal regex. Accepts `#RGB`, `#RGBA`, `#RRGGBB`, `#AARRGGBB`,
-/// and the unhashed forms (lenient). Used to classify `adaptive_icon_*`
-/// values as either a color or a file path.
-final RegExp _hexColorLiteral = RegExp(r'^#?[0-9A-Fa-f]{3,8}$');
-
-/// True if the value is a hex color literal (any of the forms above).
-bool isHexColorLiteral(String value) => _hexColorLiteral.hasMatch(value);
+/// True if the value is a hex color literal (`#RGB`, `#RRGGBB`, `#AARRGGBB`,
+/// unhashed forms, etc). Delegates to [utils.isHexColorLiteral] so the writer
+/// and the config model classify colors identically.
+bool isHexColorLiteral(String value) => utils.isHexColorLiteral(value);
 
 /// Returns true if the adaptive icon background should be treated as an
 /// image file (vs a hex color literal). Anything that isn't a hex color

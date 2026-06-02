@@ -374,6 +374,14 @@ If `adaptive_icon_foreground` is set but `adaptive_icon_background` is not, the 
 
 Foreground / monochrome sources must be **PNGs**. Vector drawables (`.xml`) are not supported and are rejected at config time.
 
+#### Editing an existing adaptive-icon XML in place
+
+If a flavor already ships its own `mipmap-anydpi-v26/<icon>.xml`, the tool **edits its background color in place** instead of overwriting the file — your authored `<shape>`, `<foreground>` and `<monochrome>` are preserved. The color applied is the first one found: `adaptive_icon_background` (when it's a hex) → general `background_color` (when it's a hex). How it lands depends on the existing `<background>`:
+
+- an inline literal — `<solid android:color="#…"/>` inside a `<shape>`, or `<background android:color="#…"/>` — is rewritten directly in the XML;
+- a `@color/ic_launcher_background` reference updates the value in `colors.xml`, leaving the XML untouched;
+- a `@drawable/…` (PNG) background is left untouched — an image background always wins over a color.
+
 #### Designing your adaptive foreground
 
 Adaptive icons are masked by each launcher (circle, squircle, teardrop, …). The visible region is only the **central 66 %** of the canvas — the outer 33 % is cropped.

@@ -62,6 +62,17 @@ Image letterBoxToSquare(Image image, Color backgroundColor) {
   return compositeImage(canvas, image, dstX: offsetX, dstY: offsetY);
 }
 
+/// Hex color literal regex. Accepts `#RGB`, `#RGBA`, `#RRGGBB`, `#AARRGGBB`,
+/// and the unhashed forms (lenient). Used to classify `adaptive_icon_*` /
+/// `background_color` values as either a color or a file path.
+final RegExp _hexColorLiteral = RegExp(r'^#?[0-9A-Fa-f]{3,8}$');
+
+/// True if the value is a hex color literal (any of the forms above).
+///
+/// Single source of truth shared by the Android writer and the config model
+/// so they classify colors identically.
+bool isHexColorLiteral(String value) => _hexColorLiteral.hasMatch(value);
+
 /// Parses a `#RRGGBB` or `#RRGGBBAA` (or unprefixed) hex string into a
 /// `ColorUint8`. Throws [InvalidConfigException] for malformed input.
 ///
