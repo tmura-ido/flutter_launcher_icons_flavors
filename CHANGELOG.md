@@ -1,8 +1,8 @@
 # Changelog
 
-## x.x.x (2026-06-02)
+## 1.1.2 (2026-06-04)
 
-android adaptive icon color edit on run
+- Android: adaptive icon background color edit on run.
 
 ## 1.1.1 (2026-05-26)
 

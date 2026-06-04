@@ -12,13 +12,12 @@ import 'package:test/test.dart';
 
 // Unit tests for main.dart
 void main() {
-  // Captured before any test body runs (and, when aggregated via
-  // test/all_tests.dart, before any *other* test mutates cwd). Used as
-  // the absolute anchor for the cwd-mutating "config file from args"
-  // group below — otherwise a leftover-poisoned cwd from a crashed
-  // earlier test would cause `setCurrentDirectory` to nest test dirs
-  // and `tearDown` to restore to the wrong place, breaking unrelated
-  // downstream tests with PathNotFoundException on pubspec.yaml.
+  // Anchor for the temp working dirs used by the "config file from args"
+  // group below. Captured once at suite-load time; the group feeds these
+  // dirs to the loader via `--prefix` and never mutates the process-global
+  // `Directory.current` (which is shared across concurrently-running test
+  // suites — mutating it here used to yank sibling suites into the wrong
+  // directory and fail them with flaky PathNotFoundExceptions).
   final String projectRoot = Directory.current.path;
 
   test('iOS icon list is correct size', () {
@@ -87,67 +86,80 @@ void main() {
       'config_file',
     );
 
-    Future<void> setCurrentDirectory(String path) async {
-      path = join(testDir, path);
-      await Directory(path).create(recursive: true);
-      Directory.current = path;
+    // Returns a fresh, absolute working dir. We pass this to the loader via
+    // `--prefix` instead of chdir-ing: `loadConfigFromPath` /
+    // `loadConfigFromPubSpec` already resolve every path under the prefix, so
+    // no `Directory.current` mutation is needed (and mutating it would flake
+    // sibling suites — see the note in main() above).
+    Future<String> workDir(String name) async {
+      final dir = Directory(join(testDir, name));
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
+      await dir.create(recursive: true);
+      return dir.path;
     }
 
-    tearDown(() {
-      Directory.current = projectRoot;
-    });
-
     test('default', () async {
-      await setCurrentDirectory('default');
-      await File('flutter_launcher_icons.yaml').writeAsString('''
+      final dir = await workDir('default');
+      await File(join(dir, 'flutter_launcher_icons.yaml')).writeAsString('''
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: "assets/icon.png"
 ''');
-      final ArgResults argResults = parser.parse(<String>[]);
+      final ArgResults argResults = parser.parse(<String>['-p', dir]);
       final Config? config = main_dart.loadConfigFileFromArgResults(argResults);
       expect(config, isNotNull);
       expect(config!.android.isEnabled, isTrue);
     });
     test('default_use_pubspec', () async {
-      await setCurrentDirectory('pubspec_only');
-      await File('pubspec.yaml').writeAsString('''
+      final dir = await workDir('pubspec_only');
+      await File(join(dir, 'pubspec.yaml')).writeAsString('''
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: "assets/icon.png"
 ''');
-      ArgResults argResults = parser.parse(<String>[]);
+      ArgResults argResults = parser.parse(<String>['-p', dir]);
       final Config? config = main_dart.loadConfigFileFromArgResults(argResults);
       expect(config, isNotNull);
       expect(config!.ios.isEnabled, isFalse);
 
       // read pubspec if provided file is not found
-      argResults = parser.parse(<String>['-f', defaultConfigFile]);
+      argResults = parser.parse(<String>['-p', dir, '-f', defaultConfigFile]);
       expect(main_dart.loadConfigFileFromArgResults(argResults), isNotNull);
     });
 
     test('custom', () async {
-      await setCurrentDirectory('custom');
-      await File('custom.yaml').writeAsString('''
+      final dir = await workDir('custom');
+      await File(join(dir, 'custom.yaml')).writeAsString('''
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon.png"
 ''');
-      // if no argument set, should fail
-      ArgResults argResults = parser.parse(<String>['-f', 'custom.yaml']);
+      // explicit --file resolves the custom config under the prefix
+      ArgResults argResults = parser.parse(<String>[
+        '-p',
+        dir,
+        '-f',
+        'custom.yaml',
+      ]);
       final Config? config = main_dart.loadConfigFileFromArgResults(argResults);
       expect(config, isNotNull);
       expect(config!.ios.isEnabled, isTrue);
 
-      // should fail if no argument
-      argResults = parser.parse(<String>[]);
+      // no --file: default lookup finds neither flutter_launcher_icons.yaml
+      // nor pubspec.yaml under the prefix, so it should fail
+      argResults = parser.parse(<String>['-p', dir]);
       expect(main_dart.loadConfigFileFromArgResults(argResults), isNull);
 
       // or missing file
-      argResults = parser.parse(<String>['-f', 'missing_custom.yaml']);
+      argResults = parser.parse(<String>[
+        '-p',
+        dir,
+        '-f',
+        'missing_custom.yaml',
+      ]);
       expect(main_dart.loadConfigFileFromArgResults(argResults), isNull);
     });
   });

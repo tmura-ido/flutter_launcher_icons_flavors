@@ -1,5 +1,7 @@
-# flutter launcher icons examples
+# flutter_launcher_icons_flavors examples
 
-- [default_example](https://github.com/fluttercommunity/flutter_launcher_icons/tree/master/example/default_example)
+- [default_example](https://github.com/tmura-ido/flutter_launcher_icons_flavors/tree/master/example/default_example) — single source icon, no flavors.
 
-- [flavors_example](https://github.com/fluttercommunity/flutter_launcher_icons/tree/master/example/flavors)
+- [flavors](https://github.com/tmura-ido/flutter_launcher_icons_flavors/tree/master/example/flavors) — legacy per-flavor `flutter_launcher_icons-<flavor>.yaml` layout.
+
+- [flavors_consolidated](https://github.com/tmura-ido/flutter_launcher_icons_flavors/tree/master/example/flavors_consolidated) — the consolidated `flutter_launcher_icons_flavors.yaml` config (recommended).

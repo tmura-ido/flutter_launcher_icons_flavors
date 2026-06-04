@@ -33,16 +33,19 @@ void main() {
     return (prefix, file);
   }
 
-  Config androidConfigWith(Map<String, dynamic> extra) => Config.fromJson(<String, dynamic>{
-    'image_path': 'assets/icon/icon.png',
-    'android': true,
-    'ios': false,
-    ...extra,
-  });
+  Config androidConfigWith(Map<String, dynamic> extra) =>
+      Config.fromJson(<String, dynamic>{
+        'image_path': 'assets/icon/icon.png',
+        'android': true,
+        'ios': false,
+        ...extra,
+      });
 
   group('createMipmapXmlFile edits an existing adaptive-icon XML in place', () {
-    test('inline <shape><solid> color is rewritten; structure preserved', () async {
-      const xml = '''
+    test(
+      'inline <shape><solid> color is rewritten; structure preserved',
+      () async {
+        const xml = '''
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background>
@@ -54,24 +57,25 @@ void main() {
     <monochrome android:drawable="@mipmap/ic_launcher_monochrome" />
 </adaptive-icon>
 ''';
-      final (prefix, file) = await seedAdaptiveXml(xml);
-      final config = androidConfigWith({'background_color': '#1f1d1e'});
+        final (prefix, file) = await seedAdaptiveXml(xml);
+        final config = androidConfigWith({'background_color': '#1f1d1e'});
 
-      await android.createMipmapXmlFile(
-        config,
-        null,
-        logger: logger,
-        prefixPath: prefix,
-      );
+        await android.createMipmapXmlFile(
+          config,
+          null,
+          logger: logger,
+          prefixPath: prefix,
+        );
 
-      final body = await file.readAsString();
-      expect(body, contains('<solid android:color="#1f1d1e" />'));
-      expect(body, isNot(contains('#FFFFFF')));
-      // Authored structure untouched.
-      expect(body, contains('android:shape="oval"'));
-      expect(body, contains('@mipmap/ic_launcher_foreground'));
-      expect(body, contains('@mipmap/ic_launcher_monochrome'));
-    });
+        final body = await file.readAsString();
+        expect(body, contains('<solid android:color="#1f1d1e" />'));
+        expect(body, isNot(contains('#FFFFFF')));
+        // Authored structure untouched.
+        expect(body, contains('android:shape="oval"'));
+        expect(body, contains('@mipmap/ic_launcher_foreground'));
+        expect(body, contains('@mipmap/ic_launcher_monochrome'));
+      },
+    );
 
     test('direct <background android:color> literal is rewritten', () async {
       const xml = '''
@@ -96,8 +100,10 @@ void main() {
       expect(body, isNot(contains('#FFFFFF')));
     });
 
-    test('adaptive_icon_background hex wins over general background_color', () async {
-      const xml = '''
+    test(
+      'adaptive_icon_background hex wins over general background_color',
+      () async {
+        const xml = '''
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background>
@@ -107,23 +113,24 @@ void main() {
     </background>
 </adaptive-icon>
 ''';
-      final (prefix, file) = await seedAdaptiveXml(xml);
-      final config = androidConfigWith({
-        'adaptive_icon_foreground': 'assets/icon/fg.png',
-        'adaptive_icon_background': '#0175C2',
-        'background_color': '#1f1d1e',
-      });
+        final (prefix, file) = await seedAdaptiveXml(xml);
+        final config = androidConfigWith({
+          'adaptive_icon_foreground': 'assets/icon/fg.png',
+          'adaptive_icon_background': '#0175C2',
+          'background_color': '#1f1d1e',
+        });
 
-      await android.createMipmapXmlFile(
-        config,
-        null,
-        logger: logger,
-        prefixPath: prefix,
-      );
+        await android.createMipmapXmlFile(
+          config,
+          null,
+          logger: logger,
+          prefixPath: prefix,
+        );
 
-      final body = await file.readAsString();
-      expect(body, contains('android:color="#0175C2"'));
-    });
+        final body = await file.readAsString();
+        expect(body, contains('android:color="#0175C2"'));
+      },
+    );
 
     test('@color reference updates colors.xml, leaves XML untouched', () async {
       const xml = '''
@@ -209,13 +216,16 @@ void main() {
       expect(config.resolvedAdaptiveBackgroundColor, '#0175C2');
     });
 
-    test('falls back to general background_color when adaptive is not a hex', () {
-      final config = androidConfigWith({
-        'adaptive_icon_background': 'assets/icon/bg.png',
-        'background_color': '#1f1d1e',
-      });
-      expect(config.resolvedAdaptiveBackgroundColor, '#1f1d1e');
-    });
+    test(
+      'falls back to general background_color when adaptive is not a hex',
+      () {
+        final config = androidConfigWith({
+          'adaptive_icon_background': 'assets/icon/bg.png',
+          'background_color': '#1f1d1e',
+        });
+        expect(config.resolvedAdaptiveBackgroundColor, '#1f1d1e');
+      },
+    );
 
     test('uses general background_color when adaptive is unset', () {
       final config = androidConfigWith({'background_color': '#1f1d1e'});
