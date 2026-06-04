@@ -2,7 +2,7 @@
 
 [![pub version](https://img.shields.io/pub/v/flutter_launcher_icons_flavors.svg)](https://pub.dev/packages/flutter_launcher_icons_flavors)
 [![pub points](https://img.shields.io/pub/points/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors/score)
-[![popularity](https://img.shields.io/pub/popularity/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors/score)
+[![pub downloads](https://img.shields.io/pub/dm/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors)
 [![likes](https://img.shields.io/pub/likes/flutter_launcher_icons_flavors)](https://pub.dev/packages/flutter_launcher_icons_flavors/score)
 [![CI](https://github.com/tmura-ido/flutter_launcher_icons_flavors/actions/workflows/ci.yml/badge.svg)](https://github.com/tmura-ido/flutter_launcher_icons_flavors/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
