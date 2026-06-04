@@ -989,8 +989,12 @@ ColorUint8 _getBackgroundColor(Config config) {
   return _hexToColor(Config.defaultBackgroundColorIOS);
 }
 
-bool _isHexColorLiteral(String value) =>
-    RegExp(r'^#?[0-9A-Fa-f]{3,8}$').hasMatch(value);
+// Delegate to the shared classifier (utils' "single source of truth") so iOS
+// agrees with the Android writer and the config model on what a color is, and
+// so the same {3,4,6,8} length rule that keeps classification in sync with
+// parseHexColor applies here too — a previously duplicated {3,8} regex let
+// 5-/7-digit values classify as colors and then throw in parseHexColor.
+bool _isHexColorLiteral(String value) => isHexColorLiteral(value);
 
 ColorUint8 _hexToColor(String value) => parseHexColor(value);
 

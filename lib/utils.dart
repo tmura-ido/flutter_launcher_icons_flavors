@@ -62,31 +62,61 @@ Image letterBoxToSquare(Image image, Color backgroundColor) {
   return compositeImage(canvas, image, dstX: offsetX, dstY: offsetY);
 }
 
-/// Hex color literal regex. Accepts `#RGB`, `#RGBA`, `#RRGGBB`, `#AARRGGBB`,
-/// and the unhashed forms (lenient). Used to classify `adaptive_icon_*` /
-/// `background_color` values as either a color or a file path.
-final RegExp _hexColorLiteral = RegExp(r'^#?[0-9A-Fa-f]{3,8}$');
+/// Hex color literal regex. Matches exactly the lengths [parseHexColor] can
+/// read — `#RGB` (3), `#RGBA` (4), `#RRGGBB` (6), `#AARRGGBB` (8), and the
+/// unhashed forms — and nothing else. 5- and 7-digit strings are deliberately
+/// excluded: they have no valid color interpretation, and classifying them as
+/// colors let them pass validation and then crash in [parseHexColor] at render
+/// time. Used to classify `adaptive_icon_*` / `background_color` values as
+/// either a color or a file path.
+final RegExp _hexColorLiteral =
+    RegExp(r'^#?(?:[0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$');
 
 /// True if the value is a hex color literal (any of the forms above).
 ///
-/// Single source of truth shared by the Android writer and the config model
-/// so they classify colors identically.
+/// Single source of truth shared by the Android writer, the iOS writer, and
+/// the config model so they classify colors identically.
 bool isHexColorLiteral(String value) => _hexColorLiteral.hasMatch(value);
 
-/// Parses a `#RRGGBB` or `#RRGGBBAA` (or unprefixed) hex string into a
-/// `ColorUint8`. Throws [InvalidConfigException] for malformed input.
+/// Parses a hex color string into a `ColorUint8`. Accepts exactly what
+/// [isHexColorLiteral] classifies as a color — `#RGB`, `#RGBA`, `#RRGGBB`,
+/// `#AARRGGBB`, and the unprefixed variants — so a value that passes
+/// classification always parses here (closing the "valid color that then
+/// crashes at render time" gap). The 3-/4-digit shorthands are expanded by
+/// doubling each nibble (`#abc` → `#aabbcc`); like the long `#AARRGGBB` form,
+/// the 4-digit shorthand is alpha-first (`#ARGB`).
+///
+/// Throws [InvalidConfigException] for malformed input — off lengths
+/// (1, 2, 5, 7, 9+ digits) and non-hex digits at a valid length (`#gggggg`).
 ///
 /// Single source of truth for hex → color conversion across platform
 /// writers (iOS background, web background, Android adaptive background).
 ColorUint8 parseHexColor(String value) {
-  final hex = value.startsWith('#') ? value.substring(1) : value;
+  final raw = value.startsWith('#') ? value.substring(1) : value;
+  // Expand CSS-style shorthand so the 3-/4-digit forms isHexColorLiteral
+  // accepts are parseable here: #RGB → #RRGGBB, #ARGB → #AARRGGBB (each
+  // nibble doubled). Doubling the 4-digit form keeps it alpha-first, so it
+  // shares the #AARRGGBB decode path below instead of needing its own.
+  final hex = (raw.length == 3 || raw.length == 4)
+      ? raw.split('').map((c) => '$c$c').join()
+      : raw;
   if (hex.length != 6 && hex.length != 8) {
     throw InvalidConfigException(
-      'background color hex must be 6 or 8 digits (e.g. "FFFFFF"), got '
-      '"$value"',
+      'background color hex must be 3, 4, 6, or 8 digits (e.g. "FFFFFF"), '
+      'got "$value"',
     );
   }
-  final byte = int.parse(hex, radix: 16);
+  final int byte;
+  try {
+    byte = int.parse(hex, radix: 16);
+  } on FormatException {
+    // Right length, but contains non-hex digits (e.g. "#gggggg"). The
+    // contract above promises InvalidConfigException, so translate the raw
+    // FormatException int.parse would otherwise surface to callers.
+    throw InvalidConfigException(
+      'background color hex must contain only 0-9/a-f digits, got "$value"',
+    );
+  }
   if (hex.length == 8) {
     return ColorUint8.rgba(
       (byte >> 16) & 0xff,

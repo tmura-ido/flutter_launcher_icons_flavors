@@ -166,11 +166,23 @@ void main() {
       expect(c.a, 0x80);
     });
 
+    test('expands #RGB / #RGBA shorthand by doubling each nibble', () {
+      // #abc → #aabbcc, fully opaque (the common CSS shorthand).
+      final rgb = utils.parseHexColor('#abc');
+      expect([rgb.r, rgb.g, rgb.b, rgb.a], [0xaa, 0xbb, 0xcc, 0xff]);
+      // The 4-digit form doubles to an 8-digit value decoded alpha-first
+      // (#ARGB), matching the long #AARRGGBB form: #8abc → 0x88aabbcc.
+      final argb = utils.parseHexColor('#8abc');
+      expect([argb.r, argb.g, argb.b, argb.a], [0xaa, 0xbb, 0xcc, 0x88]);
+    });
+
     test('throws InvalidConfigException on bad length', () {
+      // 5 digits — between the valid 4 and 6, no color interpretation.
       expect(
-        () => utils.parseHexColor('#ABC'),
+        () => utils.parseHexColor('#fffff'),
         throwsA(isA<InvalidConfigException>()),
       );
+      // 7 digits — between the valid 6 and 8.
       expect(
         () => utils.parseHexColor('#1234567'),
         throwsA(isA<InvalidConfigException>()),

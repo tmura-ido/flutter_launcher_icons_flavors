@@ -115,6 +115,26 @@ import 'macos/macos_icon_template_test.dart' as macos_template_test;
 import 'main_consolidated_flow_test.dart' as main_consolidated_flow_test;
 import 'main_imports_test.dart' as main_imports_test;
 import 'main_test.dart' as main_test;
+import 'permutations/adaptive_icon_matrix_test.dart' as perm_adaptive_icon_test;
+import 'permutations/boolean_options_matrix_test.dart'
+    as perm_boolean_options_test;
+import 'permutations/cli_flag_matrix_test.dart' as perm_cli_flag_test;
+import 'permutations/color_utils_matrix_test.dart' as perm_color_utils_test;
+import 'permutations/config_validation_matrix_test.dart'
+    as perm_config_validation_test;
+import 'permutations/deep_merge_matrix_test.dart' as perm_deep_merge_test;
+import 'permutations/hex_color_matrix_test.dart' as perm_hex_color_test;
+import 'permutations/ios_contents_spec_test.dart' as perm_ios_contents_test;
+import 'permutations/legacy_discovery_matrix_test.dart'
+    as perm_legacy_discovery_test;
+import 'permutations/platform_subconfig_keys_test.dart'
+    as perm_subconfig_keys_test;
+import 'permutations/platform_toggle_matrix_test.dart'
+    as perm_platform_toggle_test;
+import 'permutations/serialization_roundtrip_test.dart' as perm_roundtrip_test;
+import 'permutations/template_geometry_test.dart' as perm_geometry_test;
+import 'permutations/yaml_convert_matrix_test.dart' as perm_yaml_convert_test;
+import 'permutations/yaml_emit_matrix_test.dart' as perm_yaml_emit_test;
 import 'utils/decode_image_file_test.dart' as decode_image_file_test;
 import 'utils/no_double_prefix_test.dart' as no_double_prefix_test;
 import 'utils/path_join_test.dart' as path_join_test;
@@ -157,6 +177,22 @@ void main() {
     continue_on_error_test.main();
     squish_prompt_test.main();
     unknown_args_test.main();
+    // permutations (option-permutation matrices)
+    perm_config_validation_test.main();
+    perm_adaptive_icon_test.main();
+    perm_subconfig_keys_test.main();
+    perm_boolean_options_test.main();
+    perm_cli_flag_test.main();
+    perm_hex_color_test.main();
+    perm_geometry_test.main();
+    perm_ios_contents_test.main();
+    perm_roundtrip_test.main();
+    perm_platform_toggle_test.main();
+    perm_deep_merge_test.main();
+    perm_color_utils_test.main();
+    perm_yaml_convert_test.main();
+    perm_yaml_emit_test.main();
+    perm_legacy_discovery_test.main();
     // utils (Phase 1)
     path_join_test.main();
     decode_image_file_test.main();

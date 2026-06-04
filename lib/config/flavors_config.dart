@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:checked_yaml/checked_yaml.dart' as yaml;
 import 'package:flutter_launcher_icons_flavors/config/config.dart';
 import 'package:flutter_launcher_icons_flavors/config/flavors_file.dart';
+import 'package:flutter_launcher_icons_flavors/config/macos_config.dart';
 import 'package:flutter_launcher_icons_flavors/config/merge.dart';
 import 'package:flutter_launcher_icons_flavors/config/partial_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/web_config.dart';
+import 'package:flutter_launcher_icons_flavors/config/windows_config.dart';
 import 'package:flutter_launcher_icons_flavors/constants.dart' as constants;
 import 'package:flutter_launcher_icons_flavors/custom_exceptions.dart';
 import 'package:flutter_launcher_icons_flavors/logger.dart';
@@ -301,15 +304,34 @@ class FlavorsConfig {
     // over the raw map is unnecessary and was removed as dead code.
   }
 
-  /// Allowed key sets for nested platform-config blocks. Mirrors the
-  /// `@JsonKey(name: ...)` annotations on `WebConfig` / `WindowsConfig`
-  /// / `MacOSConfig`. Kept in sync manually — small surface, rarely
-  /// changes; if these classes grow new keys, update here too.
-  static const Map<String, Set<String>> _allowedNestedKeys = {
-    'web': {'generate', 'image_path', 'background_color', 'theme_color'},
-    'windows': {'generate', 'image_path', 'icon_size'},
-    'macos': {'generate', 'image_path'},
+  /// Allowed key sets for the nested platform-config blocks, derived
+  /// directly from each platform config class instead of being
+  /// hand-maintained — so the allow-list can never drift from the schema
+  /// the single-config path actually accepts.
+  ///
+  /// Each class's generated `toJson()` emits every `@JsonKey` name
+  /// unconditionally (null-valued fields included), so a
+  /// default-constructed instance enumerates the platform's full key
+  /// surface. When a config class gains or renames a key, it flows
+  /// through here on the next build with no manual edit. This is the
+  /// invariant pinned by
+  /// `test/permutations/platform_subconfig_keys_test.dart`.
+  ///
+  /// `linux` is intentionally absent: like the single-config path, the
+  /// consolidated loader leaves `linux` blocks unchecked (the "control
+  /// group" in that same test). Adding `LinuxConfig` here would start
+  /// validating them.
+  static final Map<String, Set<String>> _allowedNestedKeys = {
+    'web': _platformKeys(const WebConfig().toJson()),
+    'windows': _platformKeys(const WindowsConfig().toJson()),
+    'macos': _platformKeys(const MacOSConfig().toJson()),
   };
+
+  /// Collects the serialized key names of a platform config's `toJson()`
+  /// map as a `Set<String>`. (`WindowsConfig.toJson()` is typed as a bare
+  /// `Map`, so keys are normalized to `String`.)
+  static Set<String> _platformKeys(Map json) =>
+      json.keys.map((k) => k.toString()).toSet();
 
   /// Rejects unknown keys inside the `web` / `windows` / `macos` blocks
   /// of [block] (a raw YAML map representing either `defaults` or a

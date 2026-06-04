@@ -24,9 +24,15 @@ class ColorUtils {
     if (color.a == 255) {
       return color; // Already opaque
     }
-    final backgroundColor = background ?? ColorUint8.rgb(255, 255, 255);
+    var backgroundColor = background ?? ColorUint8.rgb(255, 255, 255);
     if (backgroundColor.a != 255) {
-      backgroundColor[3] = 255; // Force background to be opaque
+      // Build a fresh opaque background instead of mutating the caller's color.
+      backgroundColor = ColorUint8.rgba(
+        backgroundColor.r.toInt(),
+        backgroundColor.g.toInt(),
+        backgroundColor.b.toInt(),
+        255,
+      );
     }
     return blendColorsThroughForegroundAlpha(color, backgroundColor);
   }

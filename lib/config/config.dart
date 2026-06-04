@@ -19,7 +19,12 @@ import 'package:path/path.dart' as path;
 part 'config.g.dart';
 
 /// A model representing the flutter_launcher_icons configuration
-@JsonSerializable(anyMap: true, checked: true, createFactory: false)
+@JsonSerializable(
+  anyMap: true,
+  checked: true,
+  createFactory: false,
+  explicitToJson: true,
+)
 class Config {
   /// Default value for `adaptive_icon_foreground_inset`.
   static const int defaultAdaptiveIconForegroundInset = 16;
@@ -477,6 +482,7 @@ class Config {
       Config.fromPartial(PartialConfig.fromJson(json));
 
   /// whether or not there is configuration for adaptive icons for android
+  @JsonKey(includeToJson: false)
   bool get hasAndroidAdaptiveConfig =>
       hasAndroidConfig &&
       adaptiveIconForeground != null &&
@@ -504,11 +510,13 @@ class Config {
   }
 
   /// whether or not there is configuration for monochrome icons for android
+  @JsonKey(includeToJson: false)
   bool get hasAndroidAdaptiveMonochromeConfig {
     return hasAndroidConfig && adaptiveIconMonochrome != null;
   }
 
   /// Checks if contains any platform config
+  @JsonKey(includeToJson: false)
   bool get hasPlatformConfig {
     return ios.isEnabled ||
         android.isEnabled ||
@@ -518,38 +526,47 @@ class Config {
   }
 
   /// Whether or not configuration for generating Web icons exist
+  @JsonKey(includeToJson: false)
   bool get hasWebConfig => webConfig != null;
 
   /// Whether or not configuration for generating Windows icons exist
+  @JsonKey(includeToJson: false)
   bool get hasWindowsConfig => windowsConfig != null;
 
   /// Whether or not configuration for generating MacOS icons exists
+  @JsonKey(includeToJson: false)
   bool get hasMacOSConfig => macOSConfig != null;
 
   /// Check to see if specified Android config is a string or bool
   /// String - Generate new launcher icon with the string specified
   /// bool - override the default flutter project icon
+  @JsonKey(includeToJson: false)
   bool get isCustomAndroidFile => android.isCustom;
 
   /// Custom Android icon name when [isCustomAndroidFile] is true.
   ///
   /// Returns an empty string when not custom (callers should gate on
   /// [isCustomAndroidFile] first).
+  @JsonKey(includeToJson: false)
   String get androidIconName => android.customIconName ?? '';
 
   /// Custom iOS icon name when the user supplied a string for `ios:`.
   ///
   /// Returns an empty string when not custom (callers should gate on
   /// [isCustomIOSFile] first).
+  @JsonKey(includeToJson: false)
   String get iosIconName => ios.customIconName ?? '';
 
   /// Whether the user supplied a custom string for `ios:`.
+  @JsonKey(includeToJson: false)
   bool get isCustomIOSFile => ios.isCustom;
 
   /// if we are needing a new Android icon
+  @JsonKey(includeToJson: false)
   bool get hasAndroidConfig => android.isEnabled;
 
   /// if we are needing a new iOS icon
+  @JsonKey(includeToJson: false)
   bool get hasIOSConfig => ios.isEnabled;
 
   /// Method for the retrieval of the Android icon path
